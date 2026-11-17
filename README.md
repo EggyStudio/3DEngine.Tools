@@ -34,8 +34,14 @@ runs it with its path and its name, and with a list of the pictures sent on the 
 one, which needs Pillow to save them as WebP.
 
 ```bash
-python3 -I scripts/devlog.py <repo path> <Name> [sent-pictures.json]
+python3 -I scripts/devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>]
 ```
+
+`--fixes` names a JSON file kept outside the repositories, an object whose `pairs` are a pattern and
+its replacement each, applied in turn to every caption and title, whose `patterns` give by a
+repository's name the pattern its STYLE.md adds to the check, and whose `undated` is the day a sent
+picture with no date is put on. With none given it rewrites nothing, adds no pattern and stops at a
+sent picture with no date, naming it.
 
 It prints the days, pictures and items it wrote, and any line that breaks STYLE.md's mechanical
 rules.
@@ -44,7 +50,7 @@ rules.
 
 `scripts/run.py` reads a GitHub Actions run through `gh api`, so the login `gh` holds serves. It
 prints the run's jobs with their conclusions and times and, for each job that failed, timed out or
-was cancelled, the step it stopped at and the annotations of its check run. The last 60 lines of
+was canceled, the step it stopped at and the annotations of its check run. The last 60 lines of
 that step go to a file in the folder given, whose path it prints, and never to the terminal.
 
 ```bash

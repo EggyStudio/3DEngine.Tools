@@ -1,15 +1,17 @@
 import subprocess, re, json, sys, os, textwrap
-repo, name, sent_json = sys.argv[1], sys.argv[2], (sys.argv[3] if len(sys.argv) > 3 else None)
+# --fixes names a file of the caption rewrites, the pattern each repository's STYLE.md adds to the
+# check by its name, and the day an undated sent picture is put on, which no repository holds.
+args, fixes = sys.argv[1:], {}
+if "--fixes" in args:
+    at = args.index("--fixes"); fixes = json.load(open(args[at + 1])); del args[at:at + 2]
+repo, name, sent_json = args[0], args[1], (args[2] if len(args) > 2 else None)
 PIC_DIRS = [d for d in (".github/devlog", ".github/assets/readings") if os.path.isdir(os.path.join(repo, d))]
 pic_dir = os.path.join(repo, PIC_DIRS[0]) if PIC_DIRS else os.path.join(repo, ".github", "devlog")
 def git(*a): return subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True).stdout
 fl = lambda s: " ".join(l.strip() for l in s.split("\n"))
-BAD = re.compile(r"—|–|\bjust\b|\bsimply\b|\bwants?\b| now |\bnow\.|\bowner\b|[a-z\)`]: [a-z]" + (r"|\bdriv(e|en|es|ing)\b|glowing|gives? off" if name == "Voxel-Sandbox" else ""))
-FIX = [(r", Blockout unless the owner names it otherwise", ", Blockout"), (r"the radiance cascades' faults the owner sees in the voxel game", "the radiance cascades' faults seen in the voxel game"),
- (r"What the owner saw on 2026-10-10 \(Decision 27\), before item 3's remainder\.", "Four things seen in the voxel game on 2026-10-10 (Decision 27), before item 3's remainder."),
- (r"compared for the owner's choice", "compared for the choice"), (r"the modpack's shader settings the owner set", "the modpack's shader settings as chosen"),
- (r"they are boards now\.", "they became boards after."), (r"Glass under Bare Bones now: the streaks are gone and panes", "Glass under Bare Bones, the streaks gone, where panes"),
- (r" Which saturation do you want\?$", ""), (r", not committed yet", ""), (r"colour", "color"), (r"for want of", "lacking"), (r", for the owner to choose\.", ", the choice open."), (r"the shadow now the ground darker", "the shadow then the ground darker"), (r"whose arrows, now entities", "whose arrows, since then entities"), (r"as raylib's does now\.", "as raylib's does."), (r"so the march now runs only by", "so the march runs only by"), (r"are drawn now that the bridge builds them", "are drawn since the bridge builds them"), (r"by the reviewer's call, open to\s+the owner's word, since", "by the reviewer's call, since"), (r"The README's words under the header are the owner's\.", "The README's words under the header, as given.")]
+extra = fixes.get("patterns", {}).get(name)
+BAD = re.compile(r"—|–|\bjust\b|\bsimply\b|\bwants?\b| now |\bnow\.|\bowner\b|[a-z\)`]: [a-z]" + (f"|{extra}" if extra else ""))
+FIX = [tuple(pair) for pair in fixes.get("pairs", [])]
 def fix(s):
     for a, b in FIX: s = re.sub(a, b, s)
     return s
@@ -29,7 +31,8 @@ if sent_json:
     from PIL import Image
     os.makedirs(pic_dir, exist_ok=True)
     for r in json.load(open(sent_json)):
-        d = r["ts"][:10] or "2026-10-20"; cap = fix(r["caption"])
+        d = r["ts"][:10] or fixes.get("undated") or sys.exit(f"A sent picture has no date and no day for one is given: {r['files']}")
+        cap = fix(r["caption"])
         for src in r["files"]:
             if not os.path.exists(src): continue
             if os.path.abspath(src).startswith(os.path.abspath(repo) + os.sep):

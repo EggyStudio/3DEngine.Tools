@@ -1,5 +1,5 @@
 # Reads a GitHub Actions run, its jobs with their conclusions and times and, for each job that failed,
-# timed out or was cancelled, the annotations of its check run and the last 60 lines of the step it
+# timed out or was canceled, the annotations of its check run and the last 60 lines of the step it
 # stopped at. The lines go to a file whose path is printed, never to the terminal, since a job's log
 # runs to thousands of lines and the end of one step is the part read.
 #
