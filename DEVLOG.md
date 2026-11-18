@@ -19,6 +19,13 @@ Landscape's sheet of its every-step bench drawn again by chart.py from the table
 the time a point and the bytes a point of each stage at four sizes as bars by group, the same values
 and order as the sheet its session drew by a script of its own.
 
+![](.github/assets/readings/2026-11-18-chart-daylight.webp)
+Sky's sheet of the sun's light and the day's by the sun's height drawn again by chart.py from the
+six heights of the table in Sky's Reply alone, the light in thousands of lux and the colors in
+kelvin with daylight's 5,500 to 6,500 K shaded, each label clear of its line, where the module's own
+sheet drew every degree and a series of the molecules at the primaries' wavelengths that the table
+does not hold.
+
 ## 2026-10-31
 
 Done that day

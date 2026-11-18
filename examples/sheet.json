@@ -1,0 +1,24 @@
+{
+  "font": 15,
+  "size": [320, 180],
+  "columns": ["the frame", "the reference", "the frame less the reference"],
+  "rows": [
+    {
+      "title": "A frame brighter about its sun than its reference",
+      "panels": [
+        {
+          "image": "frame.png",
+          "boxes": [[190, 30, 250, 90]]
+        },
+        {
+          "image": "reference.png",
+          "boxes": [[190, 30, 250, 90]]
+        },
+        {
+          "signed": ["frame.png", "reference.png"],
+          "share": 0.15
+        }
+      ]
+    }
+  ]
+}

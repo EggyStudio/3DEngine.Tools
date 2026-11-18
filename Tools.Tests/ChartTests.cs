@@ -99,6 +99,129 @@ public partial class ChartTests
     }
 
     [NeedsPillowFact]
+    public void A_Label_Stands_On_The_Side_Of_Its_Line_The_Layout_Gives()
+    {
+        var layout = new
+        {
+            width = 800, panel_height = 400, font = 16,
+            panels = new object[]
+            {
+                new
+                {
+                    kind = "line",
+                    x = new { min = 0, max = 10, ticks = new[] { 0, 10 } },
+                    y = new { min = 0, max = 10, ticks = new[] { 0, 10 } },
+                    series = new object[]
+                    {
+                        new { label = "above it", color = "#ff0000", points = new[] { new[] { 0.0, 7 }, new[] { 10.0, 7 } }, label_at = 2 },
+                        new { label = "below it", color = "#0000ff", points = new[] { new[] { 0.0, 3 }, new[] { 10.0, 3 } }, label_at = 2, label_side = "below" },
+                    },
+                },
+            },
+        };
+        var folder = Directory.CreateTempSubdirectory("chart-").FullName;
+        try
+        {
+            File.WriteAllText(Path.Combine(folder, "layout.json"), JsonSerializer.Serialize(layout));
+            var lines = Programs.Lines(Programs.Script("chart.py", Path.Combine(folder, "layout.json"), Path.Combine(folder, "sheet.ppm")));
+            var sheet = Picture.Read(Path.Combine(folder, "sheet.ppm"));
+            var plot = Plot(lines, 1);
+            int Ink(int y0, int y1) => sheet.Dark(plot.X(2), y0, plot.X(5), y1);
+
+            Assert.True(Ink(plot.Y(7) - 30, plot.Y(7) - 4) > 30, "the label above its line is not drawn above it");
+            Assert.True(Ink(plot.Y(3) + 4, plot.Y(3) + 30) > 30, "the label below its line is not drawn below it");
+            Assert.True(Ink(plot.Y(3) - 30, plot.Y(3) - 4) < 5, "the label below its line is drawn above it");
+        }
+        finally
+        {
+            Directory.Delete(folder, true);
+        }
+    }
+
+    [NeedsPillowFact]
+    public void A_Label_Over_A_Rising_Line_Stands_Clear_Of_It_Across_Its_Width()
+    {
+        var layout = new
+        {
+            width = 800, panel_height = 400, font = 16,
+            panels = new object[]
+            {
+                new
+                {
+                    kind = "line",
+                    x = new { min = 0, max = 10, ticks = new[] { 0, 10 } },
+                    y = new { min = 0, max = 10, ticks = new[] { 0, 10 } },
+                    series = new object[] { new { label = "a label of some width", color = "#ff0000", points = new[] { new[] { 0.0, 0 }, new[] { 10.0, 10 } }, label_at = 2 } },
+                },
+            },
+        };
+        var folder = Directory.CreateTempSubdirectory("chart-").FullName;
+        try
+        {
+            File.WriteAllText(Path.Combine(folder, "layout.json"), JsonSerializer.Serialize(layout));
+            var lines = Programs.Lines(Programs.Script("chart.py", Path.Combine(folder, "layout.json"), Path.Combine(folder, "sheet.ppm")));
+            var sheet = Picture.Read(Path.Combine(folder, "sheet.ppm"));
+            var plot = Plot(lines, 1);
+
+            // The label's ink below the line, in the plot from where it starts to the plot's end.
+            int under = 0, over = 0;
+            for (int x = plot.X(2); x < plot.Left + plot.Width; x++)
+                for (int y = plot.Top; y < plot.Top + plot.Height; y++)
+                {
+                    var line = plot.Y(10.0 * (x - plot.Left) / plot.Width);
+                    if (sheet.At(x, y) is not (24, 24, 24)) continue;
+                    if (y > line + 2) under++;
+                    else over++;
+                }
+
+            Assert.True(over > 30, "the label is not drawn");
+            Assert.Equal(0, under);
+        }
+        finally
+        {
+            Directory.Delete(folder, true);
+        }
+    }
+
+    [NeedsPillowFact]
+    public void An_Axis_Given_Its_Range_Draws_No_Tick_Outside_It()
+    {
+        var layout = new
+        {
+            width = 800, panel_height = 400, font = 16,
+            panels = new object[]
+            {
+                new
+                {
+                    // A title and a subtitle of a letter set the plot low enough for the stray tick
+                    // to fall on the sheet, and stand clear of the margin read.
+                    kind = "line", title = "T", subtitle = "s",
+                    x = new { min = 0, max = 10 },
+                    y = new { min = 20, max = 90 },
+                    series = new object[] { new { color = "#ff0000", points = new[] { new[] { 0.0, 30 }, new[] { 10.0, 80 } } } },
+                },
+            },
+        };
+        var folder = Directory.CreateTempSubdirectory("chart-").FullName;
+        try
+        {
+            File.WriteAllText(Path.Combine(folder, "layout.json"), JsonSerializer.Serialize(layout));
+            var lines = Programs.Lines(Programs.Script("chart.py", Path.Combine(folder, "layout.json"), Path.Combine(folder, "sheet.ppm")));
+            var sheet = Picture.Read(Path.Combine(folder, "sheet.ppm"));
+            var plot = Plot(lines, 1);
+
+            // The round ticks of 20 to 90 run on to 100, which lies above the plot, where this
+            // layout draws nothing else.
+            Assert.Equal(0, sheet.Dark(plot.Left - 40, plot.Top - 60, plot.Left - 4, plot.Top - 8));
+            Assert.True(sheet.Dark(plot.Left - 40, plot.Y(80) - 10, plot.Left - 4, plot.Y(80) + 10) > 10, "the tick at 80 is not drawn");
+        }
+        finally
+        {
+            Directory.Delete(folder, true);
+        }
+    }
+
+    [NeedsPillowFact]
     public void A_Panel_Of_Another_Kind_Is_Refused_By_Name()
     {
         var folder = Directory.CreateTempSubdirectory("chart-").FullName;

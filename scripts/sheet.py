@@ -86,7 +86,7 @@ def read(path):
         return read_pfm(path)
     image = Image.open(path).convert("RGB")
     table = [decode(i / 255) for i in range(256)]
-    return Picture([channel(image.size, array("f", (table[v] for v in band.getdata()))) for band in image.split()])
+    return Picture([channel(image.size, array("f", (table[v] for v in band.tobytes()))) for band in image.split()])
 
 
 def read_pfm(path):

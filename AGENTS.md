@@ -37,6 +37,7 @@ runs the tests on Linux, Windows and macOS on every push (NORM.md, N 6.1 and N 6
 | `Tools` | The library, `Tools.csproj` |
 | `Tools.Tests` | The xunit tests of the library |
 | `scripts` | The scripts the repositories run, `devlog.py`, which writes a repository's DEVLOG.md, `run.py`, which reads a workflow run's jobs and the end of a failed one's log, `sheet.py`, which composes a sheet of pictures on a white ground, `chart.py`, which draws a sheet of data charts, `commitcheck.py`, which reads a commit against the form and the norm before it is reported, `hooks.py`, which installs a post-commit hook running that check, `status.py`, which prints a line a repository for the watch, `sweep.py`, which reads a whole tree by the same rules, `daily.py`, which writes one report of the sweeps of several repositories, `rewrap.py`, which rewraps the comment lines past 100 columns, and `rewrapcheck.py`, which proves the rewrap safe on a copy |
+| `examples` | The examples of chart.py and sheet.py, each layout beside the picture it draws, with a page for a reader new to both |
 | `build` | The version, `version.txt`'s major and minor set by hand and `version.sh`, which prints it with the patch counted from the history |
 
 ## Conventions

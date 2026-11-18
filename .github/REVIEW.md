@@ -908,3 +908,25 @@ first on Linux with Windows' own message, the one test of the suite to fail, as 
 fixture clones and commits through the one call that holds the setting off, and both runs pass.
 VariantTests reads git's setting as well, and the README names the third condition. The strict build
 is clean and the tests pass, 151 and one skipped plain and 152 in the variant.
+
+The second proof of the charts and the examples' page in the commit carrying this line. `491595f`'s
+run (44370541227) is green on the three systems. Sky's `2026-11-18-daylight-by-height.webp` is drawn
+again from the table of its Reply alone, the sun's, the IES clear sky's and all the light's lux and
+the sun's, the sky's and all the light's kelvin at six heights from 5 to 90 degrees, as
+`2026-11-18-chart-daylight.webp`, each series on its panel with daylight's 5,500 to 6,500 K shaded.
+The layout lacked three things the module's sheet has: every degree, where the table holds six
+heights, so the six are marked and joined; the series of all the light with the molecules at the
+primaries' wavelengths, which the table does not hold, so it is left out; and labels set clear of
+the other lines. Two faults of the writer that drawing found are mended, a test failing first each:
+a label stands above or below its line by `label_side` and clear of its own line across its width,
+where a label over a rising line crossed it, 97 of its pixels under the line; and an axis given its
+range draws no round tick past it, where 100 stood over the panel's title on an axis of 20 to 90.
+sheet.py reads a picture's bands by `tobytes` where `getdata` warned that Pillow 14 removes it.
+`examples` holds a page for a reader new to both scripts, two line charts, bars by group, a table
+beside a signed map, and captures with their difference and their boxes' readings, each with its
+picture, the command that draws it and its layout, of made-up values and naming nothing of these
+repositories, with the two pictures the captures' sheet composes. ExamplesTests draws every layout
+of the folder and holds the page to each layout's text word for word beside its picture, so the page
+and the files cannot part. The README links the page and AGENTS.md's table names the new folder (N
+1.5). The strict build is clean and the tests pass, 156 and one skipped plain and 157 in the
+variant.

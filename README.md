@@ -38,6 +38,9 @@ needs Pillow and nothing else, and names nothing of these repositories, so it st
 python3 -I scripts/chart.py <layout.json> <sheet.webp>
 ```
 
+[examples/README.md](examples/README.md) shows both scripts for a reader new to them, each layout beside
+the picture it draws.
+
 The layout's `title`, `subtitle` and `notes` are lines of text, `legend` a list of `label` and
 `color`, `columns` the grid's columns, `width` the sheet's width, `panel_height` a panel's height
 and `font` the type's size, and `panels` a list, each with a `kind`, a `title` and a `subtitle`. A

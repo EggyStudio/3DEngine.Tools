@@ -5,14 +5,14 @@
 #
 #   python3 -I scripts/chart.py <layout.json> <sheet.webp>
 #
-# A line chart's axes are linear or logarithmic, its series solid or dashed, each labeled at the
-# line where the layout says, its points marked where asked, and a band shaded between two values
-# with a label. Bars stand by group, a bar a series, the series in a legend. A table holds a header
-# and rows, a row bold where asked. A map shows a grid of signed values, red above zero and blue
-# below, full at the scale given and black at zero, so the least value stands out from its ground.
-# Each panel's place on the sheet is printed, and each chart's plot with its axes' ranges, so a
-# test or a note finds a value's pixel without knowing the spacing. The layout's keys are in the
-# README.
+# A line chart's axes are linear or logarithmic, its series solid or dashed, each labeled above or
+# below the line where the layout says, its points marked where asked, and a band shaded between two
+# values with a label. Bars stand by group, a bar a series, the series in a legend. A table holds a
+# header and rows, a row bold where asked. A map shows a grid of signed values, red above zero and
+# blue below, full at the scale given and black at zero, so the least value stands out from its
+# ground. Each panel's place on the sheet is printed, and each chart's plot with its axes' ranges,
+# so a test or a note finds a value's pixel without knowing the spacing. The layout's keys are in
+# the README.
 import json, math, os, sys
 from PIL import Image, ImageDraw, ImageFont
 
@@ -75,7 +75,19 @@ class Axis:
             self.ticks = spec.get("ticks") or nice(low, high)
             if "min" not in spec: low = min(low, self.ticks[0])
             if "max" not in spec: high = max(high, self.ticks[-1])
+        # A range the layout gives keeps a round tick past it off the axis, where it would stand
+        # over the panel's title.
+        span = (high - low) * 1e-9
+        self.ticks = [t for t in self.ticks if low - span <= t <= high + span]
         self.low, self.high, self.start, self.length, self.flip = low, high, start, length, flip
+
+    def value(self, pixel):
+        """The value at a pixel, the map at gives turned the other way."""
+        share = (pixel - self.start) / self.length
+        share = 1 - share if self.flip else share
+        if self.log:
+            return 10 ** (math.log10(self.low) + share * (math.log10(self.high) - math.log10(self.low)))
+        return self.low + share * (self.high - self.low)
 
     def at(self, value):
         if self.log:
@@ -204,7 +216,14 @@ class Sheet:
                 lx = s.get("label_at", x.low + 0.7 * (x.high - x.low) if not x.log else math.sqrt(x.low * x.high))
                 ly = self.value_at(s["points"], lx)
                 if ly is not None:
-                    draw.text((x.at(lx) + 4, y.at(ly) - self.small.size - 8), s["label"], fill=INK, font=self.small)
+                    # Above its line, or below it where another line runs just above, clear of
+                    # the line across the label's whole width, where a line that rises or falls
+                    # under the text would cross it.
+                    below = s.get("label_side") == "below"
+                    start, width = x.at(lx) + 4, self.width_of(draw, s["label"], self.small)
+                    heights = [y.at(v) for v in (self.value_at(s["points"], x.value(px)) for px in range(int(start), int(start + width) + 1)) if v is not None]
+                    edge = max(heights) if below else min(heights)
+                    draw.text((start, edge + 6 if below else edge - self.small.size - 8), s["label"], fill=INK, font=self.small)
 
     @staticmethod
     def value_at(points, at):
