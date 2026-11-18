@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace Tools.Tests.Samples;
 
-// Types the cheat sheet's tests read with the documentation the compiler writes for them, each a
+// Types the cheatsheet's tests read with the documentation the compiler writes for them, each a
 // form a module's library takes.
 
 /// <summary>A shape that has an area.</summary>

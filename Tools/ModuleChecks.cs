@@ -375,7 +375,7 @@ public static partial class ModuleChecks
     /// <param name="readme">The README's text.</param>
     public static string? LinkRowFault(string name, string readme)
     {
-        var row = $"[Devlog](https://github.com/EggyStudio/{name}/blob/main/DEVLOG.md) [Cheat sheet](https://github.com/EggyStudio/{name}/blob/main/CHEATSHEET.md)";
+        var row = $"[Devlog](https://github.com/EggyStudio/{name}/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/{name}/blob/main/CHEATSHEET.md)";
         var lines = readme.ReplaceLineEndings("\n").Split('\n');
         if (lines.Length >= 3 && lines[0] == row && lines[1].Length == 0 && lines[2] == $"# {name}")
             return null;

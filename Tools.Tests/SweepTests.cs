@@ -151,6 +151,22 @@ public class SweepTests
     }
 
     [NeedsPythonFact]
+    public void The_Cheatsheet_Written_As_Two_Words_Fails_On_Any_Line()
+    {
+        // The two words are joined here from parts, so this file holds them on no line.
+        string Split(string first) => first + "heat" + " sheet";
+        var (exit, printed) = Sweep(new()
+        {
+            ["README.md"] = $"# Sample\n\nThe {Split("c")} lists the types.\nThe cheatsheet is written.\n",
+            ["Sample/A.cs"] = $"class A {{ string Title = \"{Split("C")}\"; }}\n",
+        });
+
+        Assert.Equal(1, exit);
+        Assert.Contains("FAIL the cheatsheet written as two words, 2", Programs.Lines(printed));
+        Assert.DoesNotContain("README.md:4", printed);
+    }
+
+    [NeedsPythonFact]
     public void Where_No_Names_Are_Given_The_Sweep_Says_It_Did_Not_Read_For_Them()
     {
         var (exit, printed) = Sweep(new() { ["docs/thanks.md"] = $"Written for {MadeUpName}.\n" }, names: null);

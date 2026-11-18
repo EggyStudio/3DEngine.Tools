@@ -7,7 +7,7 @@
         <RootNamespace>Tools.Tests</RootNamespace>
     </PropertyGroup>
 
-    <!-- The tests' own documentation file, which the cheat sheet's tests read of the samples the
+    <!-- The tests' own documentation file, which the cheatsheet's tests read of the samples the
          compiler documents, where the tests are held to no summary of their own (STYLE.md). -->
     <PropertyGroup>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>

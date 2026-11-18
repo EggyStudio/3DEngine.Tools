@@ -698,7 +698,7 @@ DEVLOG.md is generated again, the sheet composer's picture on 2026-11-18 at its 
 session closes are the review's to mark done, and the devlog takes each on the day of its commit
 when they are. The strict build is clean and the tests pass, 120 where there were 119.
 
-The modules' cheat sheet in the commit carrying this line, the engines' form made once, with this
+The modules' cheatsheet in the commit carrying this line, the engines' form made once, with this
 repository's own page. `Cheatsheet.Write` writes a module's CHEATSHEET.md from its built library and
 documentation file, read by reflection where 3DEngine's writer reads the engine's source, every
 public type in the order the README first names it in code, the rest after by name, with its public
@@ -718,14 +718,14 @@ module adds beside its four once the review orders it; AGENTS.md's table of docu
 for the page, which waits on the owner's word (N 7.4). The strict build is clean and the tests pass,
 127 where there were 120.
 
-The cheat sheet's record constructors in the commit carrying this line, with AGENTS.md's row for
-CHEATSHEET.md, which the owner's word on the modules' cheat sheets allows. A record's constructor
+The cheatsheet's record constructors in the commit carrying this line, with AGENTS.md's row for
+CHEATSHEET.md, which the owner's word on the modules' cheatsheets allows. A record's constructor
 is documented by its type's summary, so its line repeated the type's word for word; a member whose
 summary is its type's carries no comment, and the type's line says it once. CheatsheetTests failed
 first on ShellForm's and ShellFinding's constructors, and this repository's page is written again
 with them bare. The strict build is clean and the tests pass, 128 where there were 127.
 
-The modules' findings on the cheat sheet in the commit carrying this line. A member documented by
+The modules' findings on the cheatsheet in the commit carrying this line. A member documented by
 `<inheritdoc/>` read as having no summary, as Modeling found of five; the writer takes the summary
 its `cref` names, or else the one of the member it overrides or the interface's it implements. A
 type's name carries its arity, `SceneFieldPlan`2`, which a README never writes, so `Unnamed` and
@@ -780,19 +780,19 @@ tests pass, 136 where there were 134.
 The README's list of what a module carries in the commit carrying this line, under its section
 Binding it in your engine: the submodule and the test project's items of `bc59c55`, then each of the
 six facts with the check it calls, the commit that gave it its form and the commits that changed
-what it reads after, `7d56e0f` for the four, `17860cb` for the cheat sheet with `3720852` and
+what it reads after, `7d56e0f` for the four, `17860cb` for the cheatsheet with `3720852` and
 `183e308` after, and `b817e9b` for the text, so a module pinned before a fact's commit knows it owes
 it; the products' list of `d1b04e5` stands below as a list and no fact. The hashes are read as
 ancestors of the head (git merge-base --is-ancestor). The strict build is clean and the 136 tests
 pass.
 
 The README's top row in the commit carrying this line, since two modules wrote a middle dot between
-their devlog's and cheat sheet's links and were stopped at the push. "What a module carries" says
+their devlog's and cheatsheet's links and were stopped at the push. "What a module carries" says
 the row's links are separated by a space, with the row as its example, and this README's row links
-the cheat sheet beside the devlog. The 136 tests pass.
+the cheatsheet beside the devlog. The 136 tests pass.
 
 The README's link row by the owner's word in the commit carrying this line. A module's README opens
-with its link row as its first line, above its title, `[Devlog](...)` and `[Cheat sheet](...)` on
+with its link row as its first line, above its title, `[Devlog](...)` and `[Cheatsheet](...)` on
 its repository separated by a space, then a blank line and `# <Name>`, as this README opens where
 its row stood below the title. "What a module carries" gives the form with the row as its example,
 where the note on the row stood, and the README's block of facts holds a fifth,
@@ -842,3 +842,15 @@ on the three systems). Ubuntu 24.04 refused `locale-gen en_US.ISO-8859-1` as no 
 made it by the name `en_US`, the fallback, the variant's run then passing 144 with its own test run;
 the step runs `sudo locale-gen en_US` alone, and the script's message and the README name the name
 Ubuntu takes. The tests pass plain and in the variant.
+
+The cheatsheet as one word by the owner's word in the commit carrying this line. `LinkRowFault`'s
+row is `[Devlog](...) [Cheatsheet](...)`, the writer's first page is titled `# 3DEngine.<Name>
+cheatsheet`, and this repository's own lines that wrote it as two words, 18 of them with its
+README's row, its sections, its page's title, two comments and this file's Replies, are written as
+one, git grep -n -i for the two words finding none. `line_faults` fails the two words on any line of
+any repository, code and prose alike, so the sweep reads every line for them and the commit's check
+fails an added one. The tests failed first, the link row's form, the first page's title, the sweep
+over a README and a C# string, and a commit's added string, the planted words joined from parts so
+the tests' own files hold them on no line. The README says it. The modules' rows and titles fail the
+link row's fact until they are written as one word. The strict build is clean and the tests pass,
+146 and one skipped plain and 147 in the variant.

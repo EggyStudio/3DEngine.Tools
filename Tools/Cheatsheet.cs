@@ -51,7 +51,7 @@ public static partial class Cheatsheet
         var block = List(library, documentation, readme);
         page = page.ReplaceLineEndings("\n");
         if (page.Trim().Length == 0)
-            return $"# {library.GetName().Name} cheat sheet\n\n"
+            return $"# {library.GetName().Name} cheatsheet\n\n"
                 + "Every public type of the library with its public members, each a line of its declaration and the first sentence\n"
                 + "of its summary. The list is written by `Cheatsheet.Write` from the built library, and the text around it by hand.\n\n"
                 + $"{Marker}\n```csharp\n{block}```\n";

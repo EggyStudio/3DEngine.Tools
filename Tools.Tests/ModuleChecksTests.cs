@@ -240,7 +240,7 @@ public class ModuleChecksTests
     [Fact]
     public void A_Readme_Opens_With_Its_Link_Row_Above_Its_Title()
     {
-        const string row = "[Devlog](https://github.com/EggyStudio/Sample/blob/main/DEVLOG.md) [Cheat sheet](https://github.com/EggyStudio/Sample/blob/main/CHEATSHEET.md)";
+        const string row = "[Devlog](https://github.com/EggyStudio/Sample/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/Sample/blob/main/CHEATSHEET.md)";
 
         Assert.Null(ModuleChecks.LinkRowFault("Sample", $"{row}\n\n# Sample\n\nA module.\n"));
         Assert.Null(ModuleChecks.LinkRowFault("Sample", $"{row}\r\n\r\n# Sample\r\n"));

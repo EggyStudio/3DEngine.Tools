@@ -170,6 +170,17 @@ public class CommitCheckTests
     }
 
     [NeedsPythonFact]
+    public void An_Added_Line_Writing_The_Cheatsheet_As_Two_Words_Fails_In_Any_Repository()
+    {
+        // The two words are joined here from parts, so this file holds them on no line.
+        var split = "Cheat" + " sheet";
+        var (code, printed) = Check(new() { ["Sample/A.cs"] = $"class A {{ string Title = \"{split}\"; }}\n" }, Lead + "A title is kept.\n");
+
+        Assert.Equal(1, code);
+        Assert.Contains($"FAIL Sample/A.cs:1: the cheatsheet written as two words, \"{split}\"", printed);
+    }
+
+    [NeedsPythonFact]
     public void A_Message_Without_The_Three_Marks_Fails()
     {
         var (code, printed) = Check(new() { ["a.txt"] = "a\n" }, "Add a file.\n\nA file holds a letter.\n");

@@ -47,6 +47,12 @@ public class CheatsheetTests
     }
 
     [Fact]
+    public void A_First_Page_Is_Titled_With_Cheatsheet_As_One_Word()
+    {
+        Assert.StartsWith("# 3DEngine.Tools cheatsheet\n", Cheatsheet.Write(Library, Readme, ""));
+    }
+
+    [Fact]
     public void A_Records_Constructor_Leaves_Out_The_Summary_Its_Type_Gives()
     {
         var lines = Block(Cheatsheet.Write(Library, Readme, ""));

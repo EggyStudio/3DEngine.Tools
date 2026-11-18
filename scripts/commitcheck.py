@@ -74,6 +74,7 @@ TEXT = re.compile(r"\.(cs|rs|slang|wgsl|py|sh|md|toml|yml|yaml|json|csproj|props
 C_FAMILY = re.compile(r"\.(cs|rs|slang|wgsl|glsl|hlsl)$")
 XML = re.compile(r"\.(csproj|props|targets|slnx|xml)$")
 COLUMNS = 100
+TWO_WORDS = re.compile(r"\bcheat\s+sheets?\b", re.I)
 # An engine's name or its API's prefix as a word, apart from the form 3DEngine.Name a module's
 # assembly and package take, which a module names nowhere else, and the files of a module read
 # for it, its own submodules and the review's and the norm's files apart.
@@ -110,6 +111,10 @@ def line_faults(path, text, in_xml):
     if path.startswith(".github/") and path.endswith(".md") or path == "DEVLOG.md":
         return faults, in_xml
     markdown = path.endswith(".md")
+    # The cheatsheet is one word on every line of every repository, code and prose alike.
+    split = TWO_WORDS.search(text)
+    if split:
+        faults.append(("FAIL", "the cheatsheet written as two words", f"the cheatsheet written as two words, \"{split.group(0)}\""))
     # An XML comment runs over lines until its close, and only an MSBuild or XML file has one,
     # so a line of code naming the mark in a string opens none.
     mark = comment_mark(path)

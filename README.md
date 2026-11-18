@@ -1,4 +1,4 @@
-[Devlog](https://github.com/EggyStudio/Tools/blob/main/DEVLOG.md) [Cheat sheet](https://github.com/EggyStudio/Tools/blob/main/CHEATSHEET.md)
+[Devlog](https://github.com/EggyStudio/Tools/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/Tools/blob/main/CHEATSHEET.md)
 
 # Tools
 
@@ -158,7 +158,7 @@ public void No_Tracked_Text_Names_An_Engine()
 }
 ```
 
-### A module's cheat sheet
+### A module's cheatsheet
 
 `Cheatsheet.Write` writes a module's CHEATSHEET.md from its built library and documentation file,
 every public type in the order the README first names it, with its public members a line each, the
@@ -171,7 +171,7 @@ documented by `<inheritdoc/>` takes the summary its `cref` names, or else the on
 overrides or the interface's it implements. A positional record needs a summary on its type and a
 `<param>` for each of its parameters, from which the build documents its properties and its
 constructor, whose line carries no comment since its type's says it, so no constructor is written
-out for the page. A module that keeps a cheat sheet adds this fact beside its five, and this
+out for the page. A module that keeps a cheatsheet adds this fact beside its five, and this
 repository's own page is [CHEATSHEET.md](CHEATSHEET.md).
 
 ```csharp
@@ -206,7 +206,7 @@ DEVLOG.md and CHEATSHEET.md on its repository separated by a space, then a blank
 as this README opens. `ModuleChecks.LinkRowFault` fails a README that opens otherwise.
 
 ```markdown
-[Devlog](https://github.com/EggyStudio/Tools/blob/main/DEVLOG.md) [Cheat sheet](https://github.com/EggyStudio/Tools/blob/main/CHEATSHEET.md)
+[Devlog](https://github.com/EggyStudio/Tools/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/Tools/blob/main/CHEATSHEET.md)
 
 # Tools
 ```
@@ -309,11 +309,12 @@ pattern can read, so a session runs it on its own commit before reporting it. Th
 three marks, a blank line and one sentence ending in a full stop, with no review's number, no tool's
 name, no colon inside it and no spaced hyphen; author and committer are the repository's identity; a
 merge fails. An added comment line runs to 100 columns at most, a line holding an address alone
-apart, and added prose holds no em or en dash, no middle dot and no British spelling. In a
-repository under `Modules` other than this one, an added line of a text file that names an engine
-outside the form `3DEngine.<Module>` fails, the module's own `modules/` and its review's and norm's
-files apart. A picture added under `.github/assets/readings` stands on a white ground and is saved
-smaller under `--thumbs` to be looked at, which needs Pillow.
+apart, and added prose holds no em or en dash, no middle dot and no British spelling. The cheatsheet
+written as two words fails on any added line of any repository, and the sweep reads every line for
+it. In a repository under `Modules` other than this one, an added line of a text file that names an
+engine outside the form `3DEngine.<Module>` fails, the module's own `modules/` and its review's and
+norm's files apart. A picture added under `.github/assets/readings` stands on a white ground and is
+saved smaller under `--thumbs` to be looked at, which needs Pillow.
 
 ```bash
 python3 -I scripts/commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>]
