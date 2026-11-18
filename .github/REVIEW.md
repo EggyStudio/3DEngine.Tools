@@ -212,3 +212,18 @@ white where black was read, and reads the title's line above the labels', the la
 panels and taller type for the title, three of the signed panel's corners black, and the white
 ground left of, right of and under every panel. The reading is composed again, AGENTS.md's scripts
 row names sheet.py, and the README says the layout. The strict build is clean and the 15 tests pass.
+
+The second commit above, the shell's forms, in the commit carrying this line. `ShellForms` holds
+BevyCSharp's ten forms with what reads in each one's place, `In` and `Code` for a line with its
+comment left out, `Find` over scripts given by their paths, `Scripts` for every `.sh` of a checkout
+less the folders a build fills and those a caller names, and `RunElsewhere` for the scripts the
+workflows' jobs on any system but Ubuntu name and those they name in turn, a matrix's job counted
+among them and a launcher with no `.sh` named by the caller, as `e3d` and `bcs` are. ShellFormsTests
+carries both engines' cases of every form, 24, reads a made checkout whose macOS job runs a script
+that runs another and a launcher while an Ubuntu job's script and one named in a comment stay out,
+and reads the module's own scripts, which gives N 6.6 its test here. Run over the engines at their
+heads, BevyCSharp's 33 scripts and the 2 its Windows and macOS jobs reach, and the 18 3DEngine's
+reach, hold no form, as their own tests have it; every script of 3DEngine, 95, holds 2, in
+`Voxel-Sandbox/build/fetch-slang.sh` and `Voxel-Sandbox/build/play.sh`, which its binding meets if
+it reads every script as BevyCSharp does. The strict build is clean and the tests pass, 41 where
+there were 15.

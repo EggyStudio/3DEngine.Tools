@@ -102,6 +102,19 @@ A box under `boxes` is given in the capture's own pixels and drawn on a capture'
 the mean luminance in linear light it reads there written at its corner. The script prints the
 place of each title, each row's labels and each panel on the sheet, and each box's reading.
 
+## The shell's forms
+
+`ShellForms` in the library reads a checkout's shell scripts for the forms only GNU's tools or bash
+4 read, such as `sed -i` with no suffix, which macOS's BSD `sed` reads as a script name, each with
+what reads alike on both systems in its place. A repository's test calls it with its root, over
+every script of the checkout or over those its workflows' Windows and macOS jobs run and the scripts
+they name in turn, and asserts it finds nothing.
+
+```csharp
+var found = ShellForms.Find(root, ShellForms.Scripts(root, "build/tools"));
+Assert.True(found.Count == 0, string.Join("\n", found));
+```
+
 ## Building and testing
 
 With the .NET 10 SDK:
