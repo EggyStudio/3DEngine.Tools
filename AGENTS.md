@@ -35,7 +35,7 @@ runs the tests on Linux, Windows and macOS on every push (NORM.md, N 6.1 and N 6
 | `.github` | The documents above but the README, and the build workflow |
 | `Tools` | The library, `Tools.csproj` |
 | `Tools.Tests` | The xunit tests of the library |
-| `scripts` | The scripts the repositories run, `devlog.py`, which writes a repository's DEVLOG.md, `run.py`, which reads a workflow run's jobs and the end of a failed one's log, `sheet.py`, which composes a sheet of pictures on a white ground, and `commitcheck.py`, which reads a commit against the form and the norm before it is reported |
+| `scripts` | The scripts the repositories run, `devlog.py`, which writes a repository's DEVLOG.md, `run.py`, which reads a workflow run's jobs and the end of a failed one's log, `sheet.py`, which composes a sheet of pictures on a white ground, `commitcheck.py`, which reads a commit against the form and the norm before it is reported, `sweep.py`, which reads a whole tree by the same rules, and `rewrap.py`, which rewraps the comment lines past 100 columns |
 | `build` | The version, `version.txt`'s major and minor set by hand and `version.sh`, which prints it with the patch counted from the history |
 
 ## Conventions

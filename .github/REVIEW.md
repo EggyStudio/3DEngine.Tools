@@ -73,7 +73,14 @@ pointer. One commit an engine, after item 3's first part.
 
 ## Verdicts
 
-None yet.
+One red run so far, mended in the commit after it.
+
+1. **Run 44345093619 of d3add46 was red on Windows alone (2026-11-18).** The sweep's tests split the
+    script's output on a line feed and kept the carriage return, and Python wrote the pipe in the
+    system's code page, which cannot hold every character the sweep prints. 7dbd4b3 mends both,
+    every script setting its output to UTF-8 and one helper splitting lines of either ending, and
+    run 44346168120 is green on the three systems. A test that reads another program's output is
+    read on Windows before it is pushed.
 
 ## Decisions
 
@@ -121,6 +128,21 @@ session pushes.
     where a thing is seen, and any GPU program through the lock of N 7.9 with a waiting file. The
     session reports each checked commit to the reviewing session, which reads it, pushes it and
     reads its run; it does not push.
+
+7. **The module is agnostic enough that a stranger binds it in an engine of their own from its
+    README alone (2026-11-18 17:28).** It asks a README section, Binding it in your engine, with
+    every interface the module declares, the conventions it stands on and the smallest binding that
+    works, a small host in the tests that implements those interfaces with no engine and that the
+    section's steps are run against, a test that fails where the library references an engine, a
+    window or a graphics API, the form in the Tools module's ReferenceTests.cs, and no engine's name
+    in a public member or its summary. The two engines appear in the README as examples. A public
+    shape that fits the two engines alone is named in a Reply before it changes.
+
+8. **The package id and the assembly are 3DEngine.Tools and the namespace stays Tools (2026-11-18
+    17:28).** The prefix gives a unique name. A package is published when the time is right and on
+    the owner's word, for a reader who takes the module alone. The engines keep taking the module as
+    a git submodule, compiled with them and carried inside each engine's one package. Folders and
+    project file names stay.
 
 ## Replies
 
@@ -365,3 +387,42 @@ references no engine, declares no interface and is taken by an engine of any kin
 texture recipes and NORM.md, which it named, are not held here. AGENTS.md's opening paragraph says
 the same as the README's did, the texture recipes and NORM.md among what the module holds and the
 interfaces it declares, and waits on the owner's word (N 7.4).
+
+The sweep's picture rules read on 3DEngine's tree at its head, read and written nothing to, every
+picture under `.github/assets/readings` by `picture_faults` from `scripts/commitcheck.py`, the
+month by each name's date, all 134 named by one. 3DEngine's NORM.md took the white ground into
+N 4.9 on 2026-10-31 (git log -S"on a white ground" -- .github/NORM.md).
+
+| folder | month | pictures | ground not white | no title |
+|---|---|---|---|---|
+| `.github/assets/readings` | 2026-10 | 62 | 60 | 9 |
+| `.github/assets/readings` | 2026-11 | 72 | 23 | 0 |
+| all | | 134 | 83 | 9 |
+
+By day, every picture before 2026-11-02 but two of 2026-10-31 stands on a dark ground, 2026-11-02
+holds 12 of 26 and 2026-11-04 3 of 6, and from 2026-11-05 to the head 2 of 25 do, the pair
+`2026-11-15-item-277-fetch-before.webp` and `-after.webp`, full frames of the atrium at 800 by
+450 with the scene's own text over them and no ground round them. The 81 pictures of the days to
+2026-11-04 are older than the rule's reading in the sessions and read as old pictures; the pair of
+2026-11-15 is the one to judge, a plain capture whose white ground N 4.9 asks only of a pair or a
+collage if a plain capture is read apart. The 9 with no title are all of October, 2026-10-23 to
+2026-10-31.
+
+The comment rewrapper in the commit carrying this line, with the table above. `scripts/rewrap.py`
+fills again each paragraph of comment lines that holds a line past 100 columns, the run of lines of
+one mark and one indent, in `//` and `///` comments of the C family, `#` comments of Python, shell,
+YAML and TOML and `<!-- -->` comments of MSBuild and XML; a blank comment line, a documentation tag
+alone, a list's item, whose lines go on under its text, and a line indented further end a
+paragraph and keep their lines, a tag is one word with the text it touches, a comment after code is
+left, and a word longer than the width stands alone and is counted as left. A file is refused and
+left as it is where its lines of code or its comments' text, split at blanks alone, would differ.
+Without `--write` it prints each file and the counts and changes nothing. RewrapTests reads a dry
+run that changes no file, a summary with a `see` tag, a list's item and a line comment filled with
+an indented line, a blank comment line and a comment after code kept, a lone `<` kept, a Python
+comment under a shebang and an MSBuild comment filled, every line within the width, an address
+standing alone and counted, and a copy of the script made to drop a paragraph's last word refused,
+its file unchanged. The check splitting at blanks alone came of the first version, whose word
+pattern dropped a `<` that opens no tag and whose check read with the same pattern, so the loss
+would have passed it. Over the module's own sources it finds nothing to rewrap; it is run over no
+engine. The README says it and AGENTS.md's scripts row names it and the sweep, new paths both. The
+strict build is clean and the tests pass, 87 where there were 82.

@@ -167,6 +167,22 @@ scripts/sweep.py ../../3DEngine).
 python3 -I scripts/sweep.py <repo>
 ```
 
+## A comment's width
+
+`scripts/rewrap.py` rewraps the comment lines past 100 columns of the files or folders given with
+their words unchanged, filling again each paragraph that holds one, in `//` and `///` comments of
+the C family, `#` comments of Python, shell, YAML and TOML and `<!-- -->` comments of MSBuild and
+XML. A blank comment line, a documentation tag alone, a list's item and a line indented further keep
+their lines, a tag stays whole, a comment after code is left as it is, and a word longer than the
+width stands on a line of its own. Without `--write` it changes nothing and prints each file it
+would change and the counts. A file whose lines of code would differ after the rewrapping, or whose
+comments' words would differ once their blanks are joined, is refused, left as it is and makes the
+exit code 1.
+
+```bash
+python3 -I scripts/rewrap.py [--write] <file or folder> ...
+```
+
 ## The shell's forms
 
 `ShellForms` in the library reads a checkout's shell scripts for the forms only GNU's tools or bash
