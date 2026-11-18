@@ -433,7 +433,9 @@ dashes, the spelling and the names `FORBIDDEN_NAMES` gives, and every picture un
 count a rule with its first ten places, any name in a place put out of sight, then the files read
 and the time taken, and exits with 1 where a rule that fails a commit is broken. It read 3DEngine's
 3,064 tracked files, 1,948 of them text and 134 pictures, in 2.5 seconds (python3 -I
-scripts/sweep.py ../../3DEngine).
+scripts/sweep.py ../../3DEngine). A standing picture under the readings or `.github/devlog` that its
+folder's captions.md gives no line is warned of and counted, as the commit's check refuses such a
+picture when it is added.
 
 ```bash
 python3 -I scripts/sweep.py <repo>

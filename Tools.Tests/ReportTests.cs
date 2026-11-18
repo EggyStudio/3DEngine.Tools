@@ -57,6 +57,8 @@ public class ReportTests
             {
                 new { name = "test (ubuntu-24.04)", conclusion = "success", startedAt = "2026-11-18T20:00:00Z", completedAt = "2026-11-18T20:00:56Z" },
                 new { name = "test (windows-latest)", conclusion = "failure", startedAt = "2026-11-18T20:00:00Z", completedAt = "2026-11-18T20:01:29Z" },
+                // A job still running, which gh gives no conclusion and an end in the year 1.
+                new { name = "test (macos-15)", conclusion = "", status = "in_progress", startedAt = "2026-11-18T20:00:00Z", completedAt = "0001-01-01T00:00:00Z" },
             },
         });
 
@@ -67,6 +69,7 @@ public class ReportTests
         Assert.Contains("run: 42 of EggyStudio/Sample, completed failure", lines);
         Assert.Contains("  test (ubuntu-24.04) success 56 s", lines);
         Assert.Contains("  test (windows-latest) failure 1 min 29 s", lines);
+        Assert.Contains("  test (macos-15) in_progress", lines);
     }
 
     [NeedsPythonFact]

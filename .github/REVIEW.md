@@ -506,3 +506,26 @@ on the method would have missed. The fact failed first on the history itself: `d
 cheatsheet's writer, the tuples' element names, and no row named it, so pin.py told no module its
 cheatsheet would change; the cheatsheet fact's row names it now. The strict build is clean and the
 tests pass, 199 and two skipped plain and 200 and one skipped in the variant.
+
+The sweep's count of uncaptioned pictures and a mend of the report in the commit carrying this line,
+the third of the three. sweep.py, and daily.py through it, warns of each standing picture under the
+readings or `.github/devlog` that its folder's captions.md gives no line, counted with its places,
+where the commit's check refuses one added; SweepTests failed first on two such pictures, one in
+each folder, beside one captioned, and Voxel-Sandbox's sweep counts 53. `report.py --run` gives a
+job not yet ended no time where it gave 0 s, gh giving it an end in the year 1; ReportTests failed
+first on such a job. The strict build is clean and the tests pass, 200 and two skipped plain and 201
+and one skipped in the variant.
+
+Handoff for a fresh session, written as the review asked. Tools holds the library `3DEngine.Tools`
+(ModuleChecks, Cheatsheet, ShellForms, DocumentCopies), which the modules' facts call, and the
+scripts the repositories run from `scripts/`: devlog.py, run.py, commitcheck.py with `--staged`,
+hooks.py, status.py, pin.py, report.py with `--run`, sweep.py, daily.py, rewrap.py, rewrapcheck.py
+and archive.py, each with a section in README.md; `sheets/` holds sheet.py and chart.py with their
+own page and Python tests and stands alone as a copy. Read first AGENTS.md, then REVIEW.md's head,
+its Now list and the last Replies, then README.md's section for a session and its table of what a
+module carries, whose rows CarriesTests holds to every commit that changes the checks' code. The
+working form: a failing test before each mend, `commitcheck.py . --staged --message=<file>` before
+each commit, the build and the tests both plain and through build/variants.sh, `report.py . HEAD`
+for the block, and a short report to the review, which pushes. Nothing is open here: the three items
+are done, the 80 or so uncaptioned standing readings of the big repositories stand as their day's
+record, counted by the sweep, and no work is proposed until the review or the owner brings it.

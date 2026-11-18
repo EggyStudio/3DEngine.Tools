@@ -190,6 +190,24 @@ public class SweepTests
         Assert.Contains("swept 0 text files and 2 pictures of 2 tracked", printed);
     }
 
+    [NeedsPillowFact]
+    public void A_Standing_Picture_Its_Folders_Captions_Give_No_Line_Is_Warned_Of_And_Counted()
+    {
+        var (exit, printed) = Sweep(new()
+        {
+            [".github/assets/readings/2026-11-18-item-1-room.webp"] = "white",
+            [".github/assets/readings/2026-11-18-item-1-hall.webp"] = "white",
+            [".github/assets/readings/captions.md"] = "2026-11-18-item-1-room.webp | The room at noon.\n",
+            [".github/devlog/2026-11-18-item-2-field.webp"] = "white",
+        });
+
+        Assert.True(exit == 0, printed);
+        Assert.Contains("WARN a picture its folder's captions.md gives no line, 2", Programs.Lines(printed));
+        Assert.Contains("  .github/assets/readings/2026-11-18-item-1-hall.webp has no line in .github/assets/readings/captions.md", printed);
+        Assert.Contains("  .github/devlog/2026-11-18-item-2-field.webp has no line in .github/devlog/captions.md", printed);
+        Assert.DoesNotContain("item-1-room.webp has no line", printed);
+    }
+
     // A repository whose files given are tracked, the untracked ones written beside them, a
     // picture's text naming its color, and the sweep run over it with the made-up name or none.
     private static (int Code, string Printed) Sweep(Dictionary<string, string> files, Dictionary<string, string>? untracked = null, string? names = MadeUpName, Dictionary<string, string?>? environment = null)

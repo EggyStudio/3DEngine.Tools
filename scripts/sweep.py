@@ -75,6 +75,21 @@ def read_tree(repo, forbidden):
             for level, rule, said in faults:
                 found.append((level, rule, hide(path), hide(f"{path}:{number} {said}")))
 
+    # A standing picture its folder's captions.md gives no line is warned of, which the commit's
+    # check refuses for a picture added, so those that came before it are counted.
+    captioned = {}
+    for path in paths:
+        if PICTURES.match(path) and os.path.dirname(path) not in captioned:
+            folder = os.path.dirname(path)
+            try:
+                with open(os.path.join(repo, folder, "captions.md"), encoding="utf-8", errors="replace") as f:
+                    captioned[folder] = {line.split(" | ", 1)[0].strip() for line in f if " | " in line}
+            except OSError:
+                captioned[folder] = set()
+        if PICTURES.match(path) and os.path.basename(path) not in captioned[os.path.dirname(path)]:
+            folder = os.path.dirname(path)
+            found.append(("WARN", "a picture its folder's captions.md gives no line", hide(path), hide(f"{path} has no line in {folder}/captions.md")))
+
     for picture in pictures:
         path, faults = picture.result()
         for level, rule, said in faults:

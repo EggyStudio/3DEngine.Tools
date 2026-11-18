@@ -92,7 +92,10 @@ def took(job):
         start, end = (datetime.datetime.fromisoformat(job[k].replace("Z", "+00:00")) for k in ("startedAt", "completedAt"))
     except (KeyError, TypeError, ValueError):
         return ""
-    seconds = max(0, round((end - start).total_seconds()))
+    # A job not yet ended has no conclusion, and gh gives it an end in the year 1.
+    if not job.get("conclusion") or end < start:
+        return ""
+    seconds = round((end - start).total_seconds())
     return f"{seconds // 60} min {seconds % 60} s" if seconds >= 60 else f"{seconds} s"
 
 
