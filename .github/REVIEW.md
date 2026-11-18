@@ -854,3 +854,24 @@ over a README and a C# string, and a commit's added string, the planted words jo
 the tests' own files hold them on no line. The README says it. The modules' rows and titles fail the
 link row's fact until they are written as one word. The strict build is clean and the tests pass,
 146 and one skipped plain and 147 in the variant.
+
+The status for the hourly watch in the commit carrying this line. `scripts/status.py` prints a line
+a repository and writes nothing: its local head, its remote head read by `git ls-remote`, which
+fetches nothing, and how many commits it is ahead, or a question mark where the remote's head is
+not fetched; its last build run's head, status and conclusion through gh, behind one function the
+tests replace by recorded runs in STATUS_ANSWERS; its `.github/REVIEW.md`'s size where it passes 90
+KB; whether DEVLOG.md was last committed before its newest picture under `.github/assets/readings`
+or `.github/devlog`; its pin of Tools against Tools' head, the checkout it stands in or the one
+`--tools` names; and whether its README opens with the link row. With no repository given it reads
+3DEngine, BevyCSharp and Voxel-Sandbox beside Modules and every folder of Modules, the repositories
+read at once and printed in order, the eleven in 2.5 seconds where one after another took 14. The
+exit code is 0, or 2 where git or gh could not be reached, its line saying which. StatusTests reads
+made repositories whose remote's address in GitHub's form git sends to a bare repository beside
+them: a line with its heads, one commit ahead, its run, a review of 95 KB, a picture after the
+devlog, a pin one behind a made Tools and the row; a README without the row, no run and a pin at
+the head; and a folder outside git and a recorded failure of gh each giving 2. Over the eleven at
+their heads it reads every module's row missing, the two-word form `75d77f2` changed standing in
+them until they reword it, 3DEngine's review at 98 KB and Voxel-Sandbox's at 91, the devlog behind
+its newest picture in BevyCSharp, Voxel-Sandbox and RadianceCascades, and Modeling two commits
+ahead of its remote. The README says it and AGENTS.md's scripts row names it. The strict build is
+clean and the tests pass, 149 and one skipped plain and 150 in the variant.
