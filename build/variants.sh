@@ -11,7 +11,7 @@ cd "$(dirname "$0")/.."
 
 locale=en_US.ISO-8859-1
 if ! LC_ALL="$locale" python3 -I -c 'import sys; sys.exit(sys.stdout.encoding != "iso8859-1")' 2>/dev/null; then
-  echo "The locale $locale is not installed here, so no single-byte run can be made. sudo locale-gen $locale installs it." >&2
+  echo "The locale $locale is not installed here, so no single-byte run can be made. sudo locale-gen en_US installs it on Ubuntu, and sudo locale-gen $locale on Fedora." >&2
   exit 2
 fi
 

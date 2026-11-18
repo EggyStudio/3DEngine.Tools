@@ -836,3 +836,9 @@ skipped outside the variant with its reason, reads in it that the temporary fold
 through a link and that a pipe is single-byte, so a machine that gave neither would not pass the
 second run having proved nothing. The README says it. The strict build is clean and the tests pass,
 143 and one skipped plain and 144 in the variant, in 4.7 seconds.
+
+The locale's step in the commit carrying this line, as `2c021c6`'s run read it (44365758695, green
+on the three systems). Ubuntu 24.04 refused `locale-gen en_US.ISO-8859-1` as no supported locale and
+made it by the name `en_US`, the fallback, the variant's run then passing 144 with its own test run;
+the step runs `sudo locale-gen en_US` alone, and the script's message and the README name the name
+Ubuntu takes. The tests pass plain and in the variant.

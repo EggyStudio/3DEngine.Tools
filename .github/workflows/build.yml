@@ -50,10 +50,11 @@ jobs:
 
       # The tests again as Windows and macOS meet a script, through a linked temporary folder and
       # with a single-byte locale, on Linux, where both are made, so a fault of either system fails
-      # in the Linux job as well (build/variants.sh).
+      # in the Linux job as well (build/variants.sh). Ubuntu makes en_US.ISO-8859-1 by the name
+      # en_US, and refuses the longer one.
       - if: runner.os == 'Linux'
         run: |
-          sudo locale-gen en_US.ISO-8859-1 || sudo locale-gen en_US
+          sudo locale-gen en_US
           build/variants.sh
 
       - uses: actions/upload-artifact@v7

@@ -448,7 +448,7 @@ build/variants.sh
 `build/variants.sh` runs the tests again on Linux as Windows and macOS meet a script, the temporary
 folder reached through a symbolic link as macOS reaches its own, and every program given a
 single-byte locale as Windows gives a pipe, so a fault of either system fails on Linux first. It
-needs the locale en_US.ISO-8859-1, which `sudo locale-gen en_US.ISO-8859-1` installs, and says so
+needs the locale en_US.ISO-8859-1, which `sudo locale-gen en_US` installs on Ubuntu, and says so
 where it is missing. A script that ends in a traceback fails its test whatever exit code the test
 expects.
 
