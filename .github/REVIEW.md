@@ -322,3 +322,16 @@ frame, had been allocated and the generator's runner class, so a narrower readin
 to after no form of be, before this followed by change, commit or version, had been left out, and
 runner read in a test's comment alone. The strict build is clean and the tests pass, 75 where there
 were 74.
+
+The mend of `d3add46`'s red run on Windows (44345093619) in the commit carrying this line, with
+both causes the review read. The lines arrived ending in a carriage return and the tests split at
+the line feed alone, so the count's line was not found; the tests split a program's output at any
+line end by one helper, in SweepTests and SheetTests, the checks of CommitCheckTests reading the
+whole output. And Python wrote the pipe in cp1252, the dash's byte 0x97 read by .NET in the
+console's code page as ù; every script writes UTF-8 whatever the system gives a pipe, and the tests
+read a program's output as UTF-8. The long-line rule counted the twelve there as well, read from
+the file the test writes with line feeds alone, which Python's text mode reads the same on every
+system, and its line was the one the carriage return hid. A test of each script prints a place
+holding the em dash under a Latin-1 locale on Linux, Windows' own encoding there, and reads it back
+whole; both failed first, sweep.py and commitcheck.py stopping on the dash they could not encode.
+The strict build is clean and the tests pass, 77 where there were 75.

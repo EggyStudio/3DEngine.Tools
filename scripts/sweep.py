@@ -11,6 +11,10 @@
 import os, re, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
 
+# What is printed is UTF-8 whatever the system gives a pipe, cp1252 on Windows, so a place or a
+# caption holding a dash or a mark reads back whole.
+sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
+
 # The rules are commitcheck.py's own, imported from beside this script, which isolated mode leaves
 # off the path, and with no compiled copy written beside it, so the sweep leaves the module's
 # folder as it found it, inside an engine's submodule as well.

@@ -12,6 +12,10 @@
 # where none is given, to be looked at.
 import functools, io, os, re, subprocess, sys, tempfile
 
+# What is printed is UTF-8 whatever the system gives a pipe, cp1252 on Windows, so a place or a
+# caption holding a dash or a mark reads back whole.
+sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
+
 # Three left-to-right marks with a space between each, then the blank line that ends the subject.
 LEAD = "\u200e \u200e \u200e\n\n"
 AUTHOR = "EggyStudio"

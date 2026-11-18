@@ -10,6 +10,10 @@
 # instead, which is how the tests run it with no network and no gh.
 import json, os, re, subprocess, sys
 
+# What is printed is UTF-8 whatever the system gives a pipe, cp1252 on Windows, so a place or a
+# caption holding a dash or a mark reads back whole.
+sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
+
 repo, run, folder = sys.argv[1], sys.argv[2], sys.argv[3]
 LINES = 60
 COLOR = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")

@@ -20,6 +20,10 @@ import json, math, os, sys
 from array import array
 from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageOps
 
+# What is printed is UTF-8 whatever the system gives a pipe, cp1252 on Windows, so a place or a
+# caption holding a dash or a mark reads back whole.
+sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
+
 GAP = 10
 # Rec. 709's weights, those of sRGB's primaries, which the engines' captures are in.
 LUMA = (0.2126, 0.7152, 0.0722)

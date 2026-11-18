@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Text;
 using Xunit;
 
 namespace Tools.Tests;
@@ -41,6 +42,20 @@ public static class Programs
     /// Whether the Python that runs imports Pillow, in isolated mode as the scripts run.
     /// </summary>
     public static readonly Lazy<bool> Pillow = new(() => Python.Value is { } python && Exits(python, "-I", "-c", "import PIL"));
+
+    /// <summary>
+    /// The lines a program printed, split at any line end, since a program on Windows ends its
+    /// lines with a carriage return before the line feed.
+    /// </summary>
+    public static string[] Lines(string printed) => printed.ReplaceLineEndings("\n").Split('\n');
+
+    /// <summary>
+    /// The environment that gives a script a stdout of a single-byte encoding, Latin-1 on Linux,
+    /// where a script that prints what it found as it is meets the encoding Windows gives a pipe.
+    /// Elsewhere none, since Windows gives one of its own and macOS's Python writes UTF-8.
+    /// </summary>
+    public static Dictionary<string, string?> SingleByteLocale() =>
+        OperatingSystem.IsLinux() ? new() { ["LC_ALL"] = "en_US.ISO-8859-1" } : [];
 
     /// <summary>The checkout's root, the folder above the tests that holds Tools.slnx.</summary>
     public static string Root()
@@ -88,7 +103,13 @@ public static class Programs
 
     private static (int Code, string Output, string Error) Start(string program, string folder, Dictionary<string, string?> environment, string[] arguments)
     {
-        var start = new ProcessStartInfo(program) { WorkingDirectory = folder, RedirectStandardOutput = true, RedirectStandardError = true };
+        // Read as UTF-8, which the scripts write, where Windows would read a pipe in its console's
+        // code page.
+        var start = new ProcessStartInfo(program)
+        {
+            WorkingDirectory = folder, RedirectStandardOutput = true, RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8, StandardErrorEncoding = Encoding.UTF8,
+        };
         foreach (var argument in arguments) start.ArgumentList.Add(argument);
         foreach (var (key, value) in environment)
             if (value is null) start.Environment.Remove(key);

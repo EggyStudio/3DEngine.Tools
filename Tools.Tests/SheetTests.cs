@@ -45,8 +45,8 @@ public class SheetTests
             var printed = Programs.Script("sheet.py", Path.Combine(folder, "layout.json"), sheetPath);
 
             // The first box lies on the bright square, the second half on it and half off.
-            Assert.Contains("row 1 panel 1 box 1 at 0,0,16,16 reads 0.5", printed.Split('\n'));
-            Assert.Contains("row 1 panel 1 box 2 at 8,0,24,16 reads 0.375", printed.Split('\n'));
+            Assert.Contains("row 1 panel 1 box 1 at 0,0,16,16 reads 0.5", Programs.Lines(printed));
+            Assert.Contains("row 1 panel 1 box 2 at 8,0,24,16 reads 0.375", Programs.Lines(printed));
             var sheet = ReadPpm(sheetPath);
             Assert.Equal((255, 255, 255), sheet.At(0, 0));
             var (capture, signed, difference) = (Place(printed, 1), Place(printed, 2), Place(printed, 3));
@@ -88,14 +88,14 @@ public class SheetTests
 
     private static (int Y, int Height) Line(string printed, string kind)
     {
-        var line = printed.Split('\n').Single(l => l.StartsWith($"row 1 {kind} at ", StringComparison.Ordinal));
+        var line = Programs.Lines(printed).Single(l => l.StartsWith($"row 1 {kind} at ", StringComparison.Ordinal));
         var words = line.Split(' ');
         return (int.Parse(words[4].Split(',')[1]), int.Parse(words[6]));
     }
 
     private static (int X, int Y) Place(string printed, int panel)
     {
-        var line = printed.Split('\n').Single(l => l.StartsWith($"row 1 panel {panel} at ", StringComparison.Ordinal));
+        var line = Programs.Lines(printed).Single(l => l.StartsWith($"row 1 panel {panel} at ", StringComparison.Ordinal));
         var at = line.Split(' ')[5].Split(',');
         return (int.Parse(at[0]), int.Parse(at[1]));
     }

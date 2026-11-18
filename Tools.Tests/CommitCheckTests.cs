@@ -68,6 +68,15 @@ public class CommitCheckTests
     }
 
     [NeedsPythonFact]
+    public void A_Dash_Found_Is_Printed_Whole_Whatever_The_Systems_Encoding()
+    {
+        var (exit, printed) = Check(new() { ["notes.md"] = "A line \u2014 with a dash.\n" }, Lead + "A note holds a line.\n", environment: Programs.SingleByteLocale());
+
+        Assert.Equal(1, exit);
+        Assert.Contains("  FAIL notes.md:1: em dash, \"\u2014\"", Programs.Lines(printed));
+    }
+
+    [NeedsPythonFact]
     public void A_Markdown_Line_Is_Held_To_No_Width_Whatever_Its_Mark()
     {
         var bullet = "* " + string.Join(' ', Enumerable.Repeat("word", 25)) + "\n";
@@ -113,7 +122,7 @@ public class CommitCheckTests
 
     // A repository of one commit holding the files given, a picture's text naming its color, and
     // the check run over it with the made-up name given or none.
-    private static (int Code, string Printed) Check(Dictionary<string, string> files, string message, string? names = MadeUpName)
+    private static (int Code, string Printed) Check(Dictionary<string, string> files, string message, string? names = MadeUpName, Dictionary<string, string?>? environment = null)
     {
         var repo = Directory.CreateTempSubdirectory("commitcheck-").FullName;
         try
@@ -132,7 +141,7 @@ public class CommitCheckTests
             Git(repo, "add", "-A");
             File.WriteAllText(Path.Combine(repo, ".git", "message"), message);
             Git(repo, "commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(repo, ".git", "message"));
-            return Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = names }, repo, "HEAD", "--thumbs=" + Path.Combine(repo, ".git", "thumbs"));
+            return Programs.Attempt("commitcheck.py", new(environment ?? []) { ["FORBIDDEN_NAMES"] = names }, repo, "HEAD", "--thumbs=" + Path.Combine(repo, ".git", "thumbs"));
         }
         finally
         {

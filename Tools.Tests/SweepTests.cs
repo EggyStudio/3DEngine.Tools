@@ -36,7 +36,7 @@ public class SweepTests
         untracked: new() { ["scripts/loose.py"] = longComment });
 
         Assert.Equal(1, exit);
-        var lines = printed.Split('\n');
+        var lines = Programs.Lines(printed);
         Assert.Contains("FAIL a comment line past 100 columns, 12", lines);
         Assert.Equal(10, lines.Count(line => line.StartsWith("  scripts/long.py:", StringComparison.Ordinal)));
         Assert.Contains("FAIL British spelling, 1", lines);
@@ -57,11 +57,20 @@ public class SweepTests
             ["Library/A.cs"] = "// Read on the runner.\nclass A {}\n",
         });
 
-        var lines = printed.Split('\n');
+        var lines = Programs.Lines(printed);
         Assert.Contains("WARN a comment tells what the code was, 1", lines);
         Assert.Contains("  scripts/earlier.py:2 a comment tells what the code was, \"An earlier version\", in # An earlier version read it twice.", lines);
         Assert.Contains("WARN a comment carries a run's facts, 2", lines);
         Assert.DoesNotContain(".github/workflows/build.yml:1", printed);
+    }
+
+    [NeedsPythonFact]
+    public void A_Place_Holding_A_Character_Past_Ascii_Is_Printed_Whole_Whatever_The_Systems_Encoding()
+    {
+        var (exit, printed) = Sweep(new() { ["notes.md"] = "A line \u2014 with a dash.\n" }, environment: Programs.SingleByteLocale());
+
+        Assert.Equal(1, exit);
+        Assert.Contains("  notes.md:1 em dash, \"\u2014\"", Programs.Lines(printed));
     }
 
     [NeedsPythonFact]
@@ -83,14 +92,14 @@ public class SweepTests
         });
 
         Assert.Equal(1, exit);
-        Assert.Contains("FAIL a picture's ground is not white, 1", printed.Split('\n'));
+        Assert.Contains("FAIL a picture's ground is not white, 1", Programs.Lines(printed));
         Assert.Contains("  .github/assets/readings/2026-11-18-item-1-dark.webp the ground is not white", printed);
         Assert.Contains("swept 0 text files and 2 pictures of 2 tracked", printed);
     }
 
     // A repository whose files given are tracked, the untracked ones written beside them, a
     // picture's text naming its color, and the sweep run over it with the made-up name or none.
-    private static (int Code, string Printed) Sweep(Dictionary<string, string> files, Dictionary<string, string>? untracked = null, string? names = MadeUpName)
+    private static (int Code, string Printed) Sweep(Dictionary<string, string> files, Dictionary<string, string>? untracked = null, string? names = MadeUpName, Dictionary<string, string?>? environment = null)
     {
         var repo = Directory.CreateTempSubdirectory("sweep-").FullName;
         try
@@ -99,7 +108,7 @@ public class SweepTests
             Write(repo, files);
             Git(repo, "add", "-A");
             Write(repo, untracked ?? []);
-            return Programs.Attempt("sweep.py", new() { ["FORBIDDEN_NAMES"] = names }, repo);
+            return Programs.Attempt("sweep.py", new(environment ?? []) { ["FORBIDDEN_NAMES"] = names }, repo);
         }
         finally
         {

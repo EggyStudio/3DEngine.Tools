@@ -1,4 +1,7 @@
 import subprocess, re, json, sys, os, textwrap
+# What is printed is UTF-8 whatever the system gives a pipe, cp1252 on Windows, so a place or a
+# caption holding a dash or a mark reads back whole.
+sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
 # --fixes names a file of the caption rewrites, the pattern each repository's STYLE.md adds to the
 # check by its name, and the day an undated sent picture is put on, which no repository holds.
 args, fixes = sys.argv[1:], {}
