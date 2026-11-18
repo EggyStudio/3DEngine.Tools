@@ -1,5 +1,13 @@
 # Sheets of charts and pictures
 
+![A first chart](examples/first.webp)
+
+```bash
+pip install pillow
+echo '{"title": "A first chart", "width": 800, "panel_height": 300, "panels": [{"kind": "line", "series": [{"label": "made up", "points": [[0, 1], [1, 3], [2, 2], [3, 4]]}]}]}' > first.json
+python3 -I chart.py first.json first.webp
+```
+
 Two scripts draw sheets of pictures on a white ground from a layout written in JSON, with Python 3
 and the imaging library Pillow and nothing else. `chart.py` draws charts of data: line charts on
 linear or logarithmic axes, horizontal bars by group, tables and signed maps. `sheet.py` composes
@@ -8,12 +16,9 @@ read the light inside them. Each prints where it placed every panel, so a test o
 value's pixel on the sheet, and each writes the format its output's name gives, WebP or PNG among
 them.
 
-```bash
-pip install pillow
-```
-
-Each example below is its layout in this folder, the command that draws it from this folder's
-parent, and the picture it draws. The values are made up.
+Each example below is its layout in this folder's examples, the command that draws it from the
+folder's root, and the picture it draws. The values are made up. The two layouts' keys follow the
+examples.
 
 ## Line charts
 
@@ -22,10 +27,10 @@ labeled at its line, `label_side` setting a label below its line where another r
 band shaded between two values. The second draws three series on a logarithmic axis, `log` on the
 axis, every point marked.
 
-![Line charts](lines.webp)
+![Line charts](examples/lines.webp)
 
 ```bash
-python3 -I scripts/chart.py examples/lines.json examples/lines.webp
+python3 -I chart.py examples/lines.json examples/lines.webp
 ```
 
 ```json
@@ -122,10 +127,10 @@ One panel of horizontal bars, a group a row and a bar a series, the series named
 legend. A value of `null` leaves its bar out, and the last bar of each group is labeled with its
 value to three figures.
 
-![Bars by group](bars.webp)
+![Bars by group](examples/bars.webp)
 
 ```bash
-python3 -I scripts/chart.py examples/bars.json examples/bars.webp
+python3 -I chart.py examples/bars.json examples/bars.webp
 ```
 
 ```json
@@ -203,10 +208,10 @@ python3 -I scripts/chart.py examples/bars.json examples/bars.webp
 A table with a heavy header and a row drawn bold, beside a map of signed values, red above zero and
 blue below, full at its `scale` and black at zero.
 
-![A table and a signed map](tables.webp)
+![A table and a signed map](examples/tables.webp)
 
 ```bash
-python3 -I scripts/chart.py examples/tables.json examples/tables.webp
+python3 -I chart.py examples/tables.json examples/tables.webp
 ```
 
 ```json
@@ -255,10 +260,10 @@ on each reading the mean light inside it, written at the box's corner and printe
 less the second in luminance, red where brighter and blue where darker, full at `share` of the
 reference's mean. The two PNG files are in this folder; a PFM of linear light is read as well.
 
-![Captures and their difference](sheet.webp)
+![Captures and their difference](examples/sheet.webp)
 
 ```bash
-python3 -I scripts/sheet.py examples/sheet.json examples/sheet.webp
+python3 -I sheet.py examples/sheet.json examples/sheet.webp
 ```
 
 ```json
@@ -292,4 +297,102 @@ python3 -I scripts/sheet.py examples/sheet.json examples/sheet.webp
     }
   ]
 }
+```
+
+## A chart's layout
+
+`chart.py` draws a sheet of data charts on a white ground from a layout in JSON, a title and a
+subtitle, panels of line charts, horizontal bars by group, tables and signed maps in a grid, and a
+line of notes, and writes it in the format its name's extension gives, WebP or PNG among them. It
+needs Pillow and nothing else.
+
+```bash
+python3 -I chart.py <layout.json> <sheet.webp>
+```
+
+The layout's `title`, `subtitle` and `notes` are lines of text, `legend` a list of `label` and
+`color`, `columns` the grid's columns, `width` the sheet's width, `panel_height` a panel's height
+and `font` the type's size, and `panels` a list, each with a `kind`, a `title` and a `subtitle`. A
+`line` panel's `x` and `y` give an axis's `label`, `min`, `max`, `ticks` and `log`; its `series`
+each have `points`, a list of x and y, a `label` drawn at the line at `label_at` on the x axis, a
+`color`, `dash` for a dashed line, `marks` to mark every point and `marked` for points of its own;
+its `bands` each shade from `from` to `to` on the y axis with a `label`. A `bars` panel's `groups`
+each have a `label` and `values`, a bar a series and null for none, its `series` the bars' `label`
+and `color`, its `x` an axis, and `value_labels` gives `last`, `all` or `none`. A `table` panel has
+`columns`, `rows`, `bold`, the rows drawn heavy by their numbers from 0, and `align`, `left` or
+`right` a column. A `map` panel's `values` are rows of signed numbers, red above zero and blue
+below, full at `scale` and black at zero, with a `label` under it. A color is a hexadecimal one or
+the palette's next. The script prints each panel's place and each chart's plot with its axes'
+ranges.
+
+```json
+{
+  "title": "Time a point by stage", "columns": 2, "width": 1560, "panel_height": 600,
+  "legend": [{"label": "513 a side", "color": "#8db8f0"}, {"label": "4,097 a side", "color": "#0f2f66"}],
+  "panels": [
+    {"kind": "bars", "title": "Time a point", "x": {"label": "nanoseconds a point"},
+     "series": [{"color": "#8db8f0"}, {"color": "#0f2f66"}],
+     "groups": [{"label": "Noise", "values": [282.4, 143.8]}]},
+    {"kind": "line", "title": "Light by height", "x": {"label": "degrees"}, "y": {"log": true},
+     "series": [{"label": "the sun", "points": [[5, 4.6], [90, 118]], "dash": true}],
+     "bands": [{"from": 5500, "to": 6500, "label": "daylight"}]}
+  ],
+  "notes": "Drawn from the bench's table."
+}
+```
+
+## A sheet's layout
+
+`sheet.py` composes a sheet on a white ground from a layout in JSON, rows of panels with a
+heading a column and a title a row in dark text, and writes it in the format its name's extension
+gives. A layout's `title` and `subtitle` stand over the whole sheet, then a row's title stands first
+on a line of its own in a larger type, and the panels' labels under it, the first row's taking the
+columns' headings where a panel has none. It needs Pillow.
+
+```bash
+python3 -I sheet.py <layout.json> <sheet.png>
+```
+
+```json
+{
+  "font": 16,
+  "size": [320, 180],
+  "columns": ["frame", "path traced", "frame less it"],
+  "rows": [
+    {
+      "title": "The room at noon",
+      "gain": {"mean": "noon/ref.pfm", "to": 0.18},
+      "panels": [
+        {"image": "noon/frame.pfm", "boxes": [[160, 440, 480, 680]]},
+        {"image": "noon/ref.pfm", "label": "4,096 paths a pixel"},
+        {"signed": ["noon/frame.pfm", "noon/ref.pfm"], "share": 0.5}
+      ]
+    }
+  ]
+}
+```
+
+A panel is a capture under `image`, a picture Pillow opens or a PFM of linear light, shown in sRGB
+at its gain. Under `signed` it is the first capture less the second in luminance, red where brighter
+and blue where darker, full at `share` of the second's mean, on black, the one dark panel of a
+sheet. Under `difference` it is the largest
+channel's difference of two pictures as shown, times `times`, 4 where none is given, dark on white.
+`gain` is a number or the gain that puts a capture's mean luminance at `to`, 1 where none is given.
+`crop` is a box in the capture's pixels, left, top, right and bottom, `size` the panel's size in
+pixels, the cropped capture's where none is given, and `label` a line over one panel. `gain`,
+`crop`, `size` and `share` are given on the layout, a row or a panel, the nearest applying. Paths
+are read from the layout's folder.
+
+A box under `boxes` is given in the capture's own pixels and drawn on a capture's panel only, with
+the mean luminance in linear light it reads there written at its corner. The script prints the
+place of each title, each row's labels and each panel on the sheet, and each box's reading.
+
+## Tests
+
+The tests need Python 3 and Pillow and nothing else, each drawing a made layout and reading the
+pixels where the script says it placed a panel, and skip where Pillow is missing. They run from the
+folder's root, leaving no bytecode behind.
+
+```bash
+python3 -I -B -m unittest discover -s tests -t .
 ```

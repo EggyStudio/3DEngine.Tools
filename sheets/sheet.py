@@ -4,7 +4,7 @@
 # first, on a line of its own in a larger type, and the panels' labels under it, the first row's
 # taking the columns' headings where a panel has none.
 #
-#   python3 -I scripts/sheet.py <layout.json> <sheet.png>
+#   python3 -I sheet.py <layout.json> <sheet.png>
 #
 # A panel is one of three. A capture is a picture Pillow opens or a PFM of linear light, shown in
 # sRGB at its row's gain. A signed difference is a capture less a reference in luminance, red where

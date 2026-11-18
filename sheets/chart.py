@@ -3,7 +3,7 @@
 # notes, written in the format the output's name gives, WebP or PNG among them. It needs Pillow and
 # nothing else.
 #
-#   python3 -I scripts/chart.py <layout.json> <sheet.webp>
+#   python3 -I chart.py <layout.json> <sheet.webp>
 #
 # A line chart's axes are linear or logarithmic, its series solid or dashed, each labeled above or
 # below the line where the layout says, its points marked where asked, and a band shaded between two

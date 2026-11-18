@@ -1079,3 +1079,26 @@ naming an engine of 18, its five of the bridge and the one found before, and non
 holds the two words, the bridge or a middle dot. The staged check found a comment of 102 columns in
 the new test before the commit. The strict build is clean and the tests pass, 195 and one skipped
 plain and 196 in the variant.
+
+The sheets folder in the commit carrying this line, the second of the three. `sheets/` holds
+sheet.py and chart.py, moved with git from `scripts/`, their examples moved from `examples/`, their
+tests and a page of their own, so a copy of the folder alone is a repository of them with Pillow its
+one need. The page opens, as the review asked, with a picture and the three lines that make it, `pip
+install pillow`, an `echo` of a one-line layout into first.json and `python3 -I chart.py first.json
+first.webp`, then the page a stranger had, the examples run from the folder's root, the two layouts'
+keys moved from Tools' README, and how the tests run. The tests are Python's unittest, the C# facts
+of SheetTests, ChartTests and ExamplesTests ported assertion for assertion to ten tests and deleted,
+the drawing ones skipped where Pillow is missing as NeedsPillowFact skipped them, so Windows and
+macOS run the page's tests alone, as they did. Breaking a copy of each script, a label's side in
+chart.py and sRGB's exponent in sheet.py, fails its tests, which a port passing at once does not
+show. SheetsTests holds two facts that failed first, the folder missing: the folder's tests pass in
+it, and on a copy of the folder alone outside any repository they pass with no file of it naming a
+parent, `scripts/`, `.github/` or Tools; a third, that the page opens with its picture and its
+lines, failed first in C# and moved into the folder's tests, so the folder holds it. Tools' README
+holds one short section pointing at the folder's page, and AGENTS.md's `scripts` row drops the two
+and its `examples` row is the `sheets` row, as N 1.5 asks. Lines outside Tools that name where
+sheets are made: none in the engines' NORM.md or AGENTS.md or the modules' AGENTS.md or NORM.md;
+Landscape/build/reading.cs:4 names "Tools' sheet.py" with no path, true after the move;
+Landscape/.github/REVIEW.md:213 names it in a Reply of the past; and no script outside Tools calls
+either by its path. The strict build is clean and the tests pass, 188 and one skipped plain and 189
+in the variant, the nine C# facts gone and two come.

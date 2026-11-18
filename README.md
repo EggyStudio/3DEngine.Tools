@@ -36,49 +36,27 @@ FORBIDDEN_NAMES='<names>' python3 -I <Tools>/scripts/commitcheck.py <repo> --sta
 git commit -F <file>
 ```
 
-## A sheet of charts
+## Sheets of charts and pictures
 
-`scripts/chart.py` draws a sheet of data charts on a white ground from a layout in JSON, a title and
-a subtitle, panels of line charts, horizontal bars by group, tables and signed maps in a grid, and a
-line of notes, and writes it in the format its name's extension gives, WebP or PNG among them. It
-needs Pillow and nothing else, and names nothing of these repositories, so it stands on its own.
+`sheets/chart.py` draws a sheet of data charts on a white ground from a layout in JSON, line charts,
+horizontal bars by group, tables and signed maps, and `sheets/sheet.py` composes the pictures a
+program has captured, side by side with their differences and with boxes that read the light inside
+them. Each needs Pillow and nothing else, and each prints where it placed every panel, so a test or
+a note can find a value's pixel on the sheet.
 
 ```bash
-python3 -I scripts/chart.py <layout.json> <sheet.webp>
+python3 -I <Tools>/sheets/chart.py <layout.json> <sheet.webp>
+python3 -I <Tools>/sheets/sheet.py <layout.json> <sheet.png>
 ```
 
-[examples/README.md](examples/README.md) shows both scripts for a reader new to them, each layout
-beside the picture it draws.
+The `sheets` folder stands on its own, the two scripts with their examples, their tests and a page
+of their own, [sheets/README.md](sheets/README.md), which gives each layout's keys, so a copy of
+that folder alone is a repository of them. Its tests are Python's, run from the folder's root, and
+SheetsTests runs them here and runs them again on a copy of the folder alone, failing where a file
+of it names a path outside it.
 
-The layout's `title`, `subtitle` and `notes` are lines of text, `legend` a list of `label` and
-`color`, `columns` the grid's columns, `width` the sheet's width, `panel_height` a panel's height
-and `font` the type's size, and `panels` a list, each with a `kind`, a `title` and a `subtitle`. A
-`line` panel's `x` and `y` give an axis's `label`, `min`, `max`, `ticks` and `log`; its `series`
-each have `points`, a list of x and y, a `label` drawn at the line at `label_at` on the x axis, a
-`color`, `dash` for a dashed line, `marks` to mark every point and `marked` for points of its own;
-its `bands` each shade from `from` to `to` on the y axis with a `label`. A `bars` panel's `groups`
-each have a `label` and `values`, a bar a series and null for none, its `series` the bars' `label`
-and `color`, its `x` an axis, and `value_labels` gives `last`, `all` or `none`. A `table` panel has
-`columns`, `rows`, `bold`, the rows drawn heavy by their numbers from 0, and `align`, `left` or
-`right` a column. A `map` panel's `values` are rows of signed numbers, red above zero and blue
-below, full at `scale` and black at zero, with a `label` under it. A color is a hexadecimal one or
-the palette's next. The script prints each panel's place and each chart's plot with its axes'
-ranges.
-
-```json
-{
-  "title": "Time a point by stage", "columns": 2, "width": 1560, "panel_height": 600,
-  "legend": [{"label": "513 a side", "color": "#8db8f0"}, {"label": "4,097 a side", "color": "#0f2f66"}],
-  "panels": [
-    {"kind": "bars", "title": "Time a point", "x": {"label": "nanoseconds a point"},
-     "series": [{"color": "#8db8f0"}, {"color": "#0f2f66"}],
-     "groups": [{"label": "Noise", "values": [282.4, 143.8]}]},
-    {"kind": "line", "title": "Light by height", "x": {"label": "degrees"}, "y": {"log": true},
-     "series": [{"label": "the sun", "points": [[5, 4.6], [90, 118]], "dash": true}],
-     "bands": [{"from": 5500, "to": 6500, "label": "daylight"}]}
-  ],
-  "notes": "Drawn from the bench's table."
-}
+```bash
+cd sheets && python3 -I -B -m unittest discover -s tests -t .
 ```
 
 ## Binding it in your engine
@@ -321,52 +299,6 @@ that step go to a file in the folder given, whose path it prints, and never to t
 ```bash
 python3 -I scripts/run.py <account/repo> <run id> <folder for the logs>
 ```
-
-## A sheet of pictures
-
-`scripts/sheet.py` composes a sheet on a white ground from a layout in JSON, rows of panels with a
-heading a column and a title a row in dark text, and writes it in the format its name's extension
-gives. A layout's `title` and `subtitle` stand over the whole sheet, then a row's title stands first
-on a line of its own in a larger type, and the panels' labels under it, the first row's taking the
-columns' headings where a panel has none. It needs Pillow.
-
-```bash
-python3 -I scripts/sheet.py <layout.json> <sheet.png>
-```
-
-```json
-{
-  "font": 16,
-  "size": [320, 180],
-  "columns": ["frame", "path traced", "frame less it"],
-  "rows": [
-    {
-      "title": "The room at noon",
-      "gain": {"mean": "noon/ref.pfm", "to": 0.18},
-      "panels": [
-        {"image": "noon/frame.pfm", "boxes": [[160, 440, 480, 680]]},
-        {"image": "noon/ref.pfm", "label": "4,096 paths a pixel"},
-        {"signed": ["noon/frame.pfm", "noon/ref.pfm"], "share": 0.5}
-      ]
-    }
-  ]
-}
-```
-
-A panel is a capture under `image`, a picture Pillow opens or a PFM of linear light, shown in sRGB
-at its gain. Under `signed` it is the first capture less the second in luminance, red where brighter
-and blue where darker, full at `share` of the second's mean, on black, the one dark panel of a
-sheet. Under `difference` it is the largest
-channel's difference of two pictures as shown, times `times`, 4 where none is given, dark on white.
-`gain` is a number or the gain that puts a capture's mean luminance at `to`, 1 where none is given.
-`crop` is a box in the capture's pixels, left, top, right and bottom, `size` the panel's size in
-pixels, the cropped capture's where none is given, and `label` a line over one panel. `gain`,
-`crop`, `size` and `share` are given on the layout, a row or a panel, the nearest applying. Paths
-are read from the layout's folder.
-
-A box under `boxes` is given in the capture's own pixels and drawn on a capture's panel only, with
-the mean luminance in linear light it reads there written at its corner. The script prints the
-place of each title, each row's labels and each panel on the sheet, and each box's reading.
 
 ## A commit's check
 
