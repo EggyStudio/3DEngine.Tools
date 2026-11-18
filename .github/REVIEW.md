@@ -585,3 +585,13 @@ width outside MSBuild and XML no more, where no comment runs on over lines, whic
 with the counts the same. The four repositories' report took 17.5 seconds at a load of 13 against
 7.7 at rest without the breakdown, the sweep of 3DEngine alone 4.2 at that load against 1.7 at
 rest. The strict build is clean and the tests pass, 102 where there were 101.
+
+The rewrapper's tables in the commit carrying this line, found while sorting the hand work. A
+comment's line opening with `|` is a table's row, which stood in a paragraph as prose, so a row
+beside a long line was filled into it and the table lost, the words the same and the check passing.
+A row stands as it is and ends a paragraph. RewrapTests failed first on a long line over a table of
+three rows, one past the width, the rows filled into the paragraph; the paragraph is filled, the
+rows keep their lines and the long row is counted as left. The repositories' comments hold such
+rows, 6 in BevyCSharp within the width and 1 in Voxel-Sandbox past it (grep of the tracked files'
+comment lines opening with a bar). The
+strict build is clean and the tests pass, 103 where there were 102.

@@ -121,6 +121,18 @@ public class RewrapTests
     }
 
     [NeedsPythonFact]
+    public void A_Table_In_A_Comment_Keeps_Its_Rows_Beside_A_Paragraph_That_Is_Filled()
+    {
+        var row = "# | " + string.Join(" | ", Enumerable.Repeat("cell", 25)) + " |\n";
+        var table = "# | a | b |\n# |---|---|\n" + row;
+        var (_, printed, after) = Rewrap(new() { ["b.py"] = $"# {Words}\n{table}print(1)\n" }, write: true);
+
+        var lines = after["b.py"].Split('\n');
+        Assert.Equal(["# | a | b |", "# |---|---|", row.TrimEnd('\n')], lines[^5..^2]);
+        Assert.Contains("1 comment lines past 100 columns in 1 files rewrapped, 1 left as they stand", printed);
+    }
+
+    [NeedsPythonFact]
     public void A_Python_Comment_And_An_Xml_Comment_Are_Filled_And_A_Shebang_Is_Kept()
     {
         var (_, _, after) = Rewrap(new()

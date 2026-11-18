@@ -12,12 +12,12 @@
 # opens with its language's mark after blanks alone, // and /// in the C family, # in Python, shell,
 # YAML and TOML, and an XML comment from <!-- to --> in MSBuild and XML files; a comment after code
 # is left as it is. A paragraph is the run of lines of one mark and one indent between a blank
-# comment line, a line holding an XML documentation tag alone, a list's item, a line indented
-# further and the code, so a list, a block of code in a comment and a summary's tags keep their
-# lines. An XML tag is kept whole on a line, and a word longer than the width, an address among
-# them, stands on a line of its own. A file is refused and left as it is where its lines of code
-# differ after the rewrapping or its comments' words differ once their blanks are joined, so a fault
-# of the script's changes no file.
+# comment line, a line holding an XML documentation tag alone, a table's row, a list's item, a line
+# indented further and the code, so a list, a table, a block of code in a comment and a summary's
+# tags keep their lines. An XML tag is kept whole on a line, and a word longer than the width, an
+# address among them, stands on a line of its own. A file is refused and left as it is where its
+# lines of code differ after the rewrapping or its comments' words differ once their blanks are
+# joined, so a fault of the script's changes no file.
 import os, re, subprocess, sys
 
 sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
@@ -77,8 +77,9 @@ def line_paragraphs(lines, mark):
             i += 1
             continue
         indent, slashes, text = found.group(1), found.group(2), found.group(4)
-        # A blank comment line, a tag alone or a line indented further stands as it is.
-        if not text.strip() or LONE_TAG.match(text.strip()) or text.startswith(" "):
+        # A blank comment line, a tag alone, a table's row or a line indented further stands as it
+        # is, a row filled into a paragraph losing its table though its words stay.
+        if not text.strip() or LONE_TAG.match(text.strip()) or text.startswith(" ") or text.startswith("|"):
             out.append(lines[i])
             i += 1
             continue
@@ -92,7 +93,8 @@ def line_paragraphs(lines, mark):
             if item:
                 if not (following.startswith(" " * len(lead)) and following[len(lead):][:1] not in ("", " ")):
                     break
-            elif not following.strip() or following.startswith(" ") or LONE_TAG.match(following.strip()) or ITEM.match(following):
+            elif (not following.strip() or following.startswith((" ", "|")) or LONE_TAG.match(following.strip())
+                  or ITEM.match(following)):
                 break
             j += 1
         block = lines[i:j]
