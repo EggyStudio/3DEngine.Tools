@@ -176,6 +176,23 @@ public void The_Cheatsheet_Is_What_The_Built_Library_Writes()
 }
 ```
 
+### What a module carries
+
+A module pinning this repository's head carries the submodule and the test project's two items of
+`bc59c55` and the facts below, each in the form the commit beside it gives, with the commits that
+changed what the check reads. A module pinned before a fact's commit owes that fact.
+
+| fact | the check it calls | in its form since | what changed it after |
+|---|---|---|---|
+| `The_Library_Takes_No_Engine_Window_Or_Graphics_Api` | `ModuleChecks.ReferenceFault` | `7d56e0f` | |
+| `No_Public_Name_Or_Its_Documentation_Names_An_Engine` | `ModuleChecks.EngineNameFault` | `7d56e0f` | |
+| `The_Readme_Names_Every_Public_Type` | `ModuleChecks.UnnamedFault` | `7d56e0f` | `183e308`, a generic type's arity |
+| `The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host` | `ModuleChecks.BindingBlock` | `7d56e0f` | |
+| `The_Cheatsheet_Is_What_The_Built_Library_Writes` | `ModuleChecks.CheatsheetFault` | `17860cb` | `3720852`, a record's constructor, and `183e308`, inheritdoc |
+| `No_Tracked_Text_Names_An_Engine` | `ModuleChecks.EngineNameInTextFault` | `b817e9b` | |
+
+`ModuleChecks.ProductNamesInText`, from `d1b04e5`, is a list a reviewer reads and no fact.
+
 A clone of the engine fetches the module with `git clone --recurse-submodules`, or with
 `git submodule update --init` in a clone made without it, and a workflow checks it out with
 `submodules: true` on `actions/checkout`. A change the engine uses is committed and pushed here

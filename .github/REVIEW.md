@@ -776,3 +776,12 @@ README names a product, cites one by its year and one by an address, beside a li
 comment naming one, the README's first line and the comment alone read. The seven modules at their
 heads name none (grep of their tracked files). The README says it. The strict build is clean and the
 tests pass, 136 where there were 134.
+
+The README's list of what a module carries in the commit carrying this line, under its section
+Binding it in your engine: the submodule and the test project's items of `bc59c55`, then each of the
+six facts with the check it calls, the commit that gave it its form and the commits that changed
+what it reads after, `7d56e0f` for the four, `17860cb` for the cheat sheet with `3720852` and
+`183e308` after, and `b817e9b` for the text, so a module pinned before a fact's commit knows it owes
+it; the products' list of `d1b04e5` stands below as a list and no fact. The hashes are read as
+ancestors of the head (git merge-base --is-ancestor). The strict build is clean and the 136 tests
+pass.
