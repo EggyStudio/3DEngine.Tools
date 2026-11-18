@@ -289,7 +289,11 @@ message's first line under its subject or its two where it has two, a commit tha
 review's files or DEVLOG.md alone left out, so a repository whose review records no item done reads
 what landed in its devlog. A commit whose sentence names an engine outside the form of a module's
 assembly, `3DEngine.<Module>`, is left out of the page and counted on the script's output alone,
-since pushed history is not rewritten, and the commit's check fails such a message in a module.
+since pushed history is not rewritten, and the commit's check fails such a message in a module. A
+commit whose line on the page would fail the check an added line of a page gets, the cheatsheet in
+two words or a middle dot among the rest, is left out and counted the same way, and for this
+leave-out alone the bridge, which stood for an engine in the modules' old sentences, is read as
+naming one.
 
 `--fixes` names a JSON file kept outside the repositories, an object whose `pairs` are a pattern and
 its replacement each, applied in turn to every caption and title, whose `patterns` give by a

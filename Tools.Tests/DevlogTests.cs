@@ -94,6 +94,35 @@ public class DevlogTests
         }
     }
 
+    [NeedsPythonFact]
+    public void A_Commit_Whose_Sentence_Would_Fail_The_Line_Check_Or_Names_The_Bridge_Is_Left_Out_And_Counted()
+    {
+        var repo = Directory.CreateTempSubdirectory("devlog-").FullName;
+        try
+        {
+            Git(repo, "init", "-q");
+            Commit(repo, "a.txt", "The page is kept.");
+            // The two-word form and the middle dot are joined from parts, which no line here holds.
+            Commit(repo, "b.txt", "A cheat" + " sheet lists the types.");
+            Commit(repo, "c.txt", "Two steps \u00b7 one pass.");
+            Commit(repo, "d.txt", "It follows the bridge's mend.");
+            var kept = Git(repo, "rev-parse", "--short=7", "HEAD~3").Trim();
+
+            var printed = Programs.Script("devlog.py", repo, "Sample", "--commits");
+            var commits = File.ReadAllLines(Path.Combine(repo, "DEVLOG.md")).SkipWhile(line => line != "Commits that day").Skip(2).TakeWhile(line => line.Length > 0).ToList();
+
+            Assert.Equal([$"- `{kept}` The page is kept."], commits);
+            Assert.Contains("1 commit left out, its sentence naming an engine", printed);
+            Assert.Contains("2 commits left out, their sentences failing the line check", printed);
+            Assert.DoesNotContain("left out", File.ReadAllText(Path.Combine(repo, "DEVLOG.md")));
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
     // A commit of one file, its message the three marks, a blank line and the lines given.
     private static void Commit(string repo, string path, string lines)
     {

@@ -1,4 +1,8 @@
 import subprocess, re, json, sys, os, textwrap
+# The line check is commitcheck.py's, beside this script, read without leaving its bytecode.
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from commitcheck import line_faults  # noqa: E402
 # What is printed is UTF-8 whatever the system gives a pipe, cp1252 on Windows, so a place or a
 # caption holding a dash or a mark reads back whole.
 sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
@@ -107,19 +111,28 @@ for f, q in paras:
 # the commits by their sentences, a message's first line under its subject or its two where it has
 # two, those that change the review's files or the devlog alone left out
 OWN = {".github/REVIEW.md", ".github/REVIEW-ARCHIVE.md", ".github/NORM.md", "DEVLOG.md"}
-# A sentence naming an engine outside the form of a module's assembly, 3DEngine.Name, is left out
-# of the page a reader sees, and only counted on the output, since pushed history is not rewritten.
-ENGINE = re.compile(r"3DEngine(?!\.[A-Za-z])|\bBevy(CSharp)?\b|\bE3D\b", re.I)
-left_out = 0
+# A sentence naming an engine outside the form of a module's assembly, 3DEngine.Name, or one that
+# would fail the line check an added line of the page gets, is left out of the page a reader sees,
+# and only counted on the output, since pushed history is not rewritten. "The bridge" stood for an
+# engine in the modules' old sentences, so here alone it is read as naming one.
+ENGINE = re.compile(r"3DEngine(?!\.[A-Za-z])|\bBevy(CSharp)?\b|\bE3D\b|\bthe bridge\b", re.I)
+left_out = failing = 0
 if commits:
     for entry in git("log", "--format=@@%h%x00%cs%x00%B%x00", "--name-only").split("@@")[1:]:
         h, d, body, files = (entry.split("\x00") + ["", "", "", ""])[:4]
         changed = {f for f in files.split("\n") if f.strip()}
         if not changed or changed <= OWN: continue
         said = [l.strip() for l in body.split("\n\n", 1)[-1].split("\n") if l.strip()][:2] if "\n\n" in body else []
-        if said and ENGINE.search(" ".join(said)):
+        if not said:
+            continue
+        line = f"- `{h}` {fix(' '.join(said))}"
+        if ENGINE.search(line):
             left_out += 1
-        elif said:
+        # The check leaves DEVLOG.md unread, being written from the history, so the line is read
+        # as a line of any other page.
+        elif any(level == "FAIL" for level, _, _ in line_faults("page.md", line, False)[0]):
+            failing += 1
+        else:
             day(d)["commits"].append((h, fix(" ".join(said))))
 # write
 folder = ", ".join(f"`{d}`" for d in PIC_DIRS)
@@ -158,3 +171,5 @@ print(name, "days", len([d for d in days if days[d]["pictures"] or days[d]["done
 for l in bad[:12]: print("  BAD:", l[:140])
 if left_out:
     print(f"{left_out} commit left out, its sentence naming an engine" if left_out == 1 else f"{left_out} commits left out, their sentences naming an engine")
+if failing:
+    print(f"{failing} commit left out, its sentence failing the line check" if failing == 1 else f"{failing} commits left out, their sentences failing the line check")

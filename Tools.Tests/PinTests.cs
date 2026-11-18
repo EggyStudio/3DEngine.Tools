@@ -74,7 +74,8 @@ public class PinTests
             {
                 Directory.CreateDirectory(Path.Combine(Tools, "scripts"));
                 Git(Tools, "init", "-q", "-b", "main");
-                File.Copy(Programs.ScriptPath("devlog.py"), Path.Combine(Tools, "scripts", "devlog.py"));
+                foreach (var script in new[] { "devlog.py", "commitcheck.py" })
+                    File.Copy(Programs.ScriptPath(script), Path.Combine(Tools, "scripts", script));
             }
             File.WriteAllText(Path.Combine(Tools, "README.md"), "# Tools\n\n## Binding it in your engine\n\n### What a module carries\n\n" + table + "\n## Building\n");
             Git(Tools, "add", "-A");
