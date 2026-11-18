@@ -193,8 +193,11 @@ def files(arguments):
         if top.returncode:
             sys.exit(f"{argument} is in no git checkout, and only a checkout's tracked files are rewrapped.")
         root = top.stdout.strip()
-        listed = subprocess.run(["git", "-C", root, "ls-files", "-z", "--", os.path.relpath(os.path.abspath(argument), root)],
-                                capture_output=True)
+        # Listed from the argument's own folder, with paths from the top, since git gives the top
+        # by the path a symbolic link leads to, as macOS's temporary folder is reached, and a path
+        # given through the link made relative to it names nothing.
+        spec = "." if os.path.isdir(argument) else os.path.basename(argument)
+        listed = subprocess.run(["git", "-C", folder, "ls-files", "-z", "--full-name", "--", spec], capture_output=True)
         for path in listed.stdout.decode("utf-8", "replace").split("\0"):
             # A submodule is listed as the commit it points at, a folder and no file of its.
             full = os.path.join(root, path)

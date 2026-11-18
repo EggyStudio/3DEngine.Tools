@@ -29,6 +29,19 @@ public sealed class NeedsPillowFactAttribute : FactAttribute
     }
 }
 
+/// <summary>
+/// Skipped where no Python 3 runs or on Windows, which makes a symbolic link only in developer mode
+/// or for an administrator, so a test of a path reached through one runs on Linux and macOS.
+/// </summary>
+public sealed class NeedsPythonAndSymbolicLinksFactAttribute : FactAttribute
+{
+    public NeedsPythonAndSymbolicLinksFactAttribute()
+    {
+        if (Programs.Python.Value is null) Skip = "No Python 3 runs here as python3 or python.";
+        else if (OperatingSystem.IsWindows()) Skip = "Windows makes a symbolic link only in developer mode or for an administrator.";
+    }
+}
+
 /// <summary>Runs the module's scripts and the programs they call.</summary>
 public static class Programs
 {

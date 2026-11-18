@@ -58,6 +58,35 @@ public class RewrapTests
         }
     }
 
+    [NeedsPythonAndSymbolicLinksFact]
+    public void A_Repository_Reached_Through_A_Symbolic_Link_Is_Read_As_Through_Its_Own_Path()
+    {
+        // macOS reaches its temporary folder through a link, /var to /private/var, and git names a
+        // repository's top by the path the link leads to, so a path given through the link and the
+        // top git gives must be read alike.
+        var real = Directory.CreateTempSubdirectory("rewrap-real-").FullName;
+        var linked = real + "-link";
+        try
+        {
+            Git(real, "init", "-q");
+            Write(real, new() { ["A.cs"] = $"class A\n{{\n    // {Words}\n}}\n" });
+            Git(real, "add", "-A");
+            Directory.CreateSymbolicLink(linked, real);
+
+            var (exit, printed) = Programs.Attempt("rewrap.py", [], "--write", linked);
+
+            Assert.True(exit == 0, printed);
+            Assert.Contains("1 comment lines past 100 columns in 1 files rewrapped, 0 left as they stand, 0 files refused", printed);
+            Assert.All(File.ReadAllLines(Path.Combine(real, "A.cs")), line => Assert.True(line.Length <= 100, line));
+        }
+        finally
+        {
+            Directory.Delete(linked);
+            foreach (var file in Directory.EnumerateFiles(real, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(real, true);
+        }
+    }
+
     [NeedsPythonFact]
     public void A_Dry_Run_Counts_The_Lines_And_Changes_No_File()
     {

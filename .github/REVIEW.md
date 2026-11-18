@@ -73,7 +73,7 @@ pointer. One commit an engine, after item 3's first part.
 
 ## Verdicts
 
-One red run so far, mended in the commit after it.
+Two red runs so far, the first mended in the commit after it.
 
 1. **Run 44345093619 of d3add46 was red on Windows alone (2026-11-18).** The sweep's tests split the
     script's output on a line feed and kept the carriage return, and Python wrote the pipe in the
@@ -81,6 +81,12 @@ One red run so far, mended in the commit after it.
     every script setting its output to UTF-8 and one helper splitting lines of either ending, and
     run 44346168120 is green on the three systems. A test that reads another program's output is
     read on Windows before it is pushed.
+
+2. **Run 44352106432 of 9017360 was red on macOS alone (2026-11-18).** Four of RewrapTests failed
+    there, the script rewrapping nothing in a made repository under the system's temporary folder,
+    where it rewrote every file on Linux and Windows. The folder is reached through a symbolic link
+    on macOS, so a path read from git and the path given can differ; the cause is to be shown by the
+    mend's failing test. 6b711ed waits for that mend.
 
 ## Decisions
 
@@ -487,3 +493,15 @@ report written. Over 3DEngine, BevyCSharp, Voxel-Sandbox and this repository at 
 wrote its report in 7.7 seconds, the second with the first as its previous the same and every change
 0. The comment in DevlogTests that named a runner, the one warning the module's own tree gave, says
 a workflow. The strict build is clean and the tests pass, 93 where there were 88.
+
+Verdict 2's mend in the commit carrying this line, with `6b711ed` before it. The rewrapper asked
+git for the top of the repository holding a path and listed the files under the path made relative
+to that top, and git gives the top by the path a symbolic link leads to, as macOS reaches its
+temporary folder, `/var` by `/private/var`, so the path given through the link named nothing and no
+file was read. It lists the files from the path's own folder with their paths from the top, so no
+path given is made relative to one read another way. RewrapTests failed first on Linux on a made
+repository given by a symbolic link to it, reading no file where it holds one, and rewraps it; the
+test is skipped on Windows, which makes a link only in developer mode or for an administrator. A
+file given through a link is read as well, and the dry run over 3DEngine at its head gives 5,449
+lines rewrapped and 83 left, the sweep's 5,532. The strict build is clean and the tests pass, 94
+where there were 93.
