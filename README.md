@@ -27,6 +27,48 @@ where no line is a FAIL, whatever WARN lines stand, 1 where a line is, and 2 whe
 not run, a revision git does not know or a pattern that is no regular expression among the causes,
 which it names, so `commitcheck.py <repo> && git push` pushes only a commit with no FAIL.
 
+## A sheet of charts
+
+`scripts/chart.py` draws a sheet of data charts on a white ground from a layout in JSON, a title and
+a subtitle, panels of line charts, horizontal bars by group, tables and signed maps in a grid, and a
+line of notes, and writes it in the format its name's extension gives, WebP or PNG among them. It
+needs Pillow and nothing else, and names nothing of these repositories, so it stands on its own.
+
+```bash
+python3 -I scripts/chart.py <layout.json> <sheet.webp>
+```
+
+The layout's `title`, `subtitle` and `notes` are lines of text, `legend` a list of `label` and
+`color`, `columns` the grid's columns, `width` the sheet's width, `panel_height` a panel's height
+and `font` the type's size, and `panels` a list, each with a `kind`, a `title` and a `subtitle`. A
+`line` panel's `x` and `y` give an axis's `label`, `min`, `max`, `ticks` and `log`; its `series`
+each have `points`, a list of x and y, a `label` drawn at the line at `label_at` on the x axis, a
+`color`, `dash` for a dashed line, `marks` to mark every point and `marked` for points of its own;
+its `bands` each shade from `from` to `to` on the y axis with a `label`. A `bars` panel's `groups`
+each have a `label` and `values`, a bar a series and null for none, its `series` the bars' `label`
+and `color`, its `x` an axis, and `value_labels` gives `last`, `all` or `none`. A `table` panel has
+`columns`, `rows`, `bold`, the rows drawn heavy by their numbers from 0, and `align`, `left` or
+`right` a column. A `map` panel's `values` are rows of signed numbers, red above zero and blue
+below, full at `scale` and black at zero, with a `label` under it. A color is a hexadecimal one or
+the palette's next. The script prints each panel's place and each chart's plot with its axes'
+ranges.
+
+```json
+{
+  "title": "Time a point by stage", "columns": 2, "width": 1560, "panel_height": 600,
+  "legend": [{"label": "513 a side", "color": "#8db8f0"}, {"label": "4,097 a side", "color": "#0f2f66"}],
+  "panels": [
+    {"kind": "bars", "title": "Time a point", "x": {"label": "nanoseconds a point"},
+     "series": [{"color": "#8db8f0"}, {"color": "#0f2f66"}],
+     "groups": [{"label": "Noise", "values": [282.4, 143.8]}]},
+    {"kind": "line", "title": "Light by height", "x": {"label": "degrees"}, "y": {"log": true},
+     "series": [{"label": "the sun", "points": [[5, 4.6], [90, 118]], "dash": true}],
+     "bands": [{"from": 5500, "to": 6500, "label": "daylight"}]}
+  ],
+  "notes": "Drawn from the bench's table."
+}
+```
+
 ## Binding it in your engine
 
 The module needs nothing of an engine. It reads a checkout's files and the pictures a program has

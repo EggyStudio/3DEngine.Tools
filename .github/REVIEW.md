@@ -875,3 +875,25 @@ them until they reword it, 3DEngine's review at 98 KB and Voxel-Sandbox's at 91,
 its newest picture in BevyCSharp, Voxel-Sandbox and RadianceCascades, and Modeling two commits
 ahead of its remote. The README says it and AGENTS.md's scripts row names it. The strict build is
 clean and the tests pass, 149 and one skipped plain and 150 in the variant.
+
+The sheet of charts in the commit carrying this line, as the owner asked how others could make the
+sheets. `scripts/chart.py` draws from a layout in JSON a white sheet with a title, a subtitle, a
+legend and a line of notes, and panels in a grid: line charts on linear or logarithmic axes, their
+series solid or dashed, labeled at the line, their points marked and a band shaded with its label;
+horizontal bars by group, a bar a series, labeled at the last bar to three figures; a table with a
+heavy header and bold rows; and a signed map, red above zero and blue below and black at zero as
+sheet.py's signed difference is. It prints each panel's place and each chart's plot with its axes'
+ranges, writes the format its name gives, needs Pillow alone and names nothing of these
+repositories. The proof is Landscape's `2026-11-18-item-3-bench.webp` drawn again from the table of
+its note `2026-11-18-item-3-bench.md` alone, the tiles' index array a tile from its prose, the same
+stages, sizes, colors and values as the sheet its session's own script drew; the first drawing
+stopped the axis at 400 short of the longest bar and labeled to four figures, which the second
+mends. It is the devlog's picture `2026-11-18-chart-bench.webp`. ChartTests composes a made layout
+of every kind and reads its pixels at the printed places: the white ground, the title and the notes,
+a solid line's color at its value and a marked point's beside it, a band's shade, a dashed line both
+inked and broken, a logarithmic axis's middle at 100 of 1 to 10,000, a bar's color inside its
+printed box and white past its end, a bold row darker than the same text plain, and a map's red,
+blue and black; and a panel of another kind refused by name. The script was written before its
+tests, which passed at their first run, so they read it rather than failing first. The README gives
+its keys with an example, and AGENTS.md's scripts row names it, a new path. The strict build is
+clean and the tests pass, 151 and one skipped plain and 152 in the variant.

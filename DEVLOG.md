@@ -14,6 +14,11 @@ gain that puts the path-traced reference's mean at 0.18, the box over the floor 
 with the shading floor on and off and 0.0004174 path traced, and the frame with the floor off less
 the reference on black, red where brighter and blue where darker, full at half the reference's mean.
 
+![](.github/assets/readings/2026-11-18-chart-bench.webp)
+Landscape's sheet of its every-step bench drawn again by chart.py from the table of its note alone,
+the time a point and the bytes a point of each stage at four sizes as bars by group, the same values
+and order as the sheet its session drew by a script of its own.
+
 ## 2026-10-31
 
 Done that day
