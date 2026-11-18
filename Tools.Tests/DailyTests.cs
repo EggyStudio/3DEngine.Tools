@@ -86,6 +86,35 @@ public class DailyTests
     }
 
     [NeedsPythonFact]
+    public void The_Failures_The_Rewrap_Leaves_Are_Grouped_By_What_A_Hand_Would_Do_With_Examples()
+    {
+        using var day = new Day();
+        string Many(string word, int count) => string.Join(' ', Enumerable.Repeat(word, count));
+        var repo = day.Repository("repo", new()
+        {
+            ["scripts/a.py"] = $"print(1)\n#     {Many("code", 20)}\n",
+            ["scripts/b.py"] = $"# | {string.Join(" | ", Enumerable.Repeat("cell", 25))} |\nprint(1)\n",
+            ["Library/C.cs"] = $"/// <param name=\"{new string('x', 100)}\">\nclass C {{ }}\n",
+            ["scripts/d.py"] = $"# a word {new string('y', 110)} and more\nprint(1)\n",
+            ["src/e.py"] = "# A line \u2014 with a dash.\nprint(1)\n",
+        });
+
+        var (_, report) = day.Report("day.md", null, repo);
+
+        var lines = Programs.Lines(report);
+        Assert.Contains("Of 5 failures the rewrap would clear 0, and 5 are for hands.", lines);
+        var table = Array.IndexOf(lines, "| what a hand does | count | three of them |");
+        Assert.True(table > 0, "the report has no table of the hand work");
+        var rows = lines[(table + 2)..].TakeWhile(line => line.StartsWith('|')).ToList();
+        Assert.Equal(5, rows.Count);
+        Assert.Contains(rows, row => row.StartsWith("| break an indented line of a comment, code or a continuation | 1 | `scripts/a.py:2` ", StringComparison.Ordinal));
+        Assert.Contains(rows, row => row.StartsWith("| shorten a table's row in a comment | 1 | `scripts/b.py:1` ", StringComparison.Ordinal));
+        Assert.Contains(rows, row => row.StartsWith("| break a documentation tag that stands alone | 1 | `Library/C.cs:1` ", StringComparison.Ordinal));
+        Assert.Contains(rows, row => row.StartsWith("| shorten a word or a tag longer than the line holds | 1 | `scripts/d.py:1` ", StringComparison.Ordinal));
+        Assert.Contains(rows, row => row.StartsWith("| mend em dash | 1 | `src/e.py:1` ", StringComparison.Ordinal));
+    }
+
+    [NeedsPythonFact]
     public void The_Ten_Files_A_Rule_Holds_Most_Of_Are_Listed_And_The_Rest_Counted()
     {
         using var day = new Day();

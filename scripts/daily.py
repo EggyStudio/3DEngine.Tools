@@ -17,7 +17,8 @@ sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8
 sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sweep import forbidden_names, read_tree  # noqa: E402
-from rewrap import rewrap  # noqa: E402
+from commitcheck import line_faults  # noqa: E402
+from rewrap import COLUMNS, LINE, LONE_TAG, SLASHES, XML, rewrap, words  # noqa: E402
 
 WORST = 10
 WIDTH = "a comment line past 100 columns"
@@ -44,6 +45,82 @@ def read_previous(path):
     if not found:
         sys.exit(f"{path} carries no counts, so it is no report this script wrote.")
     return json.loads(found.group(1))
+
+
+# What a hand does with a comment line the rewrap leaves past the width, by its form.
+INDENTED = "break an indented line of a comment, code or a continuation"
+ROW = "shorten a table's row in a comment"
+TAG = "break a documentation tag that stands alone"
+LONG_WORD = "shorten a word or a tag longer than the line holds"
+REFUSED = "rewrap by hand a file the rewrap refuses"
+BLOCK = "break a line of a block comment, which the rewrap leaves"
+OTHER = "break a comment line of another form"
+
+
+def hand_form(path, line):
+    """What a hand does with a line the rewrap leaves past the width."""
+    if XML.search(path):
+        return LONG_WORD if any(len(w) > COLUMNS // 2 for w in words(line)) else OTHER
+    found = LINE["//" if SLASHES.search(path) else "#"].match(line)
+    text = found.group(4) if found else line.strip()
+    if text.startswith("|"):
+        return ROW
+    if text.startswith(" "):
+        return INDENTED
+    if LONE_TAG.match(text.strip()):
+        return TAG
+    prefix = len(line) - len(text)
+    if any(len(w) > COLUMNS - prefix - 1 for w in words(text)):
+        return LONG_WORD
+    return OTHER
+
+
+def rewraps(repo, found):
+    """The rewrap of each file the width rule holds, read without writing, by its path, a file
+    whose path holds a name put out of sight left out, since that path names no file."""
+    paths = {path for _, rule, path, _ in found if rule == WIDTH}
+    return {path: rewrap(os.path.join(repo, path), path) for path in sorted(paths) if os.path.isfile(os.path.join(repo, path))}
+
+
+def hand_work(repo, found, rewrapped):
+    """Each failure the rewrap leaves, by what a hand would do, each a list of its places in the
+    file as it stands, a width's place by the line the rewrap would leave long."""
+    work = collections.defaultdict(list)
+    width = collections.defaultdict(list)
+    for level, rule, path, place in found:
+        if level != "FAIL":
+            continue
+        if rule == WIDTH:
+            width[path].append(int(place.split(":", 1)[1].split(" ", 1)[0]))
+        else:
+            work[f"mend {rule}"].append(place.split(" ", 1)[0])
+    for path, numbers in sorted(width.items()):
+        full = os.path.join(repo, path)
+        if path not in rewrapped:
+            work[REFUSED] += [f"{path}:{n}" for n in numbers]
+            continue
+        text, _, _, refusal = rewrapped[path]
+        original = open(full, encoding="utf-8", errors="replace").read().replace("\r\n", "\n").split("\n")
+        if refusal:
+            work[REFUSED] += [f"{path}:{n}" for n in numbers]
+            continue
+        # A line the rewrap leaves stands in the file as it is, or holds a word too long for any
+        # line that an original long line held, which is where a hand finds it, each original line
+        # named once while another is left to name.
+        unused, opened = list(numbers), False
+        for line in text.replace("\r\n", "\n").split("\n"):
+            inside = opened
+            faults, opened = line_faults(path, line, opened)
+            if not any(rule == WIDTH for _, rule, _ in faults):
+                continue
+            longest = max(words(line), key=len, default="")
+            candidates = unused or numbers
+            number = next((n for n in candidates if original[n - 1] == line), None) or \
+                next((n for n in candidates if longest and longest in original[n - 1]), candidates[0])
+            if number in unused:
+                unused.remove(number)
+            work[BLOCK if inside or line.lstrip().startswith("/*") else hand_form(path, line)].append(f"{path}:{number}")
+    return work
 
 
 def report(repos, previous, forbidden):
@@ -82,8 +159,8 @@ def report(repos, previous, forbidden):
         # The rewrap read without writing over each file the width rule holds, so what it would
         # clear stands beside what would be left for hands, a refused file clearing nothing.
         clears = collections.Counter()
-        for path in {path for _, rule, path, _ in found if rule == WIDTH}:
-            _, long, _, refusal = rewrap(os.path.join(repo, path), path)
+        rewrapped = rewraps(repo, found)
+        for path, (_, long, _, refusal) in rewrapped.items():
             clears[top_folder(path)] += 0 if refusal else long
         pairs = collections.Counter((level, rule, top_folder(path)) for level, rule, path, _ in found)
         failures = sum(count for (level, _, _), count in pairs.items() if level == "FAIL")
@@ -94,6 +171,13 @@ def report(repos, previous, forbidden):
             for (level, rule, folder), count in sorted(pairs.items(), key=lambda item: (item[0][0] != "FAIL", -item[1], item[0][1], item[0][2])):
                 clear = clears[folder] if rule == WIDTH else 0
                 section.append(f"| {level} | {rule} | `{folder}` | {count} | {clear} | {count - clear} |")
+            section.append("")
+
+        work = hand_work(repo, found, rewrapped)
+        if work:
+            section += ["| what a hand does | count | three of them |", "|---|---|---|"]
+            for task, places in sorted(work.items(), key=lambda item: (-len(item[1]), item[0])):
+                section.append(f"| {task} | {len(places)} | {', '.join(f'`{place}`' for place in places[:3])} |")
             section.append("")
 
         folders = collections.defaultdict(collections.Counter)

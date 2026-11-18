@@ -626,3 +626,23 @@ repository holding a submodule with a long comment and a dash reads none of them
 was in already. ModuleChecksTests hosts the block of four facts and reads each fault's sentence on a
 planted fault and null on none. The strict build is clean and the tests pass, 111 where there were
 104.
+The day's report's hand work in the commit carrying this line. Each repository's section gives a
+table of what a hand does with each failure the rewrap leaves, with its count and three places in
+the file as it stands: break an indented line of a comment, shorten a table's row, break a
+documentation tag that stands alone, shorten a word or a tag longer than the line holds, break a
+line of a block comment, rewrap by hand a file the rewrap refuses, and mend each rule other than
+the width. A place is the original line a left line stands on or held its long word, each named
+once while another is left. DailyTests failed first on a made repository holding one of five
+kinds, the five rows read with their counts and first places. At the heads, from the report over
+the three (python3 -I scripts/daily.py):
+
+| repository | for hands | the pictures' ground | an indented comment line | British spelling | "word" | a tag alone | a long word | a table's row | em dash |
+|---|---|---|---|---|---|---|---|---|---|
+| 3DEngine | 182 | 83 | 69 | 22 | 7 | 0 | 1 | 0 | 0 |
+| BevyCSharp | 145 | 127 | 6 | 3 | 3 | 4 | 1 | 0 | 1 |
+| Voxel-Sandbox | 125 | 124 | 0 | 0 | 0 | 0 | 0 | 1 | 0 |
+
+3DEngine's 69 indented lines are 58 in its library, 12 of them in `Graphics/GraphicsDevice.cs`, 6
+in its generator, 3 in its examples and 2 in `build` (the report's hand work read by folder); the
+pictures are the ground the table of 2026-11-18 read. The strict build is clean and the tests
+pass, 112 where there were 111.
