@@ -289,3 +289,8 @@ sweep writes no compiled copy of the script it imports, and the ignore file leav
 three marks, the dashes and the middle dot stood as characters in commitcheck.py, devlog.py and
 three test files, the marks unseen in an editor and the dashes against STYLE.md's check of the C#,
 and are written as escapes. The strict build is clean and the tests pass, 62 where there were 56.
+
+The README's section For a session in the commit carrying this line, ten lines under the opening
+paragraph, saying how a session runs `commitcheck.py` on its commits before reporting them, with the
+names in the environment and the unpushed commits read where no range is given, and what a FAIL, a
+WARN and a note mean.

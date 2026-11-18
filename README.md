@@ -5,6 +5,22 @@ repositories otherwise copy by hand, the devlog's generator, the composer of rea
 reader, the texture recipes, and the text STYLE.md, COMMITS.md and NORM.md share. It references no
 engine, and each engine implements the interfaces it declares where it binds the module.
 
+## For a session
+
+A session runs the commit's check on its commits before it reports them, from this checkout, with
+the names it is given in the environment, every commit not yet pushed being read where no range is
+given.
+
+```bash
+FORBIDDEN_NAMES='<names>' python3 -I <Tools>/scripts/commitcheck.py <repo> [origin/main..HEAD]
+```
+
+A FAIL line is a commit that breaks the form or a rule a pattern reads, which is mended and the
+commit made again before it is reported, and it makes the exit code 1. A WARN line is for the
+reviewer to read and decide, and the report names each one left standing. A note says what to look
+at, such as a picture's smaller copy, and a WARN that FORBIDDEN_NAMES is not set says the names were
+not read for.
+
 ## Taking it into an engine
 
 An engine adds the repository as a git submodule under `modules/` and references its project, here
