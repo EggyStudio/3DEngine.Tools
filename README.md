@@ -18,10 +18,12 @@ FORBIDDEN_NAMES='<names>' python3 -I <Tools>/scripts/commitcheck.py <repo> [orig
 ```
 
 A FAIL line is a commit that breaks the form or a rule a pattern reads, which is mended and the
-commit made again before it is reported, and it makes the exit code 1. A WARN line is for the
-reviewer to read and decide, and the report names each one left standing. A note says what to look
-at, such as a picture's smaller copy, and a WARN that FORBIDDEN_NAMES is not set says the names were
-not read for.
+commit made again before it is reported. A WARN line is for the reviewer to read and decide, and the
+report names each one left standing. A note says what to look at, such as a picture's smaller copy,
+and a WARN that FORBIDDEN_NAMES is not set says the names were not read for. The exit code is 0
+where no line is a FAIL, whatever WARN lines stand, 1 where a line is, and 2 where the check could
+not run, a revision git does not know or a pattern that is no regular expression among the causes,
+which it names, so `commitcheck.py <repo> && git push` pushes only a commit with no FAIL.
 
 ## Binding it in your engine
 
@@ -209,9 +211,11 @@ to be looked at, which needs Pillow.
 python3 -I scripts/commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>]
 ```
 
-A FAIL line stops a push and makes the exit code 1, a WARN line is for the reviewer to read, and a
-note says what to look at. The names no commit may carry are a regular expression in the
-`FORBIDDEN_NAMES` environment variable and in no file, and where it is not set the check says so.
+A FAIL line stops a push, a WARN line is for the reviewer to read, and a note says what to look at.
+The exit code is 0 where no line is a FAIL, 1 where a line is, and 2 where the check could not run,
+with the reason written to the error output. The names no commit may carry are a regular expression
+in the `FORBIDDEN_NAMES` environment variable and in no file, and where it is not set the check says
+so.
 
 ## A tree's sweep
 

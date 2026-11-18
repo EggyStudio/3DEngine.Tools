@@ -19,6 +19,87 @@ public class CommitCheckTests
     }
 
     [NeedsPythonFact]
+    public void A_Range_Whose_Earlier_Commit_Fails_Exits_With_1_And_A_Range_Of_Warnings_Alone_With_0()
+    {
+        var repo = Directory.CreateTempSubdirectory("commitcheck-").FullName;
+        try
+        {
+            Git(repo, "init", "-q");
+            Commit(repo, "a.txt", "Add a file.\n\nA file holds a letter.\n");
+            Commit(repo, "b.txt", Lead + "A second file holds a letter.\n");
+
+            var (failed, printed) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = null }, repo, "HEAD~1", "HEAD");
+            var (passed, warned) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = null }, repo, "HEAD");
+
+            Assert.True(failed == 1, printed);
+            Assert.True(passed == 0, warned);
+            Assert.Contains("WARN FORBIDDEN_NAMES is not set", warned);
+        }
+        finally
+        {
+            Delete(repo);
+        }
+    }
+
+    [NeedsPythonFact]
+    public void A_Branch_Under_Claude_Fails_With_1()
+    {
+        var repo = Directory.CreateTempSubdirectory("commitcheck-").FullName;
+        try
+        {
+            Git(repo, "init", "-q");
+            Commit(repo, "a.txt", Lead + "A file holds a letter.\n");
+            Git(repo, "checkout", "-q", "-b", "claude/sample");
+
+            var (code, printed) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "HEAD");
+
+            Assert.True(code == 1, printed);
+            Assert.Contains("FAIL the branch is claude/sample", printed);
+        }
+        finally
+        {
+            Delete(repo);
+        }
+    }
+
+    [NeedsPythonFact]
+    public void A_Check_That_Cannot_Run_Exits_With_2_And_Says_Why()
+    {
+        var repo = Directory.CreateTempSubdirectory("commitcheck-").FullName;
+        try
+        {
+            Git(repo, "init", "-q");
+            Commit(repo, "a.txt", Lead + "A file holds a letter.\n");
+
+            var (revision, unknown) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "no-such-commit");
+            var (pattern, broken) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = "(unclosed" }, repo, "HEAD");
+
+            Assert.True(revision == 2, unknown);
+            Assert.Contains("git rev-parse no-such-commit failed", unknown);
+            Assert.True(pattern == 2, broken);
+            Assert.Contains("FORBIDDEN_NAMES is no regular expression", broken);
+        }
+        finally
+        {
+            Delete(repo);
+        }
+    }
+
+    private static void Commit(string repo, string path, string message)
+    {
+        File.WriteAllText(Path.Combine(repo, path), "a\n");
+        Git(repo, "add", "-A");
+        File.WriteAllText(Path.Combine(repo, ".git", "message"), message);
+        Git(repo, "commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(repo, ".git", "message"));
+    }
+
+    private static void Delete(string repo)
+    {
+        foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+        Directory.Delete(repo, true);
+    }
+
+    [NeedsPythonFact]
     public void A_Message_Without_The_Three_Marks_Fails()
     {
         var (code, printed) = Check(new() { ["a.txt"] = "a\n" }, "Add a file.\n\nA file holds a letter.\n");

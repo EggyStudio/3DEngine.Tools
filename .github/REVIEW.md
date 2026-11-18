@@ -667,3 +667,12 @@ nothing, a copy of the scripts whose rewrap changes a line of code with its own 
 switched off, which the proof finds by its own rule, and a work folder inside the repository
 refused. The rewrap's run over the repositories themselves stays the owner's word. The strict build
 is clean and the tests pass, 115 where there were 112.
+
+The commit's check's exit codes in the commit carrying this line. It exited with 1 where any line is
+a FAIL and with 0 otherwise from `2a8d768` on, which its tests read on every planted FAIL and on a
+commit of warnings alone, so that test could not fail first; two more read the FAIL paths no test
+held, a branch under `claude/` and a range whose earlier commit fails, and passed at once. A check
+that could not run, a revision git does not know or a pattern that is no regular expression, exited
+with 1 as well, so a script could not tell it from a failing commit; it writes its reason to the
+error output and exits with 2, which the test of both causes failed first on. The README says 0, 1
+and 2 in both its sections. The strict build is clean and the tests pass, 118 where there were 115.

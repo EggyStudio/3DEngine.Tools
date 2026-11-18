@@ -76,10 +76,17 @@ XML = re.compile(r"\.(csproj|props|targets|slnx|xml)$")
 COLUMNS = 100
 
 
+# A check that cannot run exits with 2, apart from a commit's FAIL, which exits with 1, so a push
+# behind && stops on either and a reader of the code tells the two apart.
+def stop(sentence):
+    print(sentence, file=sys.stderr)
+    sys.exit(2)
+
+
 def git(repo, *arguments, raw=False):
     done = subprocess.run(["git", "-C", repo, *arguments], capture_output=True)
     if done.returncode:
-        sys.exit(f"git {' '.join(arguments)} failed in {repo}. {done.stderr.decode('utf-8', 'replace').strip()}")
+        stop(f"git {' '.join(arguments)} failed in {repo}. {done.stderr.decode('utf-8', 'replace').strip()}")
     return done.stdout if raw else done.stdout.decode("utf-8", "replace")
 
 
@@ -250,14 +257,14 @@ def main():
     arguments = [a for a in sys.argv[1:] if not a.startswith("--")]
     thumbs = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--thumbs=")), os.path.join(tempfile.gettempdir(), "commitcheck"))
     if not arguments:
-        sys.exit("Usage is commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>].")
+        stop("Usage is commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>].")
     repo, revs = arguments[0], arguments[1:] or ["origin/main..HEAD"]
     names = os.environ.get("FORBIDDEN_NAMES")
     if names:
         try:
             re.compile(names)
         except re.error as error:
-            sys.exit(f"FORBIDDEN_NAMES is no regular expression, {error}.")
+            stop(f"FORBIDDEN_NAMES is no regular expression, {error}.")
     hashes = []
     for rev in revs:
         hashes += git(repo, "rev-list", "--reverse", rev).split() if ".." in rev else [git(repo, "rev-parse", rev).strip()]
