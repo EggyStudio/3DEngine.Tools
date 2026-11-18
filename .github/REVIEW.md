@@ -227,3 +227,18 @@ reach, hold no form, as their own tests have it; every script of 3DEngine, 95, h
 `Voxel-Sandbox/build/fetch-slang.sh` and `Voxel-Sandbox/build/play.sh`, which its binding meets if
 it reads every script as BevyCSharp does. The strict build is clean and the tests pass, 41 where
 there were 15.
+
+The third commit above, the copies' check, in the commit carrying this line. `DocumentCopies`
+carries STYLE.md and COMMITS.md in the assembly, `Source` giving one by name, and `Differences`
+names each paragraph of a source a copy lacks, changes or holds out of order by its first eight
+words, the copy's words put in as whole words, a paragraph read with its lines joined and a fenced
+block with its lines kept. The source STYLE.md takes the middle dot's paragraph. DocumentCopiesTests
+reads the carried sources as the checkout's files, a copy that adds paragraphs and wraps its lines
+again holding the source, a changed word and a dropped paragraph named, a changed line of a fence, a
+paragraph out of order, the words put in and a name the module carries no source of refused. Read
+against the copies at their heads, Levels' hold their sources; Landscape's, Modeling's,
+RadianceCascades', Sky's and Vegetation's COMMITS.md hold theirs and their STYLE.md lacks the middle
+dot's paragraph alone; with `engine` put for `module`, 3DEngine's STYLE.md differs in 5 paragraphs
+and its COMMITS.md in 9, BevyCSharp's in 29 and 9, which each engine's binding settles, its own text
+set apart or offered to the source. The strict build is clean and the tests pass, 48 where there
+were 41.

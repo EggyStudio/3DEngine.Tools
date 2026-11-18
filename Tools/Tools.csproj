@@ -14,4 +14,11 @@
         <WarningsAsErrors>$(WarningsAsErrors);CS1591;CS1574</WarningsAsErrors>
     </PropertyGroup>
 
+    <!-- The documents' sources, carried in the assembly so an engine's test reads them with no path
+         into the submodule. -->
+    <ItemGroup>
+        <EmbeddedResource Include="..\.github\STYLE.md" LogicalName="STYLE.md" />
+        <EmbeddedResource Include="..\.github\COMMITS.md" LogicalName="COMMITS.md" />
+    </ItemGroup>
+
 </Project>

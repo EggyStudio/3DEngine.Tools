@@ -115,6 +115,21 @@ var found = ShellForms.Find(root, ShellForms.Scripts(root, "build/tools"));
 Assert.True(found.Count == 0, string.Join("\n", found));
 ```
 
+## The documents' copies
+
+`DocumentCopies` in the library carries the sources of STYLE.md and COMMITS.md, the files under
+`.github` here, and reads a repository's copy against its source. A copy holds every paragraph of
+the source in the source's order, with the repository's words put in for the module's, and adds
+paragraphs of its own between them; a paragraph is read with its lines joined, so wrapping the lines
+again changes nothing. Each paragraph the copy lacks, changes or holds out of order is named by its
+first words.
+
+```csharp
+var copy = File.ReadAllText(Path.Combine(root, ".github", "STYLE.md"));
+var differences = DocumentCopies.Differences(DocumentCopies.Source("STYLE.md"), copy, [new("module", "engine")]);
+Assert.True(differences.Count == 0, string.Join("\n", differences));
+```
+
 ## Building and testing
 
 With the .NET 10 SDK:
