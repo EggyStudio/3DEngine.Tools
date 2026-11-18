@@ -241,6 +241,46 @@ public static partial class ModuleChecks
     public static string? UnnamedFault(Assembly library, string readme) =>
         UnnamedFault(library.GetExportedTypes().Where(type => !type.IsNested).Select(type => type.Name).Distinct(), readme);
 
+    /// <summary>
+    /// Null where the page at <paramref name="page"/> holds what
+    /// <see cref="Cheatsheet.Write(Assembly, string, string)"/> writes from the built library, else
+    /// a sentence naming its first line that differs and what to do.
+    /// </summary>
+    /// <remarks>
+    /// With the environment's <c>CHEATSHEET_WRITE</c> set to 1, the page is written as the writer
+    /// writes it and the check is null, so a module writes its page again by running its tests.
+    /// </remarks>
+    /// <param name="library">The module's library, as a test loads it.</param>
+    /// <param name="readme">The README's text, which gives the types' order.</param>
+    /// <param name="page">The path of the module's CHEATSHEET.md.</param>
+    public static string? CheatsheetFault(Assembly library, string readme, string page)
+    {
+        var standing = File.Exists(page) ? File.ReadAllText(page).ReplaceLineEndings("\n") : "";
+        string written;
+        try
+        {
+            written = Cheatsheet.Write(library, readme, standing);
+        }
+        catch (InvalidDataException error)
+        {
+            return $"{Path.GetFileName(page)} cannot be written again: {error.Message} Put the line back above a C# block, or delete the page "
+                + "and run the tests with CHEATSHEET_WRITE=1 to write a first one.";
+        }
+
+        if (written == standing)
+            return null;
+        if (Environment.GetEnvironmentVariable("CHEATSHEET_WRITE") == "1")
+        {
+            File.WriteAllText(page, written);
+            return null;
+        }
+
+        var (now, then) = (standing.Split('\n'), written.Split('\n'));
+        var line = Enumerable.Range(0, Math.Max(now.Length, then.Length)).First(i => i >= now.Length || i >= then.Length || now[i] != then[i]);
+        return $"{Path.GetFileName(page)} differs at line {line + 1} from what the built library writes, \"{(line < now.Length ? now[line] : "nothing")}\" "
+            + $"where it writes \"{(line < then.Length ? then[line] : "nothing")}\". Run the tests with CHEATSHEET_WRITE=1 to write it again.";
+    }
+
     private static string? Fault(IReadOnlyList<string> found, Func<string, string> sentence) =>
         found.Count == 0 ? null : sentence(string.Join(", ", found));
 

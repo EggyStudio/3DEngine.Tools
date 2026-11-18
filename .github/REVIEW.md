@@ -697,3 +697,23 @@ in an IndexError; it prints how it is run and exits with 1, which DevlogTests fa
 DEVLOG.md is generated again, the sheet composer's picture on 2026-11-18 at its head; the items this
 session closes are the review's to mark done, and the devlog takes each on the day of its commit
 when they are. The strict build is clean and the tests pass, 120 where there were 119.
+
+The modules' cheat sheet in the commit carrying this line, the engines' form made once, with this
+repository's own page. `Cheatsheet.Write` writes a module's CHEATSHEET.md from its built library and
+documentation file, read by reflection where 3DEngine's writer reads the engine's source, every
+public type in the order the README first names it in code, the rest after by name, with its public
+members a line each in the order the build declares them: the declaration without its modifiers, its
+nullable references, defaults, `params` and `init` as the source writes them, and the first sentence
+of its summary with a reference written as the name it refers to, at the engines' column of 57. The
+list is the C# block under `<!-- written by Cheatsheet.Write from the built library -->`, the text
+around it kept by hand, and an empty page is given a first one. `ModuleChecks.CheatsheetFault` is
+null where the page holds what the writer writes, names the first line that differs and what to do
+where it does not, and with `CHEATSHEET_WRITE=1` writes the page, which is how this repository's own
+CHEATSHEET.md was written, its six types and 39 members. CheatsheetTests reads this library's page
+through the check, every line with its summary and no modifier, the declarations of a record, a
+property set at its making, a `params` and a nullable default, the order a README gives, the hand's
+text kept and a second writing the same, a page that differs or lost its marker named, and a
+summary's first sentence with its references as names. The README's section says it, with the fact a
+module adds beside its four once the review orders it; AGENTS.md's table of documents lacks a row
+for the page, which waits on the owner's word (N 7.4). The strict build is clean and the tests pass,
+127 where there were 120.

@@ -57,6 +57,7 @@ their path under `modules/Tools/scripts` with Python 3, Pillow where a picture i
 | `ShellFinding` | a line of a script that holds a form |
 | `DocumentCopies` | the sources of STYLE.md and COMMITS.md, and a copy read against its source |
 | `ModuleChecks` | the checks that a module's library is one any engine takes |
+| `Cheatsheet` | the writer of a module's CHEATSHEET.md from its built library |
 
 ### A module's checks
 
@@ -126,6 +127,27 @@ module allowed to take another names it by its whole assembly name, as
 begins with it, or another module's, is still refused. An engine that takes a module builds the
 module's library alone, which takes nothing of Tools', so it needs the module's own
 `modules/Tools` no more than its tests do and clones with no recursion into it.
+
+### A module's cheat sheet
+
+`Cheatsheet.Write` writes a module's CHEATSHEET.md from its built library and documentation file,
+every public type in the order the README first names it, with its public members a line each, the
+declaration without its modifiers and the first sentence of its summary. The list is the C# block
+under the line `<!-- written by Cheatsheet.Write from the built library -->`, and the text around it
+is written by hand and kept. `ModuleChecks.CheatsheetFault` is null where the page holds what the
+writer writes, and names the first line that differs where it does not; run with
+`CHEATSHEET_WRITE=1`, it writes the page instead, a first one where there is none. A module that
+keeps a cheat sheet adds this fact beside its four, and this repository's own page is
+[CHEATSHEET.md](CHEATSHEET.md).
+
+```csharp
+[Fact]
+public void The_Cheatsheet_Is_What_The_Built_Library_Writes()
+{
+    var fault = ModuleChecks.CheatsheetFault(Assembly.Load(Library), Readme, Path.Combine(Root, "CHEATSHEET.md"));
+    Assert.True(fault is null, fault);
+}
+```
 
 A clone of the engine fetches the module with `git clone --recurse-submodules`, or with
 `git submodule update --init` in a clone made without it, and a workflow checks it out with
