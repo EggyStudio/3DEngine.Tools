@@ -21,20 +21,32 @@ public class ModuleChecksTests
     private static readonly string Readme = File.ReadAllText(Path.Combine(Root, "README.md"));
 
     [Fact]
-    public void The_Library_Takes_No_Engine_Window_Or_Graphics_Api() =>
-        Assert.Null(ModuleChecks.ReferenceFault(Assembly.Load(Library), Deps));
+    public void The_Library_Takes_No_Engine_Window_Or_Graphics_Api()
+    {
+        var fault = ModuleChecks.ReferenceFault(Assembly.Load(Library), Deps);
+        Assert.True(fault is null, fault);
+    }
 
     [Fact]
-    public void No_Public_Name_Or_Its_Documentation_Names_An_Engine() =>
-        Assert.Null(ModuleChecks.EngineNameFault(Assembly.Load(Library)));
+    public void No_Public_Name_Or_Its_Documentation_Names_An_Engine()
+    {
+        var fault = ModuleChecks.EngineNameFault(Assembly.Load(Library));
+        Assert.True(fault is null, fault);
+    }
 
     [Fact]
-    public void The_Readme_Names_Every_Public_Type() =>
-        Assert.Null(ModuleChecks.UnnamedFault(Assembly.Load(Library), Readme));
+    public void The_Readme_Names_Every_Public_Type()
+    {
+        var fault = ModuleChecks.UnnamedFault(Assembly.Load(Library), Readme);
+        Assert.True(fault is null, fault);
+    }
 
     [Fact]
-    public void The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host() =>
-        Assert.Null(ModuleChecks.BindingBlock(Readme, File.ReadAllText(Path.Combine(Root, Host))));
+    public void The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host()
+    {
+        var fault = ModuleChecks.BindingBlock(Readme, File.ReadAllText(Path.Combine(Root, Host)));
+        Assert.True(fault is null, fault);
+    }
     // The end marker.
 
     [Fact]
@@ -46,7 +58,8 @@ public class ModuleChecksTests
         Assert.Equal("The library references Vortice.Vulkan, an engine, a window or a graphics API, which a module's library takes none of (NORM.md, N 2.1). "
             + "Remove the reference, or name it in allowed where it is a module the library may take.", ModuleChecks.ReferenceFault(["Vortice.Vulkan", "System.Runtime"]));
         Assert.Null(ModuleChecks.EngineNameFault(["Sample.Scene"], XDocument.Parse("<doc><members/></doc>")));
-        Assert.StartsWith("T:Sample.Scene name an engine in the library's public names or their documentation", ModuleChecks.EngineNameFault(["Sample.Scene"], documentation));
+        Assert.StartsWith("T:Sample.Scene names an engine in the library's public names or their documentation", ModuleChecks.EngineNameFault(["Sample.Scene"], documentation));
+        Assert.StartsWith("Sample.Bevy, T:Sample.Scene name an engine", ModuleChecks.EngineNameFault(["Sample.Scene", "Sample.Bevy"], documentation));
         Assert.EndsWith("Say what the engine's name stood for in the module's own terms.", ModuleChecks.EngineNameFault(["Sample.Scene"], documentation));
         Assert.Null(ModuleChecks.UnnamedFault(["Star"], "## Binding it in your engine\n\nA `Star`.\n"));
         Assert.StartsWith("The README names Moon neither in its section Binding it in your engine nor in a table's row", ModuleChecks.UnnamedFault(["Star", "Moon"], "## Binding it in your engine\n\nA `Star`.\n"));
@@ -162,6 +175,77 @@ public class ModuleChecksTests
         Assert.StartsWith("Line 2 of the README's block reads \"var b = 2;\" where the host reads \"var b = 3;\". ", ModuleChecks.BindingBlock(readme, Host("var b = 3;")));
         Assert.Equal("The README has no section Binding it in your engine.", ModuleChecks.BindingBlock("# Sample\n", Host("var b = 2;")));
         Assert.NotNull(ModuleChecks.BindingBlock(readme, "class T { }\n"));
+    }
+
+    [Fact]
+    public void A_Module_Taking_The_Checks_By_The_Readme_Fails_Each_With_Its_Sentence_Whole()
+    {
+        // A module laid out as the README asks, this repository's library copied as its submodule,
+        // its test project the README's items and its test the README's four facts, whose library
+        // breaks every check: it references a binding named for SDL3, a summary names an engine, a
+        // public type stands in no table and its README's block is no text of the host's.
+        var readme = File.ReadAllText(Path.Combine(Root, "README.md")).ReplaceLineEndings("\n");
+        var section = readme.IndexOf("### A module's checks", StringComparison.Ordinal);
+        var items = Between(readme, "```xml\n", section);
+        var facts = Between(readme, "```csharp\n", section);
+        var module = Directory.CreateTempSubdirectory("module-").FullName;
+        try
+        {
+            var tools = Path.Combine(module, "modules", "Tools");
+            foreach (var file in new[] { "Directory.Build.props", ".github/STYLE.md", ".github/COMMITS.md" }
+                .Concat(Directory.EnumerateFiles(Path.Combine(Root, "Tools"), "*.cs*").Select(path => Path.GetRelativePath(Root, path))))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(tools, file))!);
+                File.Copy(Path.Combine(Root, file), Path.Combine(tools, file));
+            }
+            Write(module, "SDL3.Stub/SDL3.Stub.csproj", Project("<PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>"));
+            Write(module, "SDL3.Stub/Stub.cs", "namespace Stub; public static class Calls { public static int One() => 1; }\n");
+            Write(module, "Sample/Sample.csproj", Project(
+                "<PropertyGroup><TargetFramework>net10.0</TargetFramework><GenerateDocumentationFile>true</GenerateDocumentationFile><NoWarn>CS1591</NoWarn></PropertyGroup>",
+                "<ItemGroup><ProjectReference Include=\"..\\SDL3.Stub\\SDL3.Stub.csproj\" /></ItemGroup>"));
+            Write(module, "Sample/Thing.cs", "namespace Sample;\n/// <summary>A thing as 3DEngine draws it.</summary>\npublic class Thing { /// <summary>One.</summary>\npublic int One() => Stub.Calls.One(); }\n/// <summary>A type no table names.</summary>\npublic class Hidden { }\n");
+            Write(module, "README.md", "# Sample\n\n## Binding it in your engine\n\nMake a `Thing`.\n\n```csharp\nvar thing = new Thing();\n```\n");
+            Write(module, "Sample.Tests/Sample.Tests.csproj", Project(
+                "<PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>",
+                "<ItemGroup><ProjectReference Include=\"..\\Sample\\Sample.csproj\" /><PackageReference Include=\"Microsoft.NET.Test.Sdk\" Version=\"18.5.1\" />"
+                + "<PackageReference Include=\"xunit\" Version=\"2.9.3\" /><PackageReference Include=\"xunit.runner.visualstudio\" Version=\"4.0.0-pre.4\" /></ItemGroup>",
+                items));
+            var host = "using System.Reflection;\nusing Tools;\nusing Xunit;\n\npublic class Checks\n{\n"
+                + "    private const string Library = \"Sample\";\n    private static readonly string Root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, \"../../../..\"));\n"
+                + "    private const string Host = \"Sample.Tests/Checks.cs\";\n\n    // The README's block from here\n"
+                + string.Concat(facts.Split('\n').Select(line => line.Length > 0 ? "    " + line + "\n" : "\n"))
+                + "    // The end marker.\n}\n";
+            Write(module, "Sample.Tests/Checks.cs", host);
+
+            var (code, printed) = Programs.Dotnet(Path.Combine(module, "Sample.Tests"), "test", "-nologo");
+
+            Assert.True(code != 0, printed);
+            Assert.True(printed.Contains("error CS", StringComparison.Ordinal) is false, printed);
+            Assert.Contains("Remove the reference, or name it in allowed where it is a module the library may take.", printed);
+            Assert.Contains("T:Sample.Thing names an engine in the library's public names or their documentation", printed);
+            Assert.Contains("Say what the engine's name stood for in the module's own terms.", printed);
+            Assert.Contains("Name each there in code, its name in backticks.", printed);
+            Assert.Contains("so make the two the same.", printed);
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(module, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(module, true);
+        }
+    }
+
+    private static string Between(string text, string fence, int from)
+    {
+        var open = text.IndexOf(fence, from, StringComparison.Ordinal) + fence.Length;
+        return text[open..text.IndexOf("```\n", open, StringComparison.Ordinal)];
+    }
+
+    private static string Project(params string[] parts) => $"<Project Sdk=\"Microsoft.NET.Sdk\">\n{string.Join("\n", parts)}\n</Project>\n";
+
+    private static void Write(string root, string path, string text)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(root, path))!);
+        File.WriteAllText(Path.Combine(root, path), text);
     }
 
     [Fact]

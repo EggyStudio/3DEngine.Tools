@@ -115,14 +115,20 @@ public static class Programs
     /// The variables a test run inherits from the MSBuild that started it are taken out, so the
     /// build is one a contributor starts, and MSBuild's nodes end with it.
     /// </remarks>
-    public static (int Code, string Output) Build(string folder)
+    public static (int Code, string Output) Build(string folder) => Dotnet(folder, "build", "-nologo");
+
+    /// <summary>
+    /// Runs the SDK's command given in a folder as <see cref="Build"/> builds there, and returns
+    /// its exit code with what it printed.
+    /// </summary>
+    public static (int Code, string Output) Dotnet(string folder, params string[] arguments)
     {
         var environment = Environment.GetEnvironmentVariables().Keys.Cast<string>()
             .Where(key => key.StartsWith("MSBuild", StringComparison.OrdinalIgnoreCase) || key.StartsWith("VSTEST", StringComparison.OrdinalIgnoreCase))
             .ToDictionary(key => key, string? (_) => null);
         environment["MSBUILDDISABLENODEREUSE"] = "1";
         environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
-        var (code, output, error) = Start("dotnet", folder, environment, ["build", "-nologo"]);
+        var (code, output, error) = Start("dotnet", folder, environment, arguments);
         return (code, output + error);
     }
 

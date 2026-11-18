@@ -219,7 +219,7 @@ public static partial class ModuleChecks
     /// </summary>
     public static string? EngineNameFault(IEnumerable<string> publicNames, XDocument documentation) =>
         Fault(EngineNames(publicNames, documentation), found =>
-            $"{found} name an engine in the library's public names or their documentation, where a module reads as one any engine takes. "
+            $"{found} {(found.Contains(", ", StringComparison.Ordinal) ? "name" : "names")} an engine in the library's public names or their documentation, where a module reads as one any engine takes. "
             + "Say what the engine's name stood for in the module's own terms.");
 
     /// <summary><see cref="EngineNameFault(IEnumerable{string}, XDocument)"/> of a built

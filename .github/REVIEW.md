@@ -676,3 +676,15 @@ that could not run, a revision git does not know or a pattern that is no regular
 with 1 as well, so a script could not tell it from a failing commit; it writes its reason to the
 error output and exits with 2, which the test of both causes failed first on. The README says 0, 1
 and 2 in both its sections. The strict build is clean and the tests pass, 118 where there were 115.
+
+Levels' findings on the module's checks at `3386a62` in the commit carrying this line. xunit's
+`Assert.Null` prints the first fifty characters of a string it is given, so a fault's sentence
+showed what it found and never the rule or what to do; the README's four facts give the sentence
+to `Assert.True(fault is null, fault)`, which prints it whole. `EngineNameFault` said "name an
+engine" of one member and says "names" of one and "name" of more. ModuleChecksTests failed first
+on a module made as the README lays it out, this repository's library copied as its submodule, its
+test project the README's items and its test the README's four facts, whose library references a
+binding named for SDL3, documents a type as an engine draws it, keeps a type out of its README and
+holds a block no host holds: `dotnet test` over it failed all four with each sentence cut and the
+singular wrong, and fails them with each sentence whole, in 3 seconds. The strict build is clean
+and the tests pass, 119 where there were 118.
