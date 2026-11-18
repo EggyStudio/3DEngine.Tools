@@ -1,6 +1,6 @@
 # Tools
 
-[DEVLOG.md](DEVLOG.md)
+[DEVLOG.md](DEVLOG.md) [CHEATSHEET.md](CHEATSHEET.md)
 
 Tools is a library and a set of scripts that any engine takes as a git submodule, for what its
 repositories otherwise copy by hand, the devlog's generator, the composer of reading sheets, the run
@@ -192,6 +192,14 @@ changed what the check reads. A module pinned before a fact's commit owes that f
 | `No_Tracked_Text_Names_An_Engine` | `ModuleChecks.EngineNameInTextFault` | `b817e9b` | |
 
 `ModuleChecks.ProductNamesInText`, from `d1b04e5`, is a list a reviewer reads and no fact.
+
+The README's first line under its title is a row of links to the module's DEVLOG.md and
+CHEATSHEET.md, separated by a space, as this README's is. A middle dot or a bar between them is the
+punctuation STYLE.md refuses, and the commit's check fails it.
+
+```markdown
+[DEVLOG.md](DEVLOG.md) [CHEATSHEET.md](CHEATSHEET.md)
+```
 
 A clone of the engine fetches the module with `git clone --recurse-submodules`, or with
 `git submodule update --init` in a clone made without it, and a workflow checks it out with

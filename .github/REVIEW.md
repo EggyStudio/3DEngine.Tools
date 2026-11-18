@@ -785,3 +785,8 @@ what it reads after, `7d56e0f` for the four, `17860cb` for the cheat sheet with 
 it; the products' list of `d1b04e5` stands below as a list and no fact. The hashes are read as
 ancestors of the head (git merge-base --is-ancestor). The strict build is clean and the 136 tests
 pass.
+
+The README's top row in the commit carrying this line, since two modules wrote a middle dot between
+their devlog's and cheat sheet's links and were stopped at the push. "What a module carries" says
+the row's links are separated by a space, with the row as its example, and this README's row links
+the cheat sheet beside the devlog. The 136 tests pass.
