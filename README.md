@@ -231,7 +231,7 @@ changed what the check reads. A module pinned before a fact's commit owes that f
 | `The_Readme_Names_Every_Public_Type` | `ModuleChecks.UnnamedFault` | `7d56e0f` | `183e308`, a generic type's arity |
 | `The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host` | `ModuleChecks.BindingBlock` | `7d56e0f` | |
 | `The_Cheatsheet_Is_What_The_Built_Library_Writes` | `ModuleChecks.CheatsheetFault` | `17860cb` | `3720852`, a record's constructor, `183e308`, inheritdoc, `5bf6255`, infinite defaults, and `460a481`, operators, tuples and nested types |
-| `No_Tracked_Text_Names_An_Engine` | `ModuleChecks.EngineNameInTextFault` | `b817e9b` | |
+| `No_Tracked_Text_Names_An_Engine` | `ModuleChecks.EngineNameInTextFault` | `b817e9b` | `70543a2`, the review's archive left out |
 | `The_Readme_Opens_With_Its_Link_Row` | `ModuleChecks.LinkRowFault` | `0b0b902` | `75d77f2`, the cheatsheet as one word |
 
 `ModuleChecks.ProductNamesInText`, from `d1b04e5`, is a list a reviewer reads and no fact.
@@ -356,6 +356,20 @@ dotnet test Tools.Tests --logger trx
 python3 -I scripts/report.py . [<commit>] [--trx=<results.trx>] [--run]
 ```
 
+## A review's archive
+
+`scripts/archive.py` moves a review's oldest replies whole from `.github/REVIEW.md` into
+`.github/REVIEW-ARCHIVE.md` until the review stands under 40 KB, or under the size `--under` gives
+in KB, as the review moved them by hand. A reply is its first paragraph and the indented, listed,
+tabled or fenced paragraphs after it, moved as one and never split, and nothing above the review's
+`## Replies` is touched. The archive is made where a repository has none, and the replies moved
+follow those it holds, so it reads oldest first. It commits nothing, and a review or a Replies
+section missing gives exit code 2.
+
+```bash
+python3 -I scripts/archive.py <repo> [--under=<KB>]
+```
+
 ## A module's pin
 
 `scripts/pin.py` moves a module's pin of Tools to a head, run from the module's root by its own
@@ -378,11 +392,12 @@ python3 -I modules/Tools/scripts/pin.py [<head>] [--tests=<test project>]
 `scripts/status.py` prints a line a repository for the hourly watch and writes nothing: its local
 and remote heads, read by `git ls-remote`, which fetches nothing, and how many commits it is ahead,
 its last build run's head, status and conclusion through gh, the size of its `.github/REVIEW.md`
-where it passes 90 KB, whether its DEVLOG.md was last committed before its newest picture, its pin
-of Tools against Tools' head, and whether its README opens with the link row. With no repository
-given it reads 3DEngine, BevyCSharp and Voxel-Sandbox beside the Modules folder this checkout stands
-in, and every folder of Modules, the eleven in 2.5 seconds. The exit code is 0, or 2 where git or gh
-could not be reached for a repository, its line saying which.
+where it passes 80 KB, naming `scripts/archive.py` to move its older replies, whether its DEVLOG.md
+was last committed before its newest picture, its pin of Tools against Tools' head, and whether its
+README opens with the link row. With no repository given it reads 3DEngine, BevyCSharp and
+Voxel-Sandbox beside the Modules folder this checkout stands in, and every folder of Modules, the
+eleven in 2.5 seconds. The exit code is 0, or 2 where git or gh could not be reached for a
+repository, its line saying which.
 
 ```bash
 python3 -I scripts/status.py [--tools=<Tools checkout>] [<repo> ...]

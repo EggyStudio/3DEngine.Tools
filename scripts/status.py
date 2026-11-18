@@ -1,8 +1,8 @@
 # Prints a line a repository for the hourly watch, reading each and writing nothing: its local and
 # remote heads and how many commits it is ahead, its last build run's head, status and conclusion,
-# the size of its .github/REVIEW.md where it passes 90 KB, whether DEVLOG.md was last committed
-# before its newest picture, its pin of Tools against Tools' head, and whether its README opens
-# with the link row.
+# the size of its .github/REVIEW.md where it passes 80 KB, with scripts/archive.py named to move it,
+# whether DEVLOG.md was last committed before its newest picture, its pin of Tools against Tools'
+# head, and whether its README opens with the link row.
 #
 #   python3 -I scripts/status.py [--tools=<Tools checkout>] [<repo> ...]
 #
@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REVIEW_LIMIT = 90 * 1024
+REVIEW_LIMIT = 80 * 1024
 PICTURES = (".github/assets/readings", ".github/devlog")
 GITHUB = re.compile(r"github\.com[:/](?P<slug>[^/]+/[^/]+?)(\.git)?/?$")
 
@@ -92,7 +92,7 @@ def line(repo, tools_head, tools):
 
     review = os.path.join(repo, ".github", "REVIEW.md")
     if os.path.exists(review) and os.path.getsize(review) > REVIEW_LIMIT:
-        parts.append(f"review {os.path.getsize(review) // 1024} KB")
+        parts.append(f"review {os.path.getsize(review) // 1024} KB, archive.py moves its older replies")
 
     # A picture committed after the devlog was last written stands in no devlog yet.
     folders = [p for p in PICTURES if os.path.isdir(os.path.join(repo, p))]

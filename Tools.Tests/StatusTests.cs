@@ -13,7 +13,7 @@ public class StatusTests
         using var world = new World();
         var tools = world.Tools(commits: 2);
         var repo = world.Module("Sample", Row + "\n\n# Sample\n", tools, pinnedBack: 1);
-        // A review past 90 KB, and a picture committed after the devlog was last written.
+        // A review past 80 KB, and a picture committed after the devlog was last written.
         world.Commit(repo, ".github/REVIEW.md", new string('a', 95 * 1024));
         world.Commit(repo, ".github/assets/readings/2026-11-18-item-1.webp", "picture");
         world.Commit(repo, "a.txt", "ahead\n", push: false);
@@ -24,7 +24,21 @@ public class StatusTests
 
         Assert.True(code == 0, printed);
         var line = Assert.Single(Programs.Lines(printed), l => l.StartsWith("Sample ", StringComparison.Ordinal));
-        Assert.Equal($"Sample  local {local}  remote {remote}  ahead 1  run {remote} completed success  review 95 KB  devlog behind its newest picture  Tools at {world.ToolsAt(tools, 1)}, 1 behind  row ok", line);
+        Assert.Equal($"Sample  local {local}  remote {remote}  ahead 1  run {remote} completed success  review 95 KB, archive.py moves its older replies  devlog behind its newest picture  Tools at {world.ToolsAt(tools, 1)}, 1 behind  row ok", line);
+    }
+
+    [NeedsPythonFact]
+    public void A_Review_Is_Said_From_80_KB()
+    {
+        using var world = new World();
+        var tools = world.Tools(commits: 1);
+        var repo = world.Module("Sample", Row + "\n\n# Sample\n", tools, pinnedBack: 0);
+        world.Commit(repo, ".github/REVIEW.md", new string('a', 81 * 1024));
+
+        var (code, printed) = world.Status(new() { ["EggyStudio/Sample"] = null }, tools, repo);
+
+        Assert.True(code == 0, printed);
+        Assert.Contains("  review 81 KB, archive.py moves its older replies  ", printed);
     }
 
     [NeedsPythonFact]

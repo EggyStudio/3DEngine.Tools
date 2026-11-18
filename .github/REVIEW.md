@@ -477,3 +477,21 @@ say the archive. AGENTS.md's documents table has its row. The text fact's check 
 in the README's table of what a module carries names this commit in the next, a hash being named
 only once it stands. The strict build is clean and the tests pass, 194 and two skipped plain and 195
 and one skipped in the variant.
+
+A review's archive as a script in the commit carrying this line, the first of the three.
+`scripts/archive.py <repo> [--under=<KB>]` moves a review's oldest replies whole from REVIEW.md into
+REVIEW-ARCHIVE.md until the review stands under 40 KB, a reply by the review's word its first
+paragraph and the indented, listed, tabled or fenced paragraphs after it, a fenced block's blank
+lines kept inside it, nothing above `## Replies` touched, the archive made where none stands and the
+moved replies following those it holds; it commits nothing and a review or a Replies section missing
+gives 2. Replayed on REVIEW.md as it stood at `6ac6571`, it moves 55 replies, the review's 62
+paragraphs, and writes an archive whose replies are byte for byte the review's hand move, 60,072
+bytes, and a REVIEW.md that is the review's as it left it before the Reply after. ArchiveTests
+failed first on a made review of 30 replies, one with a list, a table and an indented line after its
+first paragraph and one with a fenced block, and a third test sets the limit inside the reply with
+the list, so a move by paragraphs stops in it; with the reply's rule broken that test fails, where
+the first two alone passed, every early reply moving either way. status.py says a review from 80 KB
+and names the script, its tests failing first at 81 KB and on the line's new words. The text fact's
+row in the table of what a module carries names `70543a2`. The README has a section for the script
+and AGENTS.md's scripts row names it. The strict build is clean and the tests pass, 198 and two
+skipped plain and 199 and one skipped in the variant.
