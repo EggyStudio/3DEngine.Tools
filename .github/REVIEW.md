@@ -569,3 +569,19 @@ name begins with the allowed one's and another module still refused. The paramet
 named a module by its prefix as its example, which the engines' names check found in this library's
 own documentation, so the example stands in the README alone. The strict build is clean and the
 tests pass, 101 where there were 100.
+
+The day's report's breakdown in the commit carrying this line. Each repository's section gives a
+sentence of its failures, how many the rewrap would clear and how many are for hands, and a table by
+rule and top folder, largest first, with the rewrap's clearing beside each count, read by
+`rewrap.py`'s own function over every file the width rule holds, without writing, a refused file
+clearing nothing. DailyTests failed first on a made repository of three lines of prose the rewrap
+fills, a comment's indented code it leaves and a dash it does not mend, and reads 4 of the width
+rule in `scripts` with 3 cleared and 1 for hands, the dash's 1 for hands, the sentence of 5
+failures, and the repository's status unchanged. At the heads, 3DEngine's 5,644 failures are 5,449
+the rewrap would clear and 195 for hands, BevyCSharp's 4,967 are 4,821 and 146, and Voxel-Sandbox's
+1,542 are 1,413 and 129. The rewrap's count of a file read each line by the width rule twice, 6.0 of
+the 8.4 seconds its reading took over 3DEngine (python3 -I -m cProfile), and reads a line within the
+width outside MSBuild and XML no more, where no comment runs on over lines, which takes it to 0.8
+with the counts the same. The four repositories' report took 17.5 seconds at a load of 13 against
+7.7 at rest without the breakdown, the sweep of 3DEngine alone 4.2 at that load against 1.7 at
+rest. The strict build is clean and the tests pass, 102 where there were 101.

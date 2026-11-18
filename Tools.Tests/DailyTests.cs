@@ -60,6 +60,32 @@ public class DailyTests
     }
 
     [NeedsPythonFact]
+    public void Each_Rule_And_Folder_Is_Counted_Largest_First_With_What_The_Rewrap_Would_Clear()
+    {
+        using var day = new Day();
+        // Three lines of prose the rewrap fills, a comment's indented code it leaves, and a dash no
+        // rewrap mends.
+        var indented = "#     " + string.Join(' ', Enumerable.Repeat("code", 20)) + "\n";
+        var repo = day.Repository("repo", new()
+        {
+            ["scripts/a.py"] = LongComment + LongComment + LongComment + "print(1)\n",
+            ["scripts/b.py"] = indented + "print(1)\n",
+            ["src/c.py"] = "# A line \u2014 with a dash.\nprint(1)\n",
+        });
+        var before = day.Status(repo);
+
+        var (_, report) = day.Report("day.md", null, repo);
+
+        var lines = Programs.Lines(report);
+        var table = Array.IndexOf(lines, "| level | rule | top folder | count | the rewrap clears | for hands |");
+        Assert.True(table > 0, "the report has no table by rule and folder");
+        Assert.Equal("| FAIL | a comment line past 100 columns | `scripts` | 4 | 3 | 1 |", lines[table + 2]);
+        Assert.Equal("| FAIL | em dash | `src` | 1 | 0 | 1 |", lines[table + 3]);
+        Assert.Contains("Of 5 failures the rewrap would clear 3, and 2 are for hands.", lines);
+        Assert.Equal(before, day.Status(repo));
+    }
+
+    [NeedsPythonFact]
     public void The_Ten_Files_A_Rule_Holds_Most_Of_Are_Listed_And_The_Rest_Counted()
     {
         using var day = new Day();

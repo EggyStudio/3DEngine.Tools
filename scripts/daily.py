@@ -17,8 +17,10 @@ sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8
 sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sweep import forbidden_names, read_tree  # noqa: E402
+from rewrap import rewrap  # noqa: E402
 
 WORST = 10
+WIDTH = "a comment line past 100 columns"
 COUNTS = re.compile(r"<!-- daily counts (\{.*\}) -->", re.S)
 
 
@@ -76,6 +78,23 @@ def report(repos, previous, forbidden):
         if not by_rule and not before:
             section.append("| | no rule broken | 0 | |")
         section.append("")
+
+        # The rewrap read without writing over each file the width rule holds, so what it would
+        # clear stands beside what would be left for hands, a refused file clearing nothing.
+        clears = collections.Counter()
+        for path in {path for _, rule, path, _ in found if rule == WIDTH}:
+            _, long, _, refusal = rewrap(os.path.join(repo, path), path)
+            clears[top_folder(path)] += 0 if refusal else long
+        pairs = collections.Counter((level, rule, top_folder(path)) for level, rule, path, _ in found)
+        failures = sum(count for (level, _, _), count in pairs.items() if level == "FAIL")
+        cleared = sum(clears.values())
+        if pairs:
+            section += [f"Of {failures} failures the rewrap would clear {cleared}, and {failures - cleared} are for hands.", ""]
+            section += ["| level | rule | top folder | count | the rewrap clears | for hands |", "|---|---|---|---|---|---|"]
+            for (level, rule, folder), count in sorted(pairs.items(), key=lambda item: (item[0][0] != "FAIL", -item[1], item[0][1], item[0][2])):
+                clear = clears[folder] if rule == WIDTH else 0
+                section.append(f"| {level} | {rule} | `{folder}` | {count} | {clear} | {count - clear} |")
+            section.append("")
 
         folders = collections.defaultdict(collections.Counter)
         for level, _, path, _ in found:
