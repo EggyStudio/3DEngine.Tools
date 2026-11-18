@@ -179,7 +179,8 @@ public static partial class ModuleChecks
         var from = Array.FindIndex(lines, line => line.Contains("// The README's block from here", StringComparison.Ordinal));
         var to = Array.FindIndex(lines, line => line.Contains("// The end marker.", StringComparison.Ordinal));
         if (from < 0 || to <= from)
-            return "The host's source holds no lines between // The README's block from here and // The end marker.";
+            return "The host's source holds no lines between // The README's block from here and // The end marker. "
+                + "Put the README's block between two lines holding those markers.";
         var hosted = lines[(from + 1)..to];
         var indent = hosted.Where(line => line.Trim().Length > 0).Select(line => line.Length - line.TrimStart().Length).DefaultIfEmpty(0).Min();
         hosted = [.. hosted.Select(line => line.Length >= indent ? line[indent..] : line.TrimStart())];
@@ -188,11 +189,60 @@ public static partial class ModuleChecks
         {
             var (readmeLine, hostLine) = (i < block.Length ? block[i] : null, i < hosted.Length ? hosted[i] : null);
             if (readmeLine != hostLine)
-                return $"Line {i + 1} of the README's block reads \"{readmeLine ?? "nothing"}\" where the host reads \"{hostLine ?? "nothing"}\".";
+                return $"Line {i + 1} of the README's block reads \"{readmeLine ?? "nothing"}\" where the host reads \"{hostLine ?? "nothing"}\". "
+                    + "The README's block and the host's lines between its markers are one text, so make the two the same.";
         }
 
         return null;
     }
+
+    /// <summary>
+    /// Null where <see cref="Refused(IEnumerable{string}, IEnumerable{string})"/> finds nothing,
+    /// else a sentence naming what it found, the rule and what to do, for a test's message.
+    /// </summary>
+    public static string? ReferenceFault(IEnumerable<string> references, IEnumerable<string>? allowed = null) =>
+        Fault(Refused(references, allowed), found =>
+            $"The library references {found}, an engine, a window or a graphics API, which a module's library takes none of (NORM.md, N 2.1). "
+            + "Remove the reference, or name it in allowed where it is a module the library may take.");
+
+    /// <summary>
+    /// <see cref="ReferenceFault(IEnumerable{string}, IEnumerable{string})"/> of a built library's
+    /// references and its packages, as <see cref="Refused(Assembly, string, IEnumerable{string})"/>
+    /// reads them.
+    /// </summary>
+    public static string? ReferenceFault(Assembly library, string dependencyFile, IEnumerable<string>? allowed = null) =>
+        ReferenceFault(library.GetReferencedAssemblies().Select(name => name.Name!).Concat(Packages(library.GetName().Name!, dependencyFile)), allowed);
+
+    /// <summary>
+    /// Null where <see cref="EngineNames(IEnumerable{string}, XDocument)"/> finds nothing, else a
+    /// sentence naming what it found, the rule and what to do.
+    /// </summary>
+    public static string? EngineNameFault(IEnumerable<string> publicNames, XDocument documentation) =>
+        Fault(EngineNames(publicNames, documentation), found =>
+            $"{found} name an engine in the library's public names or their documentation, where a module reads as one any engine takes. "
+            + "Say what the engine's name stood for in the module's own terms.");
+
+    /// <summary><see cref="EngineNameFault(IEnumerable{string}, XDocument)"/> of a built
+    /// library.</summary>
+    public static string? EngineNameFault(Assembly library) =>
+        EngineNameFault(PublicNames(library), XDocument.Load(Path.ChangeExtension(library.Location, ".xml")));
+
+    /// <summary>
+    /// Null where <see cref="Unnamed(IEnumerable{string}, string)"/> finds nothing, else a sentence
+    /// naming the types, the rule and what to do.
+    /// </summary>
+    public static string? UnnamedFault(IEnumerable<string> typeNames, string readme) =>
+        Fault(Unnamed(typeNames, readme), found =>
+            $"The README names {found} neither in its section Binding it in your engine nor in a table's row, where a stranger finds the library's types. "
+            + "Name each there in code, its name in backticks.");
+
+    /// <summary><see cref="UnnamedFault(IEnumerable{string}, string)"/> of a built
+    /// library.</summary>
+    public static string? UnnamedFault(Assembly library, string readme) =>
+        UnnamedFault(library.GetExportedTypes().Where(type => !type.IsNested).Select(type => type.Name).Distinct(), readme);
+
+    private static string? Fault(IReadOnlyList<string> found, Func<string, string> sentence) =>
+        found.Count == 0 ? null : sentence(string.Join(", ", found));
 
     private static bool IsRefused(string name) =>
         RefusedNames.Any(refused => Regex.IsMatch(name, $@"(^|[.-]){Regex.Escape(refused)}($|[.-])", RegexOptions.IgnoreCase));

@@ -68,6 +68,38 @@ public class CommitCheckTests
     }
 
     [NeedsPythonFact]
+    public void A_Commit_That_Takes_A_Submodule_Is_Not_Read_For_The_Submodules_Files()
+    {
+        var repo = Directory.CreateTempSubdirectory("commitcheck-").FullName;
+        try
+        {
+            // The submodule's own long comment and dash are its checkout's to read, and the commit
+            // that takes it holds the commit it points at alone.
+            var nested = Path.Combine(repo, "modules", "Tools");
+            Directory.CreateDirectory(nested);
+            Git(nested, "init", "-q");
+            File.WriteAllText(Path.Combine(nested, "a.py"), "# " + string.Join(' ', Enumerable.Repeat("word", 30)) + " \u2014 a dash\n");
+            Git(nested, "add", "-A");
+            Git(nested, "commit", "-q", "-m", "The nested commit.");
+            Git(repo, "init", "-q");
+            File.WriteAllText(Path.Combine(repo, ".gitmodules"), "[submodule \"modules/Tools\"]\n\tpath = modules/Tools\n\turl = https://example.com/Tools.git\n");
+            Git(repo, "add", "-A");
+            File.WriteAllText(Path.Combine(repo, ".git", "message"), Lead + "The module takes Tools.\n");
+            Git(repo, "commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(repo, ".git", "message"));
+
+            var (exit, printed) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "HEAD", "--thumbs=" + Path.Combine(repo, ".git", "thumbs"));
+
+            Assert.True(exit == 0, printed);
+            Assert.DoesNotContain("modules/Tools", printed);
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
+    [NeedsPythonFact]
     public void A_Dash_Found_Is_Printed_Whole_Whatever_The_Systems_Encoding()
     {
         var (exit, printed) = Check(new() { ["notes.md"] = "A line \u2014 with a dash.\n" }, Lead + "A note holds a line.\n", environment: Programs.SingleByteLocale());

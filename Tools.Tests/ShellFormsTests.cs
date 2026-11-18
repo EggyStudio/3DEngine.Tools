@@ -94,6 +94,29 @@ public class ShellFormsTests
         }
     }
 
+    [Fact]
+    public void A_Submodules_Scripts_Are_No_Scripts_Of_The_Checkout()
+    {
+        var root = Directory.CreateTempSubdirectory("shell-").FullName;
+        try
+        {
+            // A module that takes this repository as a submodule, whose scripts are its own and
+            // read in its own checkout, and a nested repository no .gitmodules names.
+            Write(root, ".gitmodules", "[submodule \"modules/Tools\"]\n\tpath = modules/Tools\n\turl = https://example.com/Tools.git\n");
+            Write(root, "build/a.sh", "echo a\n");
+            Write(root, "modules/Tools/build/version.sh", "sed -i 's/a/b/' file\n");
+            Write(root, "modules/Tools/.git", "gitdir: ../../.git/modules/Tools\n");
+            Write(root, "vendor/Other/.git/HEAD", "ref: refs/heads/main\n");
+            Write(root, "vendor/Other/run.sh", "readarray -t lines < file\n");
+
+            Assert.Equal(["build/a.sh"], ShellForms.Scripts(root));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
     private static void Write(string root, string path, string text)
     {
         var file = Path.Combine(root, path);

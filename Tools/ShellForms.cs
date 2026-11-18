@@ -100,19 +100,22 @@ public static partial class ShellForms
     /// <param name="leftOut">
     /// Folders by their paths from the root whose scripts a build or a fetch leaves, besides
     /// <c>.git</c>, <c>.ref</c>, <c>bin</c>, <c>obj</c> and <c>node_modules</c>, which are left out
-    /// wherever they lie.
+    /// wherever they lie, and the submodules <c>.gitmodules</c> names and any folder holding a
+    /// <c>.git</c> of its own, which are other repositories'.
     /// </param>
     public static SortedSet<string> Scripts(string root, params string[] leftOut)
     {
-        var skipped = leftOut.Select(folder => folder.Replace('\\', '/').TrimEnd('/')).ToHashSet(StringComparer.Ordinal);
+        var skipped = leftOut.Select(folder => folder.Replace('\\', '/').TrimEnd('/')).Concat(Submodules(root)).ToHashSet(StringComparer.Ordinal);
         var scripts = new SortedSet<string>(StringComparer.Ordinal);
         var pending = new Stack<string>([root]);
         while (pending.TryPop(out var folder))
         {
             foreach (var file in Directory.EnumerateFiles(folder, "*.sh"))
                 scripts.Add(Relative(root, file));
+            // A folder holding a .git of its own is another repository's, a submodule's or one
+            // nested inside the checkout, whose scripts are read in its own checkout.
             foreach (var child in Directory.EnumerateDirectories(folder))
-                if (!Filled.Contains(Path.GetFileName(child)) && !skipped.Contains(Relative(root, child)))
+                if (!Filled.Contains(Path.GetFileName(child)) && !skipped.Contains(Relative(root, child)) && !Path.Exists(Path.Combine(child, ".git")))
                     pending.Push(child);
         }
 
@@ -164,7 +167,20 @@ public static partial class ShellForms
             .Where(name => File.Exists(Path.Combine(root, name)));
     }
 
+    // The paths .gitmodules gives a checkout's submodules, with forward slashes.
+    private static IEnumerable<string> Submodules(string root)
+    {
+        var file = Path.Combine(root, ".gitmodules");
+        return File.Exists(file)
+            ? File.ReadLines(file).Select(line => SubmodulePath().Match(line)).Where(match => match.Success)
+                .Select(match => match.Groups[1].Value.Trim().Replace('\\', '/').TrimEnd('/'))
+            : [];
+    }
+
     private static string Relative(string root, string path) => Path.GetRelativePath(root, path).Replace('\\', '/');
+
+    [GeneratedRegex(@"^\s*path\s*=\s*(.+)$")]
+    private static partial Regex SubmodulePath();
 
     [GeneratedRegex(@"(^|\s)#.*")]
     private static partial Regex Comment();

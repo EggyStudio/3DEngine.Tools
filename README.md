@@ -77,22 +77,38 @@ git submodule add https://github.com/EggyStudio/Tools.git modules/Tools
 
 The test's facts read the module's built library by its assembly's name, `Library`, its checkout's
 root, `Root`, and the source of the test whose host runs the README's own binding block, `Host`,
-the three a module sets.
+the three a module sets above the block. That host holds the module's binding block between a line
+holding `// The README's block from here` and a line holding `// The end marker.`, which the fourth
+fact reads against this README's section word for word. Each fact checks one thing, so a module
+sees every fault at once, and a fault's message names the rule and what to do.
 
 ```csharp
-var library = Assembly.Load(Library);
-var deps = Path.Combine(AppContext.BaseDirectory, Assembly.GetExecutingAssembly().GetName().Name + ".deps.json");
-var readme = File.ReadAllText(Path.Combine(Root, "README.md"));
-Assert.Empty(ModuleChecks.Refused(library, deps));
-Assert.Empty(ModuleChecks.EngineNames(library));
-Assert.Empty(ModuleChecks.Unnamed(library, readme));
-Assert.Null(ModuleChecks.BindingBlock(readme, File.ReadAllText(Path.Combine(Root, Host))));
+private static readonly string Deps = Path.Combine(AppContext.BaseDirectory, Assembly.GetExecutingAssembly().GetName().Name + ".deps.json");
+private static readonly string Readme = File.ReadAllText(Path.Combine(Root, "README.md"));
+
+[Fact]
+public void The_Library_Takes_No_Engine_Window_Or_Graphics_Api() =>
+    Assert.Null(ModuleChecks.ReferenceFault(Assembly.Load(Library), Deps));
+
+[Fact]
+public void No_Public_Name_Or_Its_Documentation_Names_An_Engine() =>
+    Assert.Null(ModuleChecks.EngineNameFault(Assembly.Load(Library)));
+
+[Fact]
+public void The_Readme_Names_Every_Public_Type() =>
+    Assert.Null(ModuleChecks.UnnamedFault(Assembly.Load(Library), Readme));
+
+[Fact]
+public void The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host() =>
+    Assert.Null(ModuleChecks.BindingBlock(Readme, File.ReadAllText(Path.Combine(Root, Host))));
 ```
 
 The module's workflow checks the submodule out with `submodules: true` on `actions/checkout`. A
 module allowed to take another names it by its whole assembly name, as
-`ModuleChecks.Refused(library, deps, allowed: ["3DEngine.Modeling"])`, and a name that only
-begins with it, or another module's, is still refused.
+`ModuleChecks.ReferenceFault(library, deps, allowed: ["3DEngine.Modeling"])`, and a name that only
+begins with it, or another module's, is still refused. An engine that takes a module builds the
+module's library alone, which takes nothing of Tools', so it needs the module's own
+`modules/Tools` no more than its tests do and clones with no recursion into it.
 
 A clone of the engine fetches the module with `git clone --recurse-submodules`, or with
 `git submodule update --init` in a clone made without it, and a workflow checks it out with

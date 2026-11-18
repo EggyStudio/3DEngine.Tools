@@ -120,6 +120,37 @@ public class SweepTests
     }
 
     [NeedsPythonFact]
+    public void A_Submodules_Files_Are_Not_Read()
+    {
+        var repo = Directory.CreateTempSubdirectory("sweep-").FullName;
+        try
+        {
+            // A repository holding another under modules/Tools as its .gitmodules names, which git
+            // tracks as the commit it points at, its long comment read in its own checkout alone.
+            var nested = Path.Combine(repo, "modules", "Tools");
+            Directory.CreateDirectory(nested);
+            Git(nested, "init", "-q");
+            File.WriteAllText(Path.Combine(nested, "a.py"), "# " + string.Join(' ', Enumerable.Repeat("word", 30)) + "\n");
+            Git(nested, "add", "-A");
+            Git(nested, "-c", "user.name=Tools", "-c", "user.email=tools@example.com", "-c", "commit.gpgsign=false", "commit", "-q", "-m", "The nested commit.");
+            Git(repo, "init", "-q");
+            File.WriteAllText(Path.Combine(repo, ".gitmodules"), "[submodule \"modules/Tools\"]\n\tpath = modules/Tools\n\turl = https://example.com/Tools.git\n");
+            File.WriteAllText(Path.Combine(repo, "b.py"), "print(1)\n");
+            Git(repo, "add", "-A");
+
+            var (exit, printed) = Programs.Attempt("sweep.py", new() { ["FORBIDDEN_NAMES"] = null }, repo);
+
+            Assert.True(exit == 0, printed);
+            Assert.DoesNotContain("modules/Tools", printed);
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
+    [NeedsPythonFact]
     public void Where_No_Names_Are_Given_The_Sweep_Says_It_Did_Not_Read_For_Them()
     {
         var (exit, printed) = Sweep(new() { ["docs/thanks.md"] = $"Written for {MadeUpName}.\n" }, names: null);

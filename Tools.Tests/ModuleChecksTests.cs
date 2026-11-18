@@ -16,18 +16,40 @@ public class ModuleChecksTests
     private static readonly string Root = Programs.Root();
     private const string Host = "Tools.Tests/ModuleChecksTests.cs";
 
+    // The README's block from here to the end marker, word for word.
+    private static readonly string Deps = Path.Combine(AppContext.BaseDirectory, Assembly.GetExecutingAssembly().GetName().Name + ".deps.json");
+    private static readonly string Readme = File.ReadAllText(Path.Combine(Root, "README.md"));
+
     [Fact]
-    public void The_Readmes_Block_Passes_This_Repositorys_Library()
+    public void The_Library_Takes_No_Engine_Window_Or_Graphics_Api() =>
+        Assert.Null(ModuleChecks.ReferenceFault(Assembly.Load(Library), Deps));
+
+    [Fact]
+    public void No_Public_Name_Or_Its_Documentation_Names_An_Engine() =>
+        Assert.Null(ModuleChecks.EngineNameFault(Assembly.Load(Library)));
+
+    [Fact]
+    public void The_Readme_Names_Every_Public_Type() =>
+        Assert.Null(ModuleChecks.UnnamedFault(Assembly.Load(Library), Readme));
+
+    [Fact]
+    public void The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host() =>
+        Assert.Null(ModuleChecks.BindingBlock(Readme, File.ReadAllText(Path.Combine(Root, Host))));
+    // The end marker.
+
+    [Fact]
+    public void Each_Fault_Names_What_It_Found_The_Rule_And_What_To_Do()
     {
-        // The README's block from here to the end marker, word for word.
-        var library = Assembly.Load(Library);
-        var deps = Path.Combine(AppContext.BaseDirectory, Assembly.GetExecutingAssembly().GetName().Name + ".deps.json");
-        var readme = File.ReadAllText(Path.Combine(Root, "README.md"));
-        Assert.Empty(ModuleChecks.Refused(library, deps));
-        Assert.Empty(ModuleChecks.EngineNames(library));
-        Assert.Empty(ModuleChecks.Unnamed(library, readme));
-        Assert.Null(ModuleChecks.BindingBlock(readme, File.ReadAllText(Path.Combine(Root, Host))));
-        // The end marker.
+        var documentation = XDocument.Parse("<doc><members><member name=\"T:Sample.Scene\"><summary>Drawn by 3DEngine.</summary></member></members></doc>");
+
+        Assert.Null(ModuleChecks.ReferenceFault(["System.Runtime"]));
+        Assert.Equal("The library references Vortice.Vulkan, an engine, a window or a graphics API, which a module's library takes none of (NORM.md, N 2.1). "
+            + "Remove the reference, or name it in allowed where it is a module the library may take.", ModuleChecks.ReferenceFault(["Vortice.Vulkan", "System.Runtime"]));
+        Assert.Null(ModuleChecks.EngineNameFault(["Sample.Scene"], XDocument.Parse("<doc><members/></doc>")));
+        Assert.StartsWith("T:Sample.Scene name an engine in the library's public names or their documentation", ModuleChecks.EngineNameFault(["Sample.Scene"], documentation));
+        Assert.EndsWith("Say what the engine's name stood for in the module's own terms.", ModuleChecks.EngineNameFault(["Sample.Scene"], documentation));
+        Assert.Null(ModuleChecks.UnnamedFault(["Star"], "## Binding it in your engine\n\nA `Star`.\n"));
+        Assert.StartsWith("The README names Moon neither in its section Binding it in your engine nor in a table's row", ModuleChecks.UnnamedFault(["Star", "Moon"], "## Binding it in your engine\n\nA `Star`.\n"));
     }
 
     [Theory]
@@ -137,7 +159,7 @@ public class ModuleChecksTests
         string Host(string second) => $"class T\n{{\n    void M()\n    {{\n        // The README's block from here\n        var a = 1;\n        {second}\n        // The end marker.\n    }}\n}}\n";
 
         Assert.Null(ModuleChecks.BindingBlock(readme, Host("var b = 2;")));
-        Assert.Equal("Line 2 of the README's block reads \"var b = 2;\" where the host reads \"var b = 3;\".", ModuleChecks.BindingBlock(readme, Host("var b = 3;")));
+        Assert.StartsWith("Line 2 of the README's block reads \"var b = 2;\" where the host reads \"var b = 3;\". ", ModuleChecks.BindingBlock(readme, Host("var b = 3;")));
         Assert.Equal("The README has no section Binding it in your engine.", ModuleChecks.BindingBlock("# Sample\n", Host("var b = 2;")));
         Assert.NotNull(ModuleChecks.BindingBlock(readme, "class T { }\n"));
     }

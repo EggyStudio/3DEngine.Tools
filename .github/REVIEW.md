@@ -609,3 +609,20 @@ agree: at the heads 3DEngine's comment lines past the width are 5,519, 5,449 rew
 BevyCSharp's 4,832, 4,821 and 11, and Voxel-Sandbox's 1,413, 1,412 and 1 (python3 -I
 scripts/sweep.py and scripts/rewrap.py over each). The strict build is clean and the tests pass, 104
 where there were 103.
+
+The module's checks revised in the commit carrying this line, as Levels' trial at `46a7f8c` read
+them. The README's block is four facts, one a check, so a module sees every fault at once where one
+fact stopped at its first assert, and each calls a form of its check that returns null or a sentence
+naming what it found, the rule and what to do, `ReferenceFault`, `EngineNameFault` and
+`UnnamedFault`, where an empty assert printed a bare list; `BindingBlock`'s sentences say what to do
+as well. The README states the host's two markers and that an engine taking a module builds its
+library alone and clones with no recursion into the module's own `modules/Tools`.
+`ShellForms.Scripts` leaves out the submodules `.gitmodules` names and any folder holding a `.git`
+of its own, since a module's test read Tools' own `build/version.sh` as the module's script;
+ShellFormsTests failed first on a checkout with both, reading three scripts where one is its own.
+The sweep, the rewrapper and the commit's check read a repository's tracked files, in which git
+lists a submodule as the commit it points at and none of its files, so a test of each over a
+repository holding a submodule with a long comment and a dash reads none of them; the rewrapper's
+was in already. ModuleChecksTests hosts the block of four facts and reads each fault's sentence on a
+planted fault and null on none. The strict build is clean and the tests pass, 111 where there were
+104.
