@@ -180,11 +180,12 @@ def rewrap(path, tracked):
 
 def past(lines, path):
     """How many comment lines run past the width by the rule the sweep counts with."""
-    # A line within the width breaks no width, and outside MSBuild and XML no comment runs on over
-    # lines, so only a longer line is read there; a report reads every file the width rule holds.
-    xml, count, in_xml = bool(XML.search(path)), 0, False
+    # A line within the width breaks no width, and only a line that opens or closes a comment
+    # running over lines changes what the next is, so a line that does neither is read only where
+    # it is longer; a report reads every file the width rule holds.
+    count, in_xml = 0, False
     for line in lines:
-        if not xml and len(line) <= COLUMNS:
+        if len(line) <= COLUMNS and not any(mark in line for mark in ("/*", "*/", "<!--", "-->")):
             continue
         faults, in_xml = line_faults(path, line, in_xml)
         count += any(rule == f"a comment line past {COLUMNS} columns" for _, rule, _ in faults)

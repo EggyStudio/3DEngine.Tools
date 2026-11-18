@@ -595,3 +595,17 @@ rows keep their lines and the long row is counted as left. The repositories' com
 rows, 6 in BevyCSharp within the width and 1 in Voxel-Sandbox past it (grep of the tracked files'
 comment lines opening with a bar). The
 strict build is clean and the tests pass, 103 where there were 102.
+
+The width rule's C-family comments in the commit carrying this line, found while sorting the hand
+work. A line opening with `*` was read as a block comment's inner line wherever it stood, so a line
+continuing a product, `* Matrix4x4.CreateTranslation(...)`, failed as a comment, and so did a line
+of data led by its number in a block comment that closes, `/* 0 */ [TL,HH,...]`. The rule follows
+an open block comment over lines as it follows an XML comment, a `*` line being an inner line only
+inside one, and a line opening with a closed block comment is code where code follows the close.
+SweepTests failed first on a C# file holding both beside an open block comment, its inner line and
+a closed block comment alone on its line, counting four where three are comments. The rewrapper's
+count skips a line within the width only where it opens or closes no comment, so the counts still
+agree: at the heads 3DEngine's comment lines past the width are 5,519, 5,449 rewrapped and 70 left,
+BevyCSharp's 4,832, 4,821 and 11, and Voxel-Sandbox's 1,413, 1,412 and 1 (python3 -I
+scripts/sweep.py and scripts/rewrap.py over each). The strict build is clean and the tests pass, 104
+where there were 103.

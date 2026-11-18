@@ -85,6 +85,32 @@ public class SweepTests
     }
 
     [NeedsPythonFact]
+    public void A_Line_Of_Code_That_Opens_With_A_Star_Or_A_Closed_Block_Comment_Is_No_Comment_Line()
+    {
+        string Many(string word, int count) => string.Join(' ', Enumerable.Repeat(word, count));
+        var source = string.Join('\n',
+            "class A",
+            "{",
+            "    float M(float a, float b) => a",
+            $"        * {string.Join(" * ", Enumerable.Repeat("b", 50))};",
+            $"    /* 0 */ [{string.Join(",", Enumerable.Repeat("1", 50))}],",
+            $"    /* {Many("open", 25)}",
+            $"     * {Many("inner", 20)}",
+            "     */",
+            $"    /* {Many("closed", 16)} */",
+            "}",
+            "");
+
+        var (_, printed) = Sweep(new() { ["A.cs"] = source });
+
+        var lines = Programs.Lines(printed);
+        Assert.Contains("FAIL a comment line past 100 columns, 3", lines);
+        Assert.Contains(lines, line => line.StartsWith("  A.cs:6 ", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.StartsWith("  A.cs:7 ", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.StartsWith("  A.cs:9 ", StringComparison.Ordinal));
+    }
+
+    [NeedsPythonFact]
     public void A_Place_Holding_A_Character_Past_Ascii_Is_Printed_Whole_Whatever_The_Systems_Encoding()
     {
         var (exit, printed) = Sweep(new() { ["notes.md"] = "A line \u2014 with a dash.\n" }, environment: Programs.SingleByteLocale());

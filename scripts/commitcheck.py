@@ -71,6 +71,7 @@ COMMENT_ANY = re.compile("|".join(f"(?:{p.pattern})" for _, p in COMMENT_BAD), r
 SEEN = re.compile(r"\.(slang|wgsl|glsl|hlsl|frag|vert)$|(^|/)(Rendering|render|Shaders|shaders|Lighting|Ui)/")
 PICTURES = re.compile(r"^\.github/(assets/readings|devlog)/.*\.webp$")
 TEXT = re.compile(r"\.(cs|rs|slang|wgsl|py|sh|md|toml|yml|yaml|json|csproj|props|targets|slnx)$")
+C_FAMILY = re.compile(r"\.(cs|rs|slang|wgsl|glsl|hlsl)$")
 XML = re.compile(r"\.(csproj|props|targets|slnx|xml)$")
 COLUMNS = 100
 
@@ -97,6 +98,19 @@ def line_faults(path, text, in_xml):
     is_comment = bool(mark and mark.match(text)) or in_xml
     if XML.search(path) and (in_xml or text.lstrip().startswith("<!--")):
         in_xml = "-->" not in text
+    elif C_FAMILY.search(path):
+        # A block comment runs over lines until its close, so a line opening with * is a comment's
+        # inner line only inside one, where elsewhere it continues a product, and a line opening
+        # with a block comment that closes is code where code follows the close, as a table's data
+        # led by its row's number in a comment is.
+        stripped = text.lstrip()
+        if in_xml:
+            is_comment, in_xml = True, "*/" not in text
+        elif stripped.startswith("/*"):
+            closed = "*/" in stripped[2:]
+            is_comment, in_xml = not closed or not stripped[stripped.rindex("*/") + 2:].strip(), not closed
+        else:
+            is_comment = stripped.startswith("//")
     if not is_comment and not markdown:
         return faults, in_xml
     # A Markdown line is prose whatever its mark, a heading's # or a list's *, and is held to no
