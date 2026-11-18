@@ -1111,3 +1111,23 @@ failed first on a made commit of a Python file of two tests and a helper under a
 folder and a script holding a function named like a test. Read again, `1452dbe` gives tests 9 and
 scripts 2 where it gave tests 4 and scripts 7, and 10 test functions. The strict build is clean and
 the tests pass, 189 and one skipped plain and 190 in the variant.
+
+The reading of the three big repositories' pictures on a dark ground, the third of the three, in the
+commit carrying this line alone, the page and its pictures in `.github/dump/2026-11-18/`,
+20-32-reading-334.md with a row a reading. The sweep's 334 are 3DEngine's 83, BevyCSharp's 127 and
+Voxel-Sandbox's 124, Voxel-Sandbox being its own repository inside 3DEngine's folder. Each was
+looked at on twelve contact sheets sheets/sheet.py composed, thirty to a sheet, beside its caption,
+of which 254 have one. None can be remade from tracked files alone. Every reading but one is frames
+of an engine or a game, alone or edge to edge, sheet.py's form with the HUD's text inside the
+frames, and no reading's frames are tracked, so each waits on a GPU's run of the tracked program to
+capture them again: 220 of a tracked scene whose caption gives its settings, 3DEngine 35, BevyCSharp
+113 and Voxel-Sandbox 72; 80 of a tracked scene whose file's name alone says what they show, 16, 12
+and 52; and 33 of Sponza, 32 of 3DEngine's and one of BevyCSharp's, a scene fetched by a tracked
+command and not held. The one chart, BevyCSharp's item-137-near-wall, is chart.py's form, but item
+137's record in REVIEW-ARCHIVE.md keeps the ranges and four points of its series alone. By their
+words 70 show two states, a remake capturing at two commits, and seven set a bounce room beside its
+path-traced reference, which both engines track as PFM but at 80 by 45 averaged, where the readings
+show it whole. Two findings of chart.py itself, drawing the counts: a bars panel draws no legend
+unless the layout gives one, though each series has its label, and a whole count reads 1.00 or 35.0,
+every value given three significant figures; neither is mended here, each a small item if the review
+wants it. The tests are as at `0d9a2a7`, nothing tracked but this line changing.
