@@ -37,8 +37,9 @@ git submodule add https://github.com/EggyStudio/Tools.git modules/Tools
 <ProjectReference Include="..\modules\Tools\Tools\Tools.csproj" />
 ```
 
-The library is built on .NET 10 with no package of its own, and its `Directory.Build.props` stops it
-taking an engine's `Directory.Build.targets` from the folders above. The engine then adds one test
+The library is built on .NET 10 with no package of its own as the assembly `3DEngine.Tools`, its
+types in the namespace `Tools`, and its `Directory.Build.props` stops it taking an engine's
+`Directory.Build.targets` from the folders above. The engine then adds one test
 that calls `ShellForms` over its scripts and one that calls `DocumentCopies` over its STYLE.md and
 COMMITS.md with its own word for the module's, as the sections below show, and runs the scripts by
 their path under `modules/Tools/scripts` with Python 3, Pillow where a picture is read or written.

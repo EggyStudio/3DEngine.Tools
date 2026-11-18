@@ -3,6 +3,7 @@
     <!-- The library's tests, which need no window and no GPU. -->
     <PropertyGroup>
         <IsPackable>false</IsPackable>
+        <AssemblyName>3DEngine.Tools.Tests</AssemblyName>
         <RootNamespace>Tools.Tests</RootNamespace>
     </PropertyGroup>
 

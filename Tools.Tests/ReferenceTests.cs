@@ -10,14 +10,16 @@ namespace Tools.Tests;
 /// of it, its assembly's references and the packages the test's dependency file records for it.
 /// </summary>
 /// <remarks>
-/// A module copies this file whole into its tests, changing <see cref="Library"/> to its own
-/// assembly's name, so a stranger takes the library into an engine of their own with nothing of
-/// another engine's coming along (NORM.md, N 2.1). The project file is not read, since a reference
-/// a property or an imported file adds stands in the build alone.
+/// A module copies this file whole into its tests and sets <see cref="Library"/> to its own
+/// assembly's name, 3DEngine and the module's, as <c>3DEngine.Tools</c> here, so a stranger takes
+/// the library into an engine of their own with nothing of another engine's coming along (NORM.md,
+/// N 2.1). The project file is not read, since a reference a property or an imported file adds
+/// stands in the build alone.
 /// </remarks>
 public class ReferenceTests
 {
-    private const string Library = "Tools";
+    // The library's assembly name, which a module that copies this file sets to its own.
+    private const string Library = "3DEngine.Tools";
 
     // The engines' own assemblies, and the windows, the graphics APIs and the bindings over them a
     // .NET program draws through, each matched as a whole part of a name between dots and dashes,

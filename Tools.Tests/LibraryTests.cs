@@ -8,9 +8,11 @@ public class LibraryTests
     [Fact]
     public void The_Library_Loads()
     {
-        // By its name rather than by a type of its own, which the library has none of yet, so the
-        // test reads that the project reference puts the assembly beside the tests.
-        var library = Assembly.Load("Tools");
-        Assert.Equal("Tools", library.GetName().Name);
+        // By the assembly's name, 3DEngine and the module's, where the namespace is the module's
+        // alone, so the test reads that the project reference puts the assembly of that name
+        // beside the tests and that it holds the library's types.
+        var library = Assembly.Load("3DEngine.Tools");
+        Assert.Equal("3DEngine.Tools", library.GetName().Name);
+        Assert.Same(library, typeof(ShellForms).Assembly);
     }
 }

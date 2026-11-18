@@ -3,6 +3,8 @@
     <!-- The library both engines reference from their own projects, which knows no engine
          (N 2.1). -->
     <PropertyGroup>
+        <AssemblyName>3DEngine.Tools</AssemblyName>
+        <PackageId>3DEngine.Tools</PackageId>
         <RootNamespace>Tools</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>

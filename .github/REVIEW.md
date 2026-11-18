@@ -348,3 +348,11 @@ engines at their heads (python3 -I scripts/sweep.py), BevyCSharp's warnings of t
 from 47 to 2, an earlier version of a file and a pointer previously returned, and of the second from
 93 to 35, and 3DEngine's from 104 to 37 and from 89 to 35. The strict build is clean and the tests
 pass, 82 where there were 77.
+
+The names in the commit carrying this line, as the owner set them for every module. The library's
+project sets its assembly and package id to `3DEngine.Tools`, still not packed, and the tests'
+assembly is `3DEngine.Tools.Tests`; the folders, the project files and the namespaces `Tools` and
+`Tools.Tests` stay. LibraryTests loads the assembly by its new name and reads that it holds
+ShellForms, ReferenceTests' Library is `3DEngine.Tools` with its comment saying a module sets it to
+its own assembly's name, and the README's section Binding it in your engine names the assembly and
+the namespace. Built from empty output folders, the strict build is clean and the 82 tests pass.
