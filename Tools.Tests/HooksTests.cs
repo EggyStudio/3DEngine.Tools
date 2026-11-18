@@ -67,7 +67,7 @@ public class HooksTests
         var scripts = Path.Combine(repo.Root, "..", Path.GetFileName(repo.Root) + "-scripts");
         Directory.CreateDirectory(scripts);
         foreach (var name in new[] { "hooks.py", "commitcheck.py" })
-            File.Copy(Path.Combine(AppContext.BaseDirectory, "scripts", name), Path.Combine(scripts, name));
+            File.Copy(Programs.ScriptPath(name), Path.Combine(scripts, name));
         try
         {
             var (code, printed) = Programs.Execute(Programs.Python.Value!, repo.Root, [], "-I", Path.Combine(scripts, "hooks.py"), "install");
@@ -112,7 +112,7 @@ public class HooksTests
     // A made repository, its hook's path, and the script run from inside it, deleted with it.
     private sealed class Repo : IDisposable
     {
-        public static readonly string Script = Path.Combine(AppContext.BaseDirectory, "scripts", "hooks.py");
+        public static readonly string Script = Programs.ScriptPath("hooks.py");
 
         public string Root { get; } = Directory.CreateTempSubdirectory("hooks-").FullName;
 

@@ -941,3 +941,13 @@ titles with no title over the whole sheet, which N 4.9 asks first; a layout take
 above the subtitle above the row's title and the title's ink. The examples' captures sheet takes a
 title and a subtitle, its page's layout with it. The README says it. The strict build is clean and
 the tests pass, 158 and one skipped plain and 159 in the variant.
+
+The tests' scripts in the commit carrying this line, the first of the three by the review's order. A
+test ran a script from the copy the build left beside the tests, which stayed as it was until the
+next build, so a test run with no build after an edit read the old script and could pass what the
+edit should fail, as two of this day's runs did. `Programs.ScriptPath` names a script in the
+checkout's own scripts folder, every script a test runs or copies is read from there, and the test
+project copies none beside the tests. ProgramsTests failed first, reading the script's path as the
+checkout's and no scripts folder beside the tests. A message changed in commitcheck.py failed its
+test with no build between and passed again when it was put back. The strict build is clean and the
+tests pass, 159 and one skipped plain and 160 in the variant.

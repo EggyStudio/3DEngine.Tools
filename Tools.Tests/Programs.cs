@@ -83,6 +83,12 @@ public static class Programs
     public static Dictionary<string, string?> SingleByteLocale() =>
         OperatingSystem.IsLinux() ? new() { ["LC_ALL"] = "en_US.ISO-8859-1" } : [];
 
+    /// <summary>
+    /// A script of the checkout's own scripts folder by its name, or the path given where it is
+    /// one, so a test runs the script as it stands and never a copy a build left.
+    /// </summary>
+    public static string ScriptPath(string name) => Path.IsPathRooted(name) ? name : Path.Combine(Root(), "scripts", name);
+
     /// <summary>The checkout's root, the folder above the tests that holds Tools.slnx.</summary>
     public static string Root()
     {
@@ -102,7 +108,7 @@ public static class Programs
     /// environment.
     /// </summary>
     public static string Script(string name, Dictionary<string, string> environment, params string[] arguments) =>
-        Run(Python.Value!, AppContext.BaseDirectory, environment, ["-I", Path.Combine(AppContext.BaseDirectory, "scripts", name), .. arguments]);
+        Run(Python.Value!, AppContext.BaseDirectory, environment, ["-I", ScriptPath(name), .. arguments]);
 
     /// <summary>
     /// Runs a program in a folder and returns what it printed, failing the test where it exits with
@@ -116,7 +122,7 @@ public static class Programs
     /// variable given as null is taken out of the script's environment.
     /// </summary>
     public static (int Code, string Output) Attempt(string name, Dictionary<string, string?> environment, params string[] arguments) =>
-        Start(Python.Value!, AppContext.BaseDirectory, environment, ["-I", Path.Combine(AppContext.BaseDirectory, "scripts", name), .. arguments]) is var (code, output, error)
+        Start(Python.Value!, AppContext.BaseDirectory, environment, ["-I", ScriptPath(name), .. arguments]) is var (code, output, error)
             ? (code, output + error)
             : default;
 

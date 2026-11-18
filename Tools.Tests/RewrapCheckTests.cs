@@ -38,8 +38,8 @@ public class RewrapCheckTests
         var scripts = Path.Combine(folders.Root, "scripts");
         Directory.CreateDirectory(scripts);
         foreach (var name in new[] { "commitcheck.py", "rewrapcheck.py" })
-            File.Copy(Path.Combine(AppContext.BaseDirectory, "scripts", name), Path.Combine(scripts, name));
-        var rewrap = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "scripts", "rewrap.py"));
+            File.Copy(Programs.ScriptPath(name), Path.Combine(scripts, name));
+        var rewrap = File.ReadAllText(Programs.ScriptPath("rewrap.py"));
         foreach (var part in new[] { "        if not found:\n            out.append(lines[i])", "    if code != code_after:" })
             Assert.Contains(part, rewrap);
         rewrap = rewrap.Replace("        if not found:\n            out.append(lines[i])", "        if not found:\n            out.append(lines[i].replace(\"print\", \"prant\"))", StringComparison.Ordinal)

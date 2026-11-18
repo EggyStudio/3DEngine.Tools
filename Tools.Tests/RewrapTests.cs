@@ -169,8 +169,8 @@ public class RewrapTests
         // of the comments' words exists to stop.
         var brokenFolder = Directory.CreateTempSubdirectory("rewrap-broken-").FullName;
         var broken = Path.Combine(brokenFolder, "rewrap.py");
-        File.Copy(Path.Combine(AppContext.BaseDirectory, "scripts", "commitcheck.py"), Path.Combine(brokenFolder, "commitcheck.py"));
-        var script = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "scripts", "rewrap.py"));
+        File.Copy(Programs.ScriptPath("commitcheck.py"), Path.Combine(brokenFolder, "commitcheck.py"));
+        var script = File.ReadAllText(Programs.ScriptPath("rewrap.py"));
         Assert.Contains("for i, token in enumerate(tokens):", script);
         File.WriteAllText(broken, script.Replace("for i, token in enumerate(tokens):", "for i, token in enumerate(tokens[:-1]):", StringComparison.Ordinal));
         var files = new Dictionary<string, string> { ["b.py"] = $"# {Words} last.\nprint(1)\n" };
