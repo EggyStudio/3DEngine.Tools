@@ -85,6 +85,13 @@ public class CheatsheetTests
     }
 
     [Fact]
+    public void An_Infinite_Or_Not_A_Number_Default_Is_Written_As_CSharp_Names_It()
+    {
+        Assert.Contains("float Reach(float far = float.PositiveInfinity, double near = double.NegativeInfinity, float none = float.NaN);  // The first thing the ray meets within its reach",
+            SampleLines());
+    }
+
+    [Fact]
     public void A_Generic_Type_Is_Written_With_Its_Parameters_And_Named_By_Its_Plain_Name()
     {
         var lines = SampleLines();
@@ -96,7 +103,7 @@ public class CheatsheetTests
     // The samples' lines as the writer writes them from the tests' own documentation file, the
     // tests' other types among them, each comment two blanks after its declaration.
     private static List<string> SampleLines() =>
-        [.. Block(Cheatsheet.Write(typeof(Samples.Square).Assembly, "`IShape` `Square` `Named` `Word` `Planted` `Pair<TKey, TValue>`", ""))
+        [.. Block(Cheatsheet.Write(typeof(Samples.Square).Assembly, "`IShape` `Square` `Named` `Word` `Planted` `Ray` `Pair<TKey, TValue>`", ""))
             .Select(line => System.Text.RegularExpressions.Regex.Replace(line, @"\s{2,}// ", "  // "))];
 
     [Fact]

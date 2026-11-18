@@ -306,8 +306,9 @@ python3 -I scripts/run.py <account/repo> <run id> <folder for the logs>
 
 `scripts/sheet.py` composes a sheet on a white ground from a layout in JSON, rows of panels with a
 heading a column and a title a row in dark text, and writes it in the format its name's extension
-gives. A row's title stands first on a line of its own in a larger type, and the panels' labels
-under it, the first row's taking the columns' headings where a panel has none. It needs Pillow.
+gives. A layout's `title` and `subtitle` stand over the whole sheet, then a row's title stands first
+on a line of its own in a larger type, and the panels' labels under it, the first row's taking the
+columns' headings where a panel has none. It needs Pillow.
 
 ```bash
 python3 -I scripts/sheet.py <layout.json> <sheet.png>

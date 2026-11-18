@@ -930,3 +930,14 @@ of the folder and holds the page to each layout's text word for word beside its 
 and the files cannot part. The README links the page and AGENTS.md's table names the new folder (N
 1.5). The strict build is clean and the tests pass, 156 and one skipped plain and 157 in the
 variant.
+
+Two findings of the modules in the commit carrying this line, each with a test that failed first.
+The cheatsheet wrote an infinite or undefined default by the number's own text, `Infinityf` and
+`-Infinityf`, which is no C#, as Landscape's Raycast reach and two rules' ranges have it; it writes
+`float.PositiveInfinity`, `float.NegativeInfinity` and `float.NaN`, and the same of a double,
+CheatsheetTests reading a sample whose three defaults are of the three. And sheet.py drew rows'
+titles with no title over the whole sheet, which N 4.9 asks first; a layout takes `title` and a
+`subtitle` drawn above the first row and printed with their places, SheetTests reading the title
+above the subtitle above the row's title and the title's ink. The examples' captures sheet takes a
+title and a subtitle, its page's layout with it. The README says it. The strict build is clean and
+the tests pass, 158 and one skipped plain and 159 in the variant.

@@ -250,10 +250,10 @@ python3 -I scripts/chart.py examples/tables.json examples/tables.webp
 
 ## Captures and their difference
 
-Two pictures of a sky, the second its reference, with a box on each reading the mean light inside
-it, written at the box's corner and printed, and the first less the second in luminance, red where
-brighter and blue where darker, full at `share` of the reference's mean. The two PNG files are in
-this folder; a PFM of linear light is read as well.
+A sheet with its title and subtitle over two pictures of a sky, the second its reference, with a box
+on each reading the mean light inside it, written at the box's corner and printed, and the first
+less the second in luminance, red where brighter and blue where darker, full at `share` of the
+reference's mean. The two PNG files are in this folder; a PFM of linear light is read as well.
 
 ![Captures and their difference](sheet.webp)
 
@@ -263,6 +263,8 @@ python3 -I scripts/sheet.py examples/sheet.json examples/sheet.webp
 
 ```json
 {
+  "title": "Captures and their difference",
+  "subtitle": "Made-up pictures of a sky, composed by sheet.py",
   "font": 15,
   "size": [320, 180],
   "columns": ["the frame", "the reference", "the frame less the reference"],
@@ -272,11 +274,15 @@ python3 -I scripts/sheet.py examples/sheet.json examples/sheet.webp
       "panels": [
         {
           "image": "frame.png",
-          "boxes": [[190, 30, 250, 90]]
+          "boxes": [
+            [190, 30, 250, 90]
+          ]
         },
         {
           "image": "reference.png",
-          "boxes": [[190, 30, 250, 90]]
+          "boxes": [
+            [190, 30, 250, 90]
+          ]
         },
         {
           "signed": ["frame.png", "reference.png"],

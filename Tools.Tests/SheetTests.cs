@@ -86,6 +86,37 @@ public class SheetTests
         }
     }
 
+    [NeedsPillowFact]
+    public void A_Sheet_Opens_With_Its_Title_And_Subtitle_Above_Its_First_Row()
+    {
+        var folder = Directory.CreateTempSubdirectory("sheet-").FullName;
+        try
+        {
+            WritePpm(Path.Combine(folder, "first.ppm"), (_, _) => 128);
+            var layout = new
+            {
+                title = "The sheet's title", subtitle = "Its subtitle", font = 12,
+                rows = new object[] { new { title = "One row", panels = new object[] { new { image = "first.ppm" } } } },
+            };
+            File.WriteAllText(Path.Combine(folder, "layout.json"), JsonSerializer.Serialize(layout));
+
+            var printed = Programs.Script("sheet.py", Path.Combine(folder, "layout.json"), Path.Combine(folder, "sheet.ppm"));
+
+            var lines = Programs.Lines(printed);
+            var title = lines.Single(l => l.StartsWith("sheet title at ", StringComparison.Ordinal));
+            var subtitle = lines.Single(l => l.StartsWith("sheet subtitle at ", StringComparison.Ordinal));
+            int At(string line) => int.Parse(line.Split(' ')[3].Split(',')[1]);
+            Assert.True(At(title) < At(subtitle), "the subtitle stands above the title");
+            Assert.True(At(subtitle) < Line(printed, "title").Y, "the row's title stands above the sheet's subtitle");
+            var sheet = ReadPpm(Path.Combine(folder, "sheet.ppm"));
+            Assert.True(Enumerable.Range(0, 200).Any(x => sheet.At(x, At(title) + 8) is var (r, g, b) && r + g + b < 300), "the sheet's title is not drawn");
+        }
+        finally
+        {
+            Directory.Delete(folder, true);
+        }
+    }
+
     private static (int Y, int Height) Line(string printed, string kind)
     {
         var line = Programs.Lines(printed).Single(l => l.StartsWith($"row 1 {kind} at ", StringComparison.Ordinal));

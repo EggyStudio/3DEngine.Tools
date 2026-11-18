@@ -47,6 +47,13 @@ public sealed class Word : Named
 /// <param name="Seed">The seed it came with.</param>
 public readonly record struct Planted(Vector3 Place, uint Seed);
 
+/// <summary>A ray cast as far as asked.</summary>
+public static class Ray
+{
+    /// <summary>The first thing the ray meets within its reach.</summary>
+    public static float Reach(float far = float.PositiveInfinity, double near = double.NegativeInfinity, float none = float.NaN) => far;
+}
+
 /// <summary>A pair of a key and a value.</summary>
 public sealed class Pair<TKey, TValue>
 {

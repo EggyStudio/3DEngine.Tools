@@ -1,7 +1,8 @@
 # Composes a sheet of pictures on a white ground from a layout in JSON, rows of panels with a
 # heading a column and a title a row in dark text, the form N 4.9 of NORM.md gives a picture that
-# reads something. A row's title stands first, on a line of its own in a larger type, and the
-# panels' labels under it, the first row's taking the columns' headings where a panel has none.
+# reads something. The sheet's title and subtitle stand over it all, then a row's title stands
+# first, on a line of its own in a larger type, and the panels' labels under it, the first row's
+# taking the columns' headings where a panel has none.
 #
 #   python3 -I scripts/sheet.py <layout.json> <sheet.png>
 #
@@ -115,6 +116,10 @@ def main():
     title_size = round(font_size * 1.3)
     title_font = ImageFont.load_default(size=title_size)
     title_line = title_size + 12
+    # The sheet's own title stands over everything, larger again, and its subtitle under it.
+    sheet_size = round(font_size * 1.6)
+    sheet_font = ImageFont.load_default(size=sheet_size)
+    sheet_line = sheet_size + 14
     pictures = {}
 
     def picture(name):
@@ -184,7 +189,7 @@ def main():
     # The first row's labels take the columns' headings where its panels have none of their own.
     for c, heading in enumerate(columns[:len(rows[0][1])]):
         rows[0][1][c]["label"] = rows[0][1][c]["label"] or heading
-    height = GAP
+    height = GAP + (sheet_line if layout.get("title") else 0) + (line if layout.get("subtitle") else 0)
     for title, panels in rows:
         height += (title_line if title else 0) + (line if any(p["label"] for p in panels) else 0)
         height += max(p["image"].size[1] for p in panels) + GAP
@@ -193,6 +198,14 @@ def main():
     draw = ImageDraw.Draw(sheet)
     y = GAP
     printed = [f"sheet {out} {sheet.size[0]}x{sheet.size[1]}"]
+    if layout.get("title"):
+        draw.text((GAP, y), layout["title"], fill="black", font=sheet_font)
+        printed.append(f"sheet title at {GAP},{y} height {sheet_line}")
+        y += sheet_line
+    if layout.get("subtitle"):
+        draw.text((GAP, y), layout["subtitle"], fill=(96, 96, 96), font=font)
+        printed.append(f"sheet subtitle at {GAP},{y} height {line}")
+        y += line
     for r, (title, panels) in enumerate(rows, 1):
         if title:
             draw.text((GAP, y), title, fill="black", font=title_font)

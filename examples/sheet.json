@@ -1,4 +1,6 @@
 {
+  "title": "Captures and their difference",
+  "subtitle": "Made-up pictures of a sky, composed by sheet.py",
   "font": 15,
   "size": [320, 180],
   "columns": ["the frame", "the reference", "the frame less the reference"],
@@ -8,11 +10,15 @@
       "panels": [
         {
           "image": "frame.png",
-          "boxes": [[190, 30, 250, 90]]
+          "boxes": [
+            [190, 30, 250, 90]
+          ]
         },
         {
           "image": "reference.png",
-          "boxes": [[190, 30, 250, 90]]
+          "boxes": [
+            [190, 30, 250, 90]
+          ]
         },
         {
           "signed": ["frame.png", "reference.png"],
