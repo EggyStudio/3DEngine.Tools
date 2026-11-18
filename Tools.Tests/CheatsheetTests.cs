@@ -100,6 +100,34 @@ public class CheatsheetTests
         Assert.Contains("TKey? Key { get; init; }  // The pair's key", lines);
     }
 
+    // Every form of C# a module's library takes, its declaration as the writer writes it.
+    [Theory]
+    [InlineData("Meters operator +(Meters a, Meters b);")]
+    [InlineData("Meters operator -(Meters a);")]
+    [InlineData("bool operator ==(Meters a, Meters b);")]
+    [InlineData("bool operator !=(Meters a, Meters b);")]
+    [InlineData("implicit operator double(Meters m);")]
+    [InlineData("explicit operator Meters(double value);")]
+    [InlineData("bool Equals(object? other);")]
+    [InlineData("class Plan<TMesh, TTag>")]
+    [InlineData("IReadOnlyList<(Plan<TMesh, TTag>.Item, bool)> Drawn { get; init; }")]
+    [InlineData("bool IsStill(in Plan<TMesh, TTag>.Item item);")]
+    [InlineData("bool TryFirst<TKind>(out TKind? found);")]
+    [InlineData("enum Ways")]
+    [InlineData("Forward = 1,")]
+    [InlineData("string DefaultName = \"field\";")]
+    [InlineData("Field Empty;")]
+    [InlineData("event EventHandler<int>? Changed;")]
+    [InlineData("float this[int column, int row] { get; set; }")]
+    [InlineData("void Read(ReadOnlySpan<int> cells, Span<float> into, ref int count, params int[] skipped);")]
+    [InlineData("Vector3? Tallest(Vector3 from = default, Ways ways = Ways.Forward | Ways.Back);")]
+    [InlineData("float Middle(this Field field);")]
+    public void Every_Form_A_Library_Takes_Is_Written_As_CSharp_Writes_It(string declaration)
+    {
+        var declarations = Block(Cheatsheet.Write(typeof(Forms.Field).Assembly, "", "")).Select(line => line.Split("//")[0].TrimEnd());
+        Assert.Contains(declaration, declarations);
+    }
+
     // The samples' lines as the writer writes them from the tests' own documentation file, the
     // tests' other types among them, each comment two blanks after its declaration.
     private static List<string> SampleLines() =>

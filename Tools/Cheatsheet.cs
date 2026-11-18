@@ -140,8 +140,12 @@ public static partial class Cheatsheet
             case MethodInfo method:
                 var generic = method.IsGenericMethod ? $"<{string.Join(", ", method.GetGenericArguments().Select(a => a.Name))}>" : "";
                 var returned = TypeName(method.ReturnType, nullability.Create(method.ReturnParameter));
-                var called = method.Name.StartsWith("op_", StringComparison.Ordinal) ? $"operator {method.Name[3..]}" : method.Name;
                 var extension = method.IsDefined(typeof(ExtensionAttribute)) ? "this " : "";
+                // A conversion is written by its kind and the type it gives, an operator by its
+                // symbol, as C# declares them, where the build names both as methods.
+                if (method.Name is "op_Implicit" or "op_Explicit")
+                    return $"{(method.Name == "op_Implicit" ? "implicit" : "explicit")} operator {returned}({Parameters(method, nullability)});";
+                var called = Operators.TryGetValue(method.Name, out var symbol) ? $"operator {symbol}" : method.Name;
                 return $"{returned} {called}{generic}({extension}{Parameters(method, nullability)});";
             case EventInfo @event:
                 return $"event {TypeName(@event.EventHandlerType!, nullability.Create(@event))} {@event.Name};";
@@ -178,9 +182,31 @@ public static partial class Cheatsheet
         double number when double.IsNaN(number) => "double.NaN",
         float single => single.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + "f",
         double number => number.ToString("R", System.Globalization.CultureInfo.InvariantCulture),
-        _ when (Nullable.GetUnderlyingType(type) ?? type).IsEnum => $"{Plain((Nullable.GetUnderlyingType(type) ?? type).Name)}.{Enum.GetName(Nullable.GetUnderlyingType(type) ?? type, value)}",
+        _ when (Nullable.GetUnderlyingType(type) ?? type).IsEnum => EnumValue(Nullable.GetUnderlyingType(type) ?? type, value),
         IFormattable number => number.ToString(null, System.Globalization.CultureInfo.InvariantCulture),
         _ => value.ToString() ?? "",
+    };
+
+    // An enum's value by its member, or by its flags joined, as Ways.Forward | Ways.Back, or cast
+    // where no member names it.
+    private static string EnumValue(Type type, object value)
+    {
+        var named = Enum.ToObject(type, value).ToString()!;
+        var owner = Plain(type.Name);
+        return char.IsDigit(named[0]) || named[0] == '-'
+            ? $"({owner}){value}"
+            : string.Join(" | ", named.Split(", ").Select(member => $"{owner}.{member}"));
+    }
+
+    private static readonly Dictionary<string, string> Operators = new(StringComparer.Ordinal)
+    {
+        ["op_Addition"] = "+", ["op_Subtraction"] = "-", ["op_Multiply"] = "*", ["op_Division"] = "/",
+        ["op_Modulus"] = "%", ["op_UnaryNegation"] = "-", ["op_UnaryPlus"] = "+", ["op_LogicalNot"] = "!",
+        ["op_OnesComplement"] = "~", ["op_Increment"] = "++", ["op_Decrement"] = "--", ["op_True"] = "true",
+        ["op_False"] = "false", ["op_Equality"] = "==", ["op_Inequality"] = "!=", ["op_LessThan"] = "<",
+        ["op_GreaterThan"] = ">", ["op_LessThanOrEqual"] = "<=", ["op_GreaterThanOrEqual"] = ">=",
+        ["op_BitwiseAnd"] = "&", ["op_BitwiseOr"] = "|", ["op_ExclusiveOr"] = "^", ["op_LeftShift"] = "<<",
+        ["op_RightShift"] = ">>", ["op_UnsignedRightShift"] = ">>>",
     };
 
     private static readonly Dictionary<Type, string> Aliases = new()
@@ -206,16 +232,34 @@ public static partial class Cheatsheet
         var arguments = type.IsGenericType ? type.GetGenericArguments() : [];
         var infos = nullability?.GenericTypeArguments ?? [];
         string argument(int i) => TypeName(arguments[i], i < infos.Length ? infos[i] : null);
-        if (type.IsGenericType && type.FullName?.StartsWith("System.ValueTuple`", StringComparison.Ordinal) == true)
+        // A tuple is read by its definition, since a tuple of a generic's parameters has no full
+        // name of its own.
+        if (type.IsGenericType && type.GetGenericTypeDefinition() is { Namespace: "System" } definition
+            && definition.Name.StartsWith("ValueTuple`", StringComparison.Ordinal))
             return $"({string.Join(", ", arguments.Select((_, i) => argument(i)))})" + mark;
-        var name = Name(type);
-        return (arguments.Length == 0 ? name : $"{Plain(name)}<{string.Join(", ", arguments.Select((_, i) => argument(i)))}>") + mark;
+        return Chain(type, argument) + mark;
     }
 
-    private static string Name(Type type)
+    private static string Name(Type type) => Chain(type, i => TypeName(type.GetGenericArguments()[i], null));
+
+    // A type by its chain of declaring types, outermost first, each level taking its own count of
+    // the arguments, which its name gives after its backtick, so Plan<TMesh, TTag>.Item is written
+    // where the build gives Item the parameters of the type it is declared in.
+    private static string Chain(Type type, Func<int, string> argument)
     {
-        var name = type.IsNested ? Name(type.DeclaringType!) + "." + type.Name : type.Name;
-        return type.IsGenericTypeDefinition ? $"{Plain(name)}<{string.Join(", ", type.GetGenericArguments().Select(a => a.Name))}>" : name;
+        var chain = new List<Type>();
+        for (Type? level = type; level is not null; level = level.IsNested ? level.DeclaringType : null)
+            chain.Insert(0, level);
+        var (parts, next) = (new List<string>(), 0);
+        foreach (var level in chain)
+        {
+            var mark = level.Name.IndexOf('`');
+            var count = mark < 0 ? 0 : int.Parse(level.Name[(mark + 1)..], System.Globalization.CultureInfo.InvariantCulture);
+            parts.Add(count == 0 ? Plain(level.Name) : $"{Plain(level.Name)}<{string.Join(", ", Enumerable.Range(next, count).Select(argument))}>");
+            next += count;
+        }
+
+        return string.Join(".", parts);
     }
 
     private static string Plain(string name) => name.Split('`')[0];

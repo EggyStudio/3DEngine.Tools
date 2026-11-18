@@ -951,3 +951,26 @@ project copies none beside the tests. ProgramsTests failed first, reading the sc
 checkout's and no scripts folder beside the tests. A message changed in commitcheck.py failed its
 test with no build between and passed again when it was put back. The strict build is clean and the
 tests pass, 159 and one skipped plain and 160 in the variant.
+
+The cheatsheet's catalogue of forms in the commit carrying this line, the second of the three. The
+writer was read first over the seven modules' built libraries and documentation, read and written
+nothing to, for lines no C# writes, and three forms in their surfaces read wrong: an operator by its
+method's name, Levels' `LevelPoint operator Addition(...)`; a tuple inside a generic argument as
+`ValueTuple<...>`, since a tuple of a generic's parameters has no full name, RadianceCascades'
+`IReadOnlyList<ValueTuple<..., bool>>`; and a nested type of a generic one given its outer type's
+parameters as its own, `SceneFieldPlan<TMesh, TTag>.Instance<TMesh, TTag>`. A sample type of every
+form a module's library takes or may stands in the tests' project, its documentation the
+compiler's, and CheatsheetTests holds each form's line as C# writes it, 20 of them: the arithmetic,
+equality, implicit and explicit operators, an override, a generic class, a tuple of a nested type of
+a generic one, an `in` and an `out` parameter of a generic method, a flags enum and its member, a
+constant and a static field, an event, an indexer, a `ref` and a `params` parameter, a nullable
+value with a default and a combined flags default, and an extension method. Nine failed first: the
+six operators, the tuple, the nested type, and the combined flags default, which was written as
+`Ways.` with no member. The writer writes an operator by its symbol and a conversion by its kind,
+reads a tuple by its generic definition, gives each level of a nested type its own count of the
+arguments, and writes a flags value as its members joined by a bar or as a cast where no member
+names it. Over the modules at their heads Levels' operators read `LevelPoint operator +(...)` and
+RadianceCascades' tuples `IReadOnlyList<(SceneFieldPlan<TMesh, TTag>.Instance, bool)>`. A tuple's
+element names, which an attribute of the member holds, are not read, so a named tuple is written
+with its types alone. The strict build is clean and the tests pass, 179 and one skipped plain and
+180 in the variant.
