@@ -757,3 +757,12 @@ engine in two lines, ModuleChecks' refused names, which must hold the engines' a
 them, and the pattern the engines' names are found by, and neither can go; its project's
 `3DEngine.Tools` is the form the rule keeps. The strict build is clean and the tests pass, 133 where
 there were 132.
+
+The owner's rule's second part in the commit carrying this line. In a repository under `Modules`
+other than Tools, `commitcheck.py` fails an added line of a text file that names an engine outside
+the form `3DEngine.<Name>`, its own `modules/`, `.github/REVIEW.md` and `.github/NORM.md` apart; a
+repository is a module where its checkout's folder stands in a folder named Modules.
+CommitCheckTests failed first on one commit made three times, under `Modules/Sample`,
+`Modules/Tools` and `Other/Sample`, its README naming an engine beside an assembly's name and a
+review's line, the module's failing on the README's line alone and the other two passing. The README
+says it. The strict build is clean and the tests pass, 134 where there were 133.

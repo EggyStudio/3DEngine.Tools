@@ -100,6 +100,45 @@ public class CommitCheckTests
     }
 
     [NeedsPythonFact]
+    public void A_Line_Naming_An_Engine_Fails_In_A_Module_And_Not_In_Tools_Or_Elsewhere()
+    {
+        var parent = Directory.CreateTempSubdirectory("commitcheck-").FullName;
+        try
+        {
+            (int, string) Commit(string at)
+            {
+                var repo = Path.Combine(parent, at);
+                Directory.CreateDirectory(repo);
+                Git(repo, "init", "-q");
+                Directory.CreateDirectory(Path.Combine(repo, "Sample"));
+                Directory.CreateDirectory(Path.Combine(repo, ".github"));
+                File.WriteAllText(Path.Combine(repo, "README.md"), "# Sample\n\nIt was drawn in BevyCSharp first.\n");
+                File.WriteAllText(Path.Combine(repo, "Sample", "Sample.csproj"), "<Project><PropertyGroup><AssemblyName>3DEngine.Sample</AssemblyName></PropertyGroup></Project>\n");
+                File.WriteAllText(Path.Combine(repo, ".github", "REVIEW.md"), "3DEngine's item 136.\n");
+                Git(repo, "add", "-A");
+                File.WriteAllText(Path.Combine(repo, ".git", "message"), Lead + "A module holds a sample.\n");
+                Git(repo, "commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(repo, ".git", "message"));
+                return Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "HEAD");
+            }
+
+            var (module, printed) = Commit(Path.Combine("Modules", "Sample"));
+            var (tools, toolsPrinted) = Commit(Path.Combine("Modules", "Tools"));
+            var (other, otherPrinted) = Commit(Path.Combine("Other", "Sample"));
+
+            Assert.True(module == 1, printed);
+            Assert.Contains("FAIL README.md:3: names an engine, \"BevyCSharp\", which a module names nowhere but in its assembly's name", printed);
+            Assert.DoesNotContain("Sample.csproj", printed);
+            Assert.DoesNotContain("REVIEW.md", printed);
+            Assert.True(tools == 0, toolsPrinted);
+            Assert.True(other == 0, otherPrinted);
+        }
+        finally
+        {
+            Delete(parent);
+        }
+    }
+
+    [NeedsPythonFact]
     public void A_Message_Without_The_Three_Marks_Fails()
     {
         var (code, printed) = Check(new() { ["a.txt"] = "a\n" }, "Add a file.\n\nA file holds a letter.\n");
