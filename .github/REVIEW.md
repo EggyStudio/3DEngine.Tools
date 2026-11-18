@@ -1131,3 +1131,17 @@ show it whole. Two findings of chart.py itself, drawing the counts: a bars panel
 unless the layout gives one, though each series has its label, and a whole count reads 1.00 or 35.0,
 every value given three significant figures; neither is mended here, each a small item if the review
 wants it. The tests are as at `0d9a2a7`, nothing tracked but this line changing.
+
+chart.py's two mends in the commit carrying this line, by the review's word, both in the sheets
+folder's own tests and each failing first. A bars panel's labeled series stand as its legend over
+its plot, a swatch of each series' color and its label, printed as `panel N legend S at`, where the
+layout gives no legend of its own, which a sheet's legend still stands for alone; the test failed on
+no legend's line, reading after the mend each swatch's color at its printed place, its label's ink,
+the legend clear above the plot and no panel's legend under the sheet's. A value JSON holds as a
+whole number is labeled whole, 35 and 1 where they read 35.0 and 1.00, and one written with a point
+keeps three significant figures, 2.0 reading 2.00, a bar's printed line ending `labeled` and its
+text; the test failed first for want of the printed text, and with it added on the figures
+themselves, 35.0 and 1.00 where 35 and 1 were expected. The four chart examples draw pixel for pixel
+as they are kept, the bars example giving its sheet's legend and holding no whole value under a
+label, so no picture changes. The page says both. The folder's tests run 12, and Tools' strict build
+is clean and its tests pass, 189 and one skipped plain and 190 in the variant.

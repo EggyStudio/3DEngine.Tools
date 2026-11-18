@@ -125,7 +125,7 @@ python3 -I chart.py examples/lines.json examples/lines.webp
 
 One panel of horizontal bars, a group a row and a bar a series, the series named in the sheet's
 legend. A value of `null` leaves its bar out, and the last bar of each group is labeled with its
-value to three figures.
+value to three figures, a count written whole read whole.
 
 ![Bars by group](examples/bars.webp)
 
@@ -318,11 +318,13 @@ each have `points`, a list of x and y, a `label` drawn at the line at `label_at`
 `color`, `dash` for a dashed line, `marks` to mark every point and `marked` for points of its own;
 its `bands` each shade from `from` to `to` on the y axis with a `label`. A `bars` panel's `groups`
 each have a `label` and `values`, a bar a series and null for none, its `series` the bars' `label`
-and `color`, its `x` an axis, and `value_labels` gives `last`, `all` or `none`. A `table` panel has
-`columns`, `rows`, `bold`, the rows drawn heavy by their numbers from 0, and `align`, `left` or
-`right` a column. A `map` panel's `values` are rows of signed numbers, red above zero and blue
-below, full at `scale` and black at zero, with a `label` under it. A color is a hexadecimal one or
-the palette's next. The script prints each panel's place and each chart's plot with its axes'
+and `color`, its `x` an axis, and `value_labels` gives `last`, `all` or `none`; its labeled series
+stand as the panel's legend over its plot where the layout gives no `legend` of its own, and a value
+written as a whole number is labeled whole, one with a point to three significant figures. A `table`
+panel has `columns`, `rows`, `bold`, the rows drawn heavy by their numbers from 0, and `align`,
+`left` or `right` a column. A `map` panel's `values` are rows of signed numbers, red above zero and
+blue below, full at `scale` and black at zero, with a `label` under it. A color is a hexadecimal one
+or the palette's next. The script prints each panel's place and each chart's plot with its axes'
 ranges.
 
 ```json

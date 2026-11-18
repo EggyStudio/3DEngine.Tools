@@ -133,6 +133,37 @@ class ChartTests(unittest.TestCase):
             self.assertEqual(0, sheet.dark(plot.left - 40, plot.top - 60, plot.left - 4, plot.top - 8))
             self.assertGreater(sheet.dark(plot.left - 40, plot.y(80) - 10, plot.left - 4, plot.y(80) + 10), 10, "the tick at 80 is not drawn")
 
+    def test_a_bars_panels_labeled_series_stand_as_its_legend_unless_the_layout_gives_one(self):
+        bars = {"kind": "bars", "title": "Bars", "x": axes(0, 40),
+                "series": [{"label": "first", "color": "#ff0000"}, {"label": "second", "color": "#00ff00"}],
+                "groups": [{"label": "A", "values": [10, 20]}]}
+        with Made() as made:
+            lines, sheet = draw(made, {"width": 800, "panel_height": 300, "font": 16, "panels": [bars]})
+
+            # Each series' swatch in its color where the script says, its label beside it in ink.
+            for s, ink in ((1, (255, 0, 0)), (2, (0, 255, 0))):
+                x, y = numbers(single(lines, f"panel 1 legend {s} at "))[2:4]
+                self.assertEqual(ink, sheet.at(x + 7, y + 7))
+                self.assertGreater(sheet.dark(x + 20, y - 2, x + 80, y + 18), 10, f"the label of series {s} is not drawn")
+            # The legend stands above the plot, clear of the bars.
+            legend_y = numbers(single(lines, "panel 1 legend 1 at "))[3]
+            self.assertLess(legend_y + 18, Plot(lines, 1).top)
+
+            lines, _ = draw(made, {"width": 800, "panel_height": 300, "font": 16, "panels": [bars],
+                                   "legend": [{"label": "first", "color": "#ff0000"}, {"label": "second", "color": "#00ff00"}]})
+            self.assertFalse([line for line in lines if line.startswith("panel 1 legend ")], "the sheet's legend is drawn twice")
+
+    def test_a_whole_count_prints_whole_and_a_measure_keeps_three_figures(self):
+        layout = {"width": 800, "panel_height": 300, "font": 16, "panels": [{
+            "kind": "bars", "x": axes(0, 40), "value_labels": "all",
+            "series": [{"label": "count"}, {"label": "measure"}, {"label": "measure written whole"}],
+            "groups": [{"label": "A", "values": [35, 2.5, 2.0]}, {"label": "B", "values": [1, 0.125, 1200]}]}]}
+        with Made() as made:
+            lines, _ = draw(made, layout)
+
+            labeled = [line.split(" labeled ")[1] for line in lines if " labeled " in line]
+            self.assertEqual(["35", "2.50", "2.00", "1", "0.125", "1,200"], labeled)
+
     def test_a_panel_of_another_kind_is_refused_by_name(self):
         with Made() as made:
             with open(made / "layout.json", "w", encoding="utf-8") as f:

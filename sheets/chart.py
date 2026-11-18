@@ -44,7 +44,11 @@ def nice(low, high, count=5):
 
 
 def figures(value, count=3):
-    """A value to three significant figures, as a bar's label gives it."""
+    """A value to three significant figures, as a bar's label gives it, a whole count whole."""
+    # JSON keeps 35 apart from 35.0, so a count written whole reads whole and a measure keeps its
+    # figures.
+    if isinstance(value, int) and not isinstance(value, bool):
+        return f"{value:,}"
     if value == 0:
         return "0"
     places = max(0, count - 1 - math.floor(math.log10(abs(value))))
@@ -257,6 +261,17 @@ class Sheet:
         values = [v for g in groups for v in g["values"] if v is not None]
         label_width = max(self.width_of(draw, g["label"], self.font) for g in groups) + 16
         left, right, top, bottom = box[0] + label_width, box[2] - 56, box[1] + 4, box[3] - 48
+        # The series' labels stand as the panel's legend over its plot, where the layout gives no
+        # legend of its own for the sheet.
+        labeled = [(i, entry) for i, entry in enumerate(names) if entry.get("label")]
+        if labeled and not self.layout.get("legend"):
+            lx = left
+            for i, entry in labeled:
+                draw.rounded_rectangle((lx, top + 4, lx + 14, top + 18), radius=3, fill=color(entry.get("color"), i))
+                draw.text((lx + 20, top + 2), entry["label"], fill=INK, font=self.font)
+                self.printed.append(f"panel {n} legend {i + 1} at {lx},{top + 4}")
+                lx += 20 + self.width_of(draw, entry["label"], self.font) + 3 * GAP
+            top += self.line + GAP // 2
         x = Axis(panel.get("x", {}), values + [0], left, right - left, flip=False)
         self.printed.append(f"panel {n} plot at {left},{top} size {right - left}x{bottom - top} x {text_of(x.low)}..{text_of(x.high)}")
         for tick in x.ticks:
@@ -283,9 +298,11 @@ class Sheet:
                 x0, x1 = x.at(0), x.at(value)
                 if abs(x1 - x0) >= 1:
                     draw.rounded_rectangle((min(x0, x1), y0 + 1, max(x0, x1), y0 + bar - 1), radius=min(3, bar / 3), fill=ink)
-                self.printed.append(f"panel {n} bar {g + 1} {s + 1} at {round(min(x0, x1))},{round(y0 + 1)} to {round(max(x0, x1))},{round(y0 + bar - 1)}")
+                place = f"panel {n} bar {g + 1} {s + 1} at {round(min(x0, x1))},{round(y0 + 1)} to {round(max(x0, x1))},{round(y0 + bar - 1)}"
                 if shown == "all" or shown == "last" and s == len(group["values"]) - 1:
                     draw.text((x.at(value) + 6, y0 + bar / 2 - self.small.size / 2 - 2), figures(value), fill=MUTED, font=self.small)
+                    place += f" labeled {figures(value)}"
+                self.printed.append(place)
 
     # -- A table
 
