@@ -20,13 +20,13 @@ IReadOnlyList<string> Differences(string source, string copy, IEnumerable<KeyVal
 List<string> Paragraphs(string text);                    // A text's paragraphs, each with its lines joined, a fenced block's kept as they are
 
 record ShellForm                                         // A form of shell that GNU's tools or bash 4 read and macOS's BSD tools or bash 3.2 do not
-ShellForm(string Name, Regex Pattern, string Instead);   // A form of shell that GNU's tools or bash 4 read and macOS's BSD tools or bash 3.2 do not
+ShellForm(string Name, Regex Pattern, string Instead);
 string Name { get; init; }                               // The form as a script writes it, such as sed -i
 Regex Pattern { get; init; }                             // How the form is found in a line of code
 string Instead { get; init; }                            // What reads alike on both systems in its place
 
 record ShellFinding                                      // A line of a script that holds a ShellForm
-ShellFinding(string Script, int Line, ShellForm Form);   // A line of a script that holds a ShellForm
+ShellFinding(string Script, int Line, ShellForm Form);
 string Script { get; init; }                             // The script by its path from the checkout's root, with forward slashes
 int Line { get; init; }                                  // The line's number, from 1
 ShellForm Form { get; init; }                            // The form the line holds

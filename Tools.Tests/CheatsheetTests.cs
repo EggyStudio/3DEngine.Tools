@@ -25,7 +25,8 @@ public class CheatsheetTests
         var page = Cheatsheet.Write(Library, Readme, "");
         var lines = Block(page).Where(line => line.Length > 0).ToList();
 
-        Assert.All(lines, line => Assert.True(line.Contains("// ", StringComparison.Ordinal), $"{line} has no summary"));
+        // A record's constructor alone goes without, its type's line saying what it would.
+        Assert.All(lines, line => Assert.True(line.Contains("// ", StringComparison.Ordinal) || System.Text.RegularExpressions.Regex.IsMatch(line, @"^[A-Z]\w*\("), $"{line} has no summary"));
         Assert.All(lines, line => Assert.DoesNotContain("public ", line.Split("//")[0]));
     }
 
@@ -43,6 +44,16 @@ public class CheatsheetTests
         Assert.Contains("string? ReferenceFault(IEnumerable<string> references, IEnumerable<string>? allowed = null);", lines);
         Assert.Contains($"string Marker = \"{Cheatsheet.Marker}\";", lines);
         Assert.Contains("string ToString();", lines);
+    }
+
+    [Fact]
+    public void A_Records_Constructor_Leaves_Out_The_Summary_Its_Type_Gives()
+    {
+        var lines = Block(Cheatsheet.Write(Library, Readme, ""));
+
+        Assert.Contains("ShellForm(string Name, Regex Pattern, string Instead);", lines);
+        Assert.Contains("ShellFinding(string Script, int Line, ShellForm Form);", lines);
+        Assert.Contains(lines, line => line.StartsWith("record ShellForm ", StringComparison.Ordinal) && line.Contains("// A form of shell", StringComparison.Ordinal));
     }
 
     [Fact]

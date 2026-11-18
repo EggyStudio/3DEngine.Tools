@@ -717,3 +717,10 @@ summary's first sentence with its references as names. The README's section says
 module adds beside its four once the review orders it; AGENTS.md's table of documents lacks a row
 for the page, which waits on the owner's word (N 7.4). The strict build is clean and the tests pass,
 127 where there were 120.
+
+The cheat sheet's record constructors in the commit carrying this line, with AGENTS.md's row for
+CHEATSHEET.md, which the owner's word on the modules' cheat sheets allows. A record's constructor
+is documented by its type's summary, so its line repeated the type's word for word; a member whose
+summary is its type's carries no comment, and the type's line says it once. CheatsheetTests failed
+first on ShellForm's and ShellFinding's constructors, and this repository's page is written again
+with them bare. The strict build is clean and the tests pass, 128 where there were 127.

@@ -17,6 +17,7 @@ implements where it binds the module.
 | [.github/REVIEW.md](.github/REVIEW.md) | Direction from the reviewing session, which comes before any other order of work |
 | [.github/NORM.md](.github/NORM.md) | The numbered rules the module keeps, each with what checks it, the same text in the six module repositories |
 | [DEVLOG.md](DEVLOG.md) | What landed by day, with the pictures `.github/assets/readings` keeps, generated from them and the history |
+| [CHEATSHEET.md](CHEATSHEET.md) | Every public type of the library with its members a line each, written by `Cheatsheet.Write` from the built library |
 
 ## Building and testing
 

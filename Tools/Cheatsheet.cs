@@ -77,9 +77,12 @@ public static partial class Cheatsheet
         foreach (var type in Ordered(library, readme))
         {
             if (text.Length > 0) text.Append('\n');
-            text.Append(Line($"{Kind(type)} {Name(type)}", Summary(summaries, "T:" + Id(type))));
+            var described = Summary(summaries, "T:" + Id(type));
+            text.Append(Line($"{Kind(type)} {Name(type)}", described));
+            // A record's constructor is documented by its type's summary, which its line repeats
+            // word for word, so a member saying what its type's line says carries no comment.
             foreach (var member in Members(type))
-                text.Append(Line(Declaration(member), Summary(summaries, Id(member))));
+                text.Append(Line(Declaration(member), Summary(summaries, Id(member)) is var summary && summary == described ? "" : summary));
         }
 
         return text.ToString();
