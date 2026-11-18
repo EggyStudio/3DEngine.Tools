@@ -50,6 +50,15 @@ public class ModuleChecksTests
     }
 
     [Fact]
+    public void A_Module_Allowed_By_Its_Whole_Name_Passes_And_Its_Neighbors_Are_Still_Refused()
+    {
+        string[] references = ["3DEngine.Modeling", "3DEngine.Modeling.Editor", "3DEngine.Levels", "3DEngine", "System.Runtime"];
+
+        Assert.Equal(["3DEngine.Modeling", "3DEngine.Modeling.Editor", "3DEngine.Levels", "3DEngine"], ModuleChecks.Refused(references));
+        Assert.Equal(["3DEngine.Modeling.Editor", "3DEngine.Levels", "3DEngine"], ModuleChecks.Refused(references, allowed: ["3DEngine.Modeling"]));
+    }
+
+    [Fact]
     public void A_Package_A_Library_Brings_Through_Another_Is_Read_From_The_Dependency_File()
     {
         // A library that takes a package, which takes a binding of Vulkan in turn, one that takes

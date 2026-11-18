@@ -89,7 +89,10 @@ Assert.Empty(ModuleChecks.Unnamed(library, readme));
 Assert.Null(ModuleChecks.BindingBlock(readme, File.ReadAllText(Path.Combine(Root, Host))));
 ```
 
-The module's workflow checks the submodule out with `submodules: true` on `actions/checkout`.
+The module's workflow checks the submodule out with `submodules: true` on `actions/checkout`. A
+module allowed to take another names it by its whole assembly name, as
+`ModuleChecks.Refused(library, deps, allowed: ["3DEngine.Modeling"])`, and a name that only
+begins with it, or another module's, is still refused.
 
 A clone of the engine fetches the module with `git clone --recurse-submodules`, or with
 `git submodule update --init` in a clone made without it, and a workflow checks it out with

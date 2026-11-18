@@ -13,8 +13,8 @@ namespace Tools;
 /// <para>
 /// A module takes this repository as a submodule and references the library from its test project
 /// alone, so its own library and package take nothing of the module's;
-/// <see cref="Refused(IEnumerable{string})"/> refuses this assembly among the rest, so a library
-/// that references it fails.
+/// <see cref="Refused(IEnumerable{string}, IEnumerable{string})"/> refuses this assembly among the
+/// rest, so a library that references it fails.
 /// </para>
 /// <para>
 /// Each check has a form that reads a built assembly and a form that reads what it is given, the
@@ -42,21 +42,34 @@ public static partial class ModuleChecks
         "Stride", "Avalonia", "System.Windows.Forms", "PresentationFramework", "Microsoft.Maui",
     ];
 
-    /// <summary>The references given that <see cref="RefusedNames"/> refuses, each once.</summary>
-    public static IReadOnlyList<string> Refused(IEnumerable<string> references) =>
-        references.Where(IsRefused).Distinct(StringComparer.Ordinal).ToList();
+    /// <summary>
+    /// The references given that <see cref="RefusedNames"/> refuses, each once, those named in
+    /// <paramref name="allowed"/> apart.
+    /// </summary>
+    /// <param name="references">The assemblies and packages by their names.</param>
+    /// <param name="allowed">
+    /// Modules a library may take, each by its whole assembly name, so a name that only begins with
+    /// one, or another module's, is still refused. None where none is given.
+    /// </param>
+    public static IReadOnlyList<string> Refused(IEnumerable<string> references, IEnumerable<string>? allowed = null)
+    {
+        var taken = (allowed ?? []).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return references.Where(name => !taken.Contains(name) && IsRefused(name)).Distinct(StringComparer.Ordinal).ToList();
+    }
 
     /// <summary>
     /// The references of a built library that <see cref="RefusedNames"/> refuses, its assembly's
-    /// own and the packages a dependency file records for it, followed to those they bring in turn.
+    /// own and the packages a dependency file records for it, followed to those they bring in turn,
+    /// those named in <paramref name="allowed"/> apart.
     /// </summary>
     /// <param name="library">The module's library, as a test loads it.</param>
     /// <param name="dependencyFile">
     /// The test assembly's <c>.deps.json</c>, which names the library with every package the build
     /// resolved for it.
     /// </param>
-    public static IReadOnlyList<string> Refused(Assembly library, string dependencyFile) =>
-        Refused(library.GetReferencedAssemblies().Select(name => name.Name!).Concat(Packages(library.GetName().Name!, dependencyFile)));
+    /// <param name="allowed">Modules the library may take, each by its whole name, or none.</param>
+    public static IReadOnlyList<string> Refused(Assembly library, string dependencyFile, IEnumerable<string>? allowed = null) =>
+        Refused(library.GetReferencedAssemblies().Select(name => name.Name!).Concat(Packages(library.GetName().Name!, dependencyFile)), allowed);
 
     /// <summary>
     /// The packages a dependency file records for a library, followed to those they bring, by

@@ -560,3 +560,12 @@ modules/Tools`, and no compiler's or restore's error. The README's section names
 additions, the submodule, the test project's two items and the facts, with a table of this
 library's types, and ReferenceTests' cases move into ModuleChecksTests. The strict build is clean
 and the tests pass, 100 where there were 94.
+
+The allowed modules in the commit carrying this line, while the owner answers whether one module may
+take another. `ModuleChecks.Refused` takes a list of modules a library may take, each by its whole
+assembly name and none where none is given, so the answer costs a module one argument. A test
+refuses four of five references with none allowed and three with one module allowed, a module whose
+name begins with the allowed one's and another module still refused. The parameter's documentation
+named a module by its prefix as its example, which the engines' names check found in this library's
+own documentation, so the example stands in the README alone. The strict build is clean and the
+tests pass, 101 where there were 100.
