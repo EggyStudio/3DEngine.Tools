@@ -1,19 +1,21 @@
 # Composes a sheet of pictures on a white ground from a layout in JSON, rows of panels with a
 # heading a column and a title a row in dark text, the form N 4.9 of NORM.md gives a picture that
-# reads something.
+# reads something. A row's title stands first, on a line of its own in a larger type, and the
+# panels' labels under it, the first row's taking the columns' headings where a panel has none.
 #
 #   python3 -I scripts/sheet.py <layout.json> <sheet.png>
 #
 # A panel is one of three. A capture is a picture Pillow opens or a PFM of linear light, shown in
 # sRGB at its row's gain. A signed difference is a capture less a reference in luminance, red where
-# the capture is brighter and blue where it is darker, full at a share of the reference's mean. A
+# the capture is brighter and blue where it is darker, full at a share of the reference's mean, on
+# black, the one dark panel of a sheet, so the least difference stands out from its ground. A
 # difference is the largest channel's difference of two pictures as they are shown, times a factor,
 # dark on white. A box is drawn on a capture only with the mean luminance it measures there written
 # inside it, and the reading is printed as well, so every number on a sheet is one the script read.
 # The layout's keys are in README.md.
 #
-# Each panel's place on the sheet is printed, so a test or a note finds a panel without knowing the
-# spacing. The sheet is written in the format its name's extension gives.
+# Each title's, labels' and panel's place on the sheet is printed, so a test or a note finds a panel
+# without knowing the spacing. The sheet is written in the format its name's extension gives.
 import json, math, os, sys
 from array import array
 from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageOps
@@ -106,6 +108,9 @@ def main():
     font_size = layout.get("font", 16)
     font = ImageFont.load_default(size=font_size)
     line = font_size + 10
+    title_size = round(font_size * 1.3)
+    title_font = ImageFont.load_default(size=title_size)
+    title_line = title_size + 12
     pictures = {}
 
     def picture(name):
@@ -144,8 +149,8 @@ def main():
                 pixels = []
                 for i in range(len(f)):
                     t = max(-1.0, min(1.0, (f[i] - ref[i]) / full))
-                    k = round(255 * (1 - abs(t)))
-                    pixels.append((255, k, k) if t > 0 else (k, k, 255))
+                    k = round(255 * abs(t))
+                    pixels.append((k, 0, 0) if t > 0 else (0, 0, k))
                 image = Image.new("RGB", size)
                 image.putdata(pixels)
             elif "difference" in panel:
@@ -172,26 +177,28 @@ def main():
         for c, panel in enumerate(panels):
             widths[c] = max(widths[c], panel["image"].size[0])
     lefts = [GAP + sum(w + GAP for w in widths[:c]) for c in range(len(widths))]
-    height = GAP + (line if columns else 0)
+    # The first row's labels take the columns' headings where its panels have none of their own.
+    for c, heading in enumerate(columns[:len(rows[0][1])]):
+        rows[0][1][c]["label"] = rows[0][1][c]["label"] or heading
+    height = GAP
     for title, panels in rows:
-        height += (line if title else 0) + (line if any(p["label"] for p in panels) else 0)
+        height += (title_line if title else 0) + (line if any(p["label"] for p in panels) else 0)
         height += max(p["image"].size[1] for p in panels) + GAP
 
     sheet = Image.new("RGB", (GAP + sum(w + GAP for w in widths), height), "white")
     draw = ImageDraw.Draw(sheet)
     y = GAP
-    for c, heading in enumerate(columns):
-        draw.text((lefts[c], y), heading, fill="black", font=font)
-    y += line if columns else 0
     printed = [f"sheet {out} {sheet.size[0]}x{sheet.size[1]}"]
     for r, (title, panels) in enumerate(rows, 1):
         if title:
-            draw.text((GAP, y), title, fill="black", font=font)
-            y += line
+            draw.text((GAP, y), title, fill="black", font=title_font)
+            printed.append(f"row {r} title at {GAP},{y} height {title_line}")
+            y += title_line
         if any(p["label"] for p in panels):
             for c, panel in enumerate(panels):
                 if panel["label"]:
                     draw.text((lefts[c], y), panel["label"], fill="black", font=font)
+            printed.append(f"row {r} labels at {GAP},{y} height {line}")
             y += line
         for c, panel in enumerate(panels, 1):
             image, x = panel["image"], lefts[c - 1]

@@ -55,14 +55,42 @@ public class SheetTests
             Assert.Equal((137, 137, 137), sheet.At(capture.X + 56, capture.Y + 28));
             Assert.Equal((255, 0, 0), sheet.At(signed.X + 8, signed.Y + 8));
             Assert.Equal((0, 0, 255), sheet.At(signed.X + 40, signed.Y + 8));
-            Assert.Equal((255, 255, 255), sheet.At(signed.X + 56, signed.Y + 28));
             Assert.Equal((215, 215, 215), sheet.At(difference.X + 8, difference.Y + 8));
             Assert.Equal((255, 255, 255), sheet.At(difference.X + 40, difference.Y + 20));
+
+            // The signed difference is the sheet's one dark panel, black where the frame meets its
+            // reference, which three of its corners do.
+            Assert.Equal((0, 0, 0), sheet.At(signed.X + 56, signed.Y + 28));
+            Assert.Equal((0, 0, 0), sheet.At(signed.X + Width - 1, signed.Y));
+            Assert.Equal((0, 0, 0), sheet.At(signed.X, signed.Y + Height - 1));
+            Assert.Equal((0, 0, 0), sheet.At(signed.X + Width - 1, signed.Y + Height - 1));
+
+            // Every panel stands on the white ground, left, right and below.
+            foreach (var (x, y) in new[] { capture, signed, difference })
+            {
+                Assert.Equal((255, 255, 255), sheet.At(x - 1, y + Height / 2));
+                Assert.Equal((255, 255, 255), sheet.At(x + Width, y + Height / 2));
+                Assert.Equal((255, 255, 255), sheet.At(x + Width / 2, y + Height));
+            }
+
+            // The row's title stands first, on a line of its own above the panels' labels and in a
+            // larger type than theirs.
+            var (title, labels) = (Line(printed, "title"), Line(printed, "labels"));
+            Assert.True(title.Y + title.Height <= labels.Y, $"the title at {title.Y} runs into the labels at {labels.Y}");
+            Assert.True(labels.Y + labels.Height <= capture.Y, $"the labels at {labels.Y} run into the panels at {capture.Y}");
+            Assert.True(title.Height > labels.Height, $"the title's line is {title.Height} high and the labels' {labels.Height}");
         }
         finally
         {
             Directory.Delete(folder, true);
         }
+    }
+
+    private static (int Y, int Height) Line(string printed, string kind)
+    {
+        var line = printed.Split('\n').Single(l => l.StartsWith($"row 1 {kind} at ", StringComparison.Ordinal));
+        var words = line.Split(' ');
+        return (int.Parse(words[4].Split(',')[1]), int.Parse(words[6]));
     }
 
     private static (int X, int Y) Place(string printed, int panel)

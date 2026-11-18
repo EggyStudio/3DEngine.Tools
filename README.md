@@ -61,7 +61,8 @@ python3 -I scripts/run.py <account/repo> <run id> <folder for the logs>
 
 `scripts/sheet.py` composes a sheet on a white ground from a layout in JSON, rows of panels with a
 heading a column and a title a row in dark text, and writes it in the format its name's extension
-gives. It needs Pillow.
+gives. A row's title stands first on a line of its own in a larger type, and the panels' labels
+under it, the first row's taking the columns' headings where a panel has none. It needs Pillow.
 
 ```bash
 python3 -I scripts/sheet.py <layout.json> <sheet.png>
@@ -88,7 +89,8 @@ python3 -I scripts/sheet.py <layout.json> <sheet.png>
 
 A panel is a capture under `image`, a picture Pillow opens or a PFM of linear light, shown in sRGB
 at its gain. Under `signed` it is the first capture less the second in luminance, red where brighter
-and blue where darker, full at `share` of the second's mean. Under `difference` it is the largest
+and blue where darker, full at `share` of the second's mean, on black, the one dark panel of a
+sheet. Under `difference` it is the largest
 channel's difference of two pictures as shown, times `times`, 4 where none is given, dark on white.
 `gain` is a number or the gain that puts a capture's mean luminance at `to`, 1 where none is given.
 `crop` is a box in the capture's pixels, left, top, right and bottom, `size` the panel's size in
@@ -97,8 +99,8 @@ pixels, the cropped capture's where none is given, and `label` a line over one p
 are read from the layout's folder.
 
 A box under `boxes` is given in the capture's own pixels and drawn on a capture's panel only, with
-the mean luminance in linear light it reads there written at its corner. The script prints each
-panel's place on the sheet and each box's reading.
+the mean luminance in linear light it reads there written at its corner. The script prints the
+place of each title, each row's labels and each panel on the sheet, and each box's reading.
 
 ## Building and testing
 

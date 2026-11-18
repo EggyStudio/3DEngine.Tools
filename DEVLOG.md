@@ -12,7 +12,7 @@ notes written beside them as Markdown files named the same way. A line under Don
 The sheet composer's first sheet, from 3DEngine's captures of a room lit by its lamps' faces at the
 gain that puts the path-traced reference's mean at 0.18, the box over the floor reading 0.0005032
 with the shading floor on and off and 0.0004174 path traced, and the frame with the floor off less
-the reference red where brighter and blue where darker, full at half the reference's mean.
+the reference on black, red where brighter and blue where darker, full at half the reference's mean.
 
 ## 2026-10-31
 

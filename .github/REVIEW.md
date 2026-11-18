@@ -203,3 +203,12 @@ strict build is clean and the tests pass, 15 where there were 3 (dotnet test Too
 is regenerated. AGENTS.md's DEVLOG.md row carries its link at `67e6e30`, so nothing there
 changes, and its scripts row, which names devlog.py and run.py, waits on the owner's word to name
 sheet.py (N 7.4).
+
+The sheet's layout mended in the commit carrying this line. A row's title stands first on a line of
+its own in a type 1.3 times the labels', the panels' labels under it, the first row's taking the
+columns' headings where a panel has none, and the signed difference lies on black, red and blue
+rising from it, where its ground was white. SheetTests failed first on the signed panel's ground,
+white where black was read, and reads the title's line above the labels', the labels' above the
+panels and taller type for the title, three of the signed panel's corners black, and the white
+ground left of, right of and under every panel. The reading is composed again, AGENTS.md's scripts
+row names sheet.py, and the README says the layout. The strict build is clean and the 15 tests pass.
