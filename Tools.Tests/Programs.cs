@@ -55,6 +55,19 @@ public sealed class InVariantFactAttribute : FactAttribute
     }
 }
 
+/// <summary>
+/// Run alone in the build workflow, where every system is given Pillow, so a drawing test skipped
+/// there fails, and skipped elsewhere with its reason.
+/// </summary>
+public sealed class InBuildWorkflowFactAttribute : FactAttribute
+{
+    public InBuildWorkflowFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true") Skip = "Run by the build workflow alone.";
+        else if (Programs.Python.Value is null) Skip = "No Python 3 runs here as python3 or python.";
+    }
+}
+
 /// <summary>Runs the module's scripts and the programs they call.</summary>
 public static class Programs
 {

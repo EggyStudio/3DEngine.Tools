@@ -53,7 +53,10 @@ The `sheets` folder stands on its own, the two scripts with their examples, thei
 of their own, [sheets/README.md](sheets/README.md), which gives each layout's keys, so a copy of
 that folder alone is a repository of them. Its tests are Python's, run from the folder's root, and
 SheetsTests runs them here and runs them again on a copy of the folder alone, failing where a file
-of it names a path outside it.
+of it names a path outside it. The build workflow gives Pillow to all three of its systems, Ubuntu's
+from its archive and Windows' and macOS's from PyPI at 12.3.0, and a fact run there alone fails
+where Pillow is missing or one of the folder's tests is skipped, so the folder is shown drawing on
+each.
 
 ```bash
 cd sheets && python3 -I -B -m unittest discover -s tests -t .

@@ -24,6 +24,19 @@ public class SheetsTests
         Assert.Contains("OK", printed);
     }
 
+    // The folder is said to stand on its own on any system, which is shown only where its drawing
+    // tests draw on each, so the workflow's three jobs read Pillow and skip none of them.
+    [InBuildWorkflowFact]
+    public void In_The_Build_Workflow_Pillow_Is_There_And_None_Of_The_Folders_Tests_Is_Skipped()
+    {
+        Assert.True(Programs.Pillow.Value, $"{Programs.Python.Value} has no Pillow, so the folder's drawing tests would be skipped.");
+
+        var (code, printed) = Tests(Folder);
+
+        Assert.True(code == 0, printed);
+        Assert.DoesNotContain("skipped", printed);
+    }
+
     [NeedsPythonFact]
     public void A_Copy_Of_The_Folder_Alone_Names_Nothing_Outside_It_And_Its_Tests_Pass_There()
     {

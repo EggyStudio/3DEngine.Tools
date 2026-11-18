@@ -42,11 +42,25 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # Pillow, which the sheet composer reads and writes pictures with, from Ubuntu's archive as
-      # the engines' captures take it. Windows and macOS report the sheet's test skipped with its
-      # reason (N 3.2).
+      # Pillow, which the sheets folder draws with and the picture checks read with, from Ubuntu's
+      # archive as the engines' captures take it.
       - if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y python3-pil
+
+      # And on Windows and macOS from PyPI at a named version, so the folder said to stand on its
+      # own draws on all three systems, which SheetsTests holds the workflow to. It goes into the
+      # Python the tests find, python3 and then python as Programs.Python tries them, and where
+      # that Python is the system's, as Homebrew's is, pip is let past its guard.
+      - if: runner.os != 'Linux'
+        shell: bash
+        run: |
+          for python in python3 python; do
+            if "$python" -c 'import sys' 2>/dev/null; then
+              "$python" -m pip install pillow==12.3.0 || "$python" -m pip install --break-system-packages pillow==12.3.0
+              "$python" -c 'import PIL; print("Pillow", PIL.__version__, "in", __import__("sys").executable)'
+              break
+            fi
+          done
 
       - run: dotnet build Tools.slnx -warnaserror
 

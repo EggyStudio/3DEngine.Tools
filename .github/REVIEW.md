@@ -1145,3 +1145,20 @@ themselves, 35.0 and 1.00 where 35 and 1 were expected. The four chart examples 
 as they are kept, the bars example giving its sheet's legend and holding no whole value under a
 label, so no picture changes. The page says both. The folder's tests run 12, and Tools' strict build
 is clean and its tests pass, 189 and one skipped plain and 190 in the variant.
+
+Pillow on all three systems in the commit carrying this line, the first of the three by the review's
+order. The workflow installs Pillow 12.3.0 from PyPI on Windows and macOS, beside Ubuntu's from its
+archive, into the Python the tests find, python3 and then python as Programs.Python tries them,
+letting pip past its guard where that Python is the system's, as Homebrew's is, and printing the
+version and the interpreter it went into. 12.3.0 is the version here, so a fault the workflow shows
+is one this desktop can draw again; pip found its wheel. SheetsTests holds a fact run in the
+workflow alone, by an attribute that reads GITHUB_ACTIONS and skips elsewhere with its reason, which
+fails where Pillow is missing or any of the folder's tests is skipped; it failed first with
+GITHUB_ACTIONS set and a Python without Pillow first on the path, a venv made without packages,
+saying python3 has no Pillow, and passes with this desktop's. Windows' and macOS's jobs will draw
+for the first time, so their run is the reading, and a difference of fonts or line ends would show
+there first. The reading's label is corrected on its dump page, the 80 with no caption marked as
+coming in with a commit whose sentence tells of other work, each row giving that commit and its
+sentence; the counts chart there keeps the old label in its legend. The strict build is clean and
+the tests pass, 189 and two skipped plain and 190 and one skipped in the variant, the new fact the
+skipped one in both.
