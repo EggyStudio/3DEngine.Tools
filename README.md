@@ -278,7 +278,9 @@ python3 -I scripts/devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <f
 With `--commits` each day lists the commits of that day by their sentences, newest first, a
 message's first line under its subject or its two where it has two, a commit that changes the
 review's files or DEVLOG.md alone left out, so a repository whose review records no item done reads
-what landed in its devlog.
+what landed in its devlog. A commit whose sentence names an engine outside the form of a module's
+assembly, `3DEngine.<Module>`, is left out of the page and counted on the script's output alone,
+since pushed history is not rewritten, and the commit's check fails such a message in a module.
 
 `--fixes` names a JSON file kept outside the repositories, an object whose `pairs` are a pattern and
 its replacement each, applied in turn to every caption and title, whose `patterns` give by a
@@ -376,6 +378,23 @@ The exit code is 0 where no line is a FAIL, 1 where a line is, and 2 where the c
 with the reason written to the error output. The names no commit may carry are a regular expression
 in the `FORBIDDEN_NAMES` environment variable and in no file, and where it is not set the check says
 so.
+
+## A module's pin
+
+`scripts/pin.py` moves a module's pin of Tools to a head, run from the module's root by its own
+session: it fetches `modules/Tools` and checks out the head, `origin/main` where none is given,
+prints the commits the pin moves by, and names from the table of what a module carries at the old
+pin and the new each fact new to the module and each whose row changed, with the commits that
+changed it. Where the module keeps a CHEATSHEET.md it runs its test project's cheatsheet fact with
+`CHEATSHEET_WRITE=1`, which writes the page again, `--tests` naming the project where none ending in
+`.Tests` holds it, and it writes DEVLOG.md again with the new pin's devlog.py and `--commits`. It
+commits nothing, so the session reads the change and commits it. A folder outside git or a
+repository with no `modules/Tools` is refused, and the exit code is 0, or 2 where git, the fetch or
+dotnet could not be reached.
+
+```bash
+python3 -I modules/Tools/scripts/pin.py [<head>] [--tests=<test project>]
+```
 
 ## The repositories' status
 

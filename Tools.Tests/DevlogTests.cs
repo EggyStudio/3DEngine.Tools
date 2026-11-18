@@ -68,6 +68,32 @@ public class DevlogTests
         }
     }
 
+    [NeedsPythonFact]
+    public void A_Commit_Whose_Sentence_Names_An_Engine_Is_Left_Out_And_Counted_On_The_Output_Alone()
+    {
+        var repo = Directory.CreateTempSubdirectory("devlog-").FullName;
+        try
+        {
+            Git(repo, "init", "-q");
+            Commit(repo, "a.txt", "The assembly is named 3DEngine.Sample.");
+            Commit(repo, "b.txt", "It follows the mend Bevy" + "CSharp made.");
+            var kept = Git(repo, "rev-parse", "--short=7", "HEAD~1").Trim();
+
+            var printed = Programs.Script("devlog.py", repo, "Sample", "--commits");
+            var devlog = File.ReadAllText(Path.Combine(repo, "DEVLOG.md"));
+
+            Assert.Contains($"- `{kept}` The assembly is named 3DEngine.Sample.", devlog);
+            Assert.DoesNotContain("follows the mend", devlog);
+            Assert.DoesNotContain("left out", devlog);
+            Assert.Contains("1 commit left out, its sentence naming an engine", printed);
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
     // A commit of one file, its message the three marks, a blank line and the lines given.
     private static void Commit(string repo, string path, string lines)
     {

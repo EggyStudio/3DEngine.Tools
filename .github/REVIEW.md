@@ -1005,3 +1005,28 @@ outside the assembly's form (git log --format=%B), which a devlog written with `
 carry into the text the fact fails; DEVLOG.md can be left out of the fact as the review's files are,
 being written from the history, or those commits left out of the devlog. The strict build is clean
 and the tests pass, 184 and one skipped plain and 185 in the variant.
+
+A module's pin in the commit carrying this line, the second of the three, with the review's two
+rules on an engine named in a commit's sentence. `scripts/pin.py` is run from a module's root by its
+own session: it fetches `modules/Tools` and checks out the head given, `origin/main` where none is,
+prints the commits the pin moves by, and names from the table of what a module carries at the old
+pin and the new each fact new to the module and each whose row changed with the commits of its row
+that the old pin does not hold, a change the pin holds already left unsaid. Where the module keeps a
+CHEATSHEET.md it runs its test project's cheatsheet fact with `CHEATSHEET_WRITE=1`, and it writes
+DEVLOG.md again with the new pin's devlog.py and `--commits`. It commits nothing, and a folder
+outside git or a repository with no `modules/Tools` is refused. PinTests reads a made module pinned
+at a made Tools' first commit moved to its second, a new fact, a changed one and one whose change
+the pin holds, the devlog written, the pin moved and nothing committed, and the two refusals; the
+first run failed first on the table's rows, whose last cell stands empty where nothing changed a
+fact and which the row's pattern read as no row, as it would have read every row of this
+repository's own table. On a clone of Landscape outside its folder, the module untouched, the pin
+moves from `75d77f2` to `7b714d7`, nine commits, names the cheatsheet fact changed by `5bf6255` and
+`460a481` alone, and writes the cheatsheet and the devlog again, in four seconds; the first version
+named the link row's fact changed by `75d77f2`, the very pin, which the held commits mend. By the
+review's word on the rule, `devlog.py --commits` leaves out a commit whose sentence names an engine
+outside the form `3DEngine.<Name>` and counts it on its own output, and `commitcheck.py` fails such
+a message in a repository under Modules other than Tools; both failed first, the devlog's on a made
+repository of a sentence naming the assembly's form and one naming an engine, the check's on one
+commit's message in a module, in another module naming its assembly and in Tools. The README says
+both and AGENTS.md's scripts row names pin.py. The strict build is clean and the tests pass, 188 and
+one skipped plain and 189 in the variant.

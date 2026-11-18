@@ -181,6 +181,41 @@ public class CommitCheckTests
     }
 
     [NeedsPythonFact]
+    public void A_Message_Naming_An_Engine_Fails_In_A_Module_And_Not_In_Tools()
+    {
+        var parent = Directory.CreateTempSubdirectory("commitcheck-").FullName;
+        try
+        {
+            (int, string) Commit(string at, string sentence)
+            {
+                var repo = Path.Combine(parent, at);
+                Directory.CreateDirectory(repo);
+                Git(repo, "init", "-q");
+                File.WriteAllText(Path.Combine(repo, "a.txt"), "a\n");
+                Git(repo, "add", "-A");
+                File.WriteAllText(Path.Combine(repo, ".git", "message"), Lead + sentence + "\n");
+                Git(repo, "commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(repo, ".git", "message"));
+                return Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "HEAD");
+            }
+
+            // The engine's name is joined from parts, so this file holds it on no line of a module.
+            var named = "A file follows the mend Bevy" + "CSharp made.";
+            var (module, printed) = Commit(Path.Combine("Modules", "Sample"), named);
+            var (assembly, kept) = Commit(Path.Combine("Modules", "Other"), "The assembly is named 3DEngine.Other.");
+            var (tools, toolsPrinted) = Commit(Path.Combine("Modules", "Tools"), named);
+
+            Assert.True(module == 1, printed);
+            Assert.Contains("FAIL the message names an engine, \"Bevy" + "CSharp\", which a module names nowhere but in its assembly's name", printed);
+            Assert.True(assembly == 0, kept);
+            Assert.True(tools == 0, toolsPrinted);
+        }
+        finally
+        {
+            Delete(parent);
+        }
+    }
+
+    [NeedsPythonFact]
     public void A_Message_Without_The_Three_Marks_Fails()
     {
         var (code, printed) = Check(new() { ["a.txt"] = "a\n" }, "Add a file.\n\nA file holds a letter.\n");

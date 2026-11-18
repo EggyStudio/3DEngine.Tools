@@ -107,13 +107,20 @@ for f, q in paras:
 # the commits by their sentences, a message's first line under its subject or its two where it has
 # two, those that change the review's files or the devlog alone left out
 OWN = {".github/REVIEW.md", ".github/REVIEW-ARCHIVE.md", ".github/NORM.md", "DEVLOG.md"}
+# A sentence naming an engine outside the form of a module's assembly, 3DEngine.Name, is left out
+# of the page a reader sees, and only counted on the output, since pushed history is not rewritten.
+ENGINE = re.compile(r"3DEngine(?!\.[A-Za-z])|\bBevy(CSharp)?\b|\bE3D\b", re.I)
+left_out = 0
 if commits:
     for entry in git("log", "--format=@@%h%x00%cs%x00%B%x00", "--name-only").split("@@")[1:]:
         h, d, body, files = (entry.split("\x00") + ["", "", "", ""])[:4]
         changed = {f for f in files.split("\n") if f.strip()}
         if not changed or changed <= OWN: continue
         said = [l.strip() for l in body.split("\n\n", 1)[-1].split("\n") if l.strip()][:2] if "\n\n" in body else []
-        if said: day(d)["commits"].append((h, fix(" ".join(said))))
+        if said and ENGINE.search(" ".join(said)):
+            left_out += 1
+        elif said:
+            day(d)["commits"].append((h, fix(" ".join(said))))
 # write
 folder = ", ".join(f"`{d}`" for d in PIC_DIRS)
 intro = (f"What landed in {name}, by day and newest first, with the pictures taken on the way, the captures the repository "
@@ -149,3 +156,5 @@ open(os.path.join(repo, "DEVLOG.md"), "w").write(text)
 bad = [l for l in text.split("\n") if BAD.search(l) and not l.startswith("![")]
 print(name, "days", len([d for d in days if days[d]["pictures"] or days[d]["done"] or days[d]["commits"]]), "pictures", sum(len(e["pictures"]) for e in days.values()), "done", sum(len(e["done"]) for e in days.values()), "commits", sum(len(e["commits"]) for e in days.values()), "bad lines", len(bad))
 for l in bad[:12]: print("  BAD:", l[:140])
+if left_out:
+    print(f"{left_out} commit left out, its sentence naming an engine" if left_out == 1 else f"{left_out} commits left out, their sentences naming an engine")

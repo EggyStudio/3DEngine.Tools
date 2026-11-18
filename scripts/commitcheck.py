@@ -221,6 +221,13 @@ def check(repo, rev, names, thumbs):
         found = pattern.search(sentence)
         if found:
             fail(f"the message has {label}, \"{found.group(0)}\"")
+    # A module is a repository under Modules other than Tools, whose scripts name the repositories
+    # they read by their work, and its message names no engine, which a devlog would show.
+    top = git(repo, "rev-parse", "--show-toplevel").strip()
+    module = os.path.basename(os.path.dirname(top)) == "Modules" and os.path.basename(top) != "Tools"
+    named = ENGINE.search(sentence) if module else None
+    if named:
+        fail(f"the message names an engine, \"{named.group(0)}\", which a module names nowhere but in its assembly's name")
     author, committer, parents = git(repo, "log", "-1", "--format=%an%x00%cn%x00%P", rev).strip().split("\x00")
     if author != AUTHOR or committer != AUTHOR:
         fail(f"author {author} and committer {committer}, where {AUTHOR} is the identity of both")
@@ -247,10 +254,6 @@ def check(repo, rev, names, thumbs):
     for p in pictures:
         picture(repo, rev, p, thumbs, fail, warn, note)
 
-    # A module is a repository under Modules other than Tools, whose scripts name the repositories
-    # they read by their work.
-    top = git(repo, "rev-parse", "--show-toplevel").strip()
-    module = os.path.basename(os.path.dirname(top)) == "Modules" and os.path.basename(top) != "Tools"
     path, number, in_xml = None, 0, False
     for line in git(repo, "show", "--format=", "--unified=0", rev).splitlines():
         if line.startswith("+++ "):
