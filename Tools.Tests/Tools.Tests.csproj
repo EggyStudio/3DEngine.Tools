@@ -7,6 +7,13 @@
         <RootNamespace>Tools.Tests</RootNamespace>
     </PropertyGroup>
 
+    <!-- The tests' own documentation file, which the cheat sheet's tests read of the samples the
+         compiler documents, where the tests are held to no summary of their own (STYLE.md). -->
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Tools\Tools.csproj" />
     </ItemGroup>

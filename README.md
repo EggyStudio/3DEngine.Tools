@@ -136,9 +136,13 @@ declaration without its modifiers and the first sentence of its summary. The lis
 under the line `<!-- written by Cheatsheet.Write from the built library -->`, and the text around it
 is written by hand and kept. `ModuleChecks.CheatsheetFault` is null where the page holds what the
 writer writes, and names the first line that differs where it does not; run with
-`CHEATSHEET_WRITE=1`, it writes the page instead, a first one where there is none. A module that
-keeps a cheat sheet adds this fact beside its four, and this repository's own page is
-[CHEATSHEET.md](CHEATSHEET.md).
+`CHEATSHEET_WRITE=1`, it writes the page instead, a first one where there is none. A member
+documented by `<inheritdoc/>` takes the summary its `cref` names, or else the one of the member it
+overrides or the interface's it implements. A positional record needs a summary on its type and a
+`<param>` for each of its parameters, from which the build documents its properties and its
+constructor, whose line carries no comment since its type's says it, so no constructor is written
+out for the page. A module that keeps a cheat sheet adds this fact beside its four, and this
+repository's own page is [CHEATSHEET.md](CHEATSHEET.md).
 
 ```csharp
 [Fact]

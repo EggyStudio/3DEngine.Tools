@@ -57,6 +57,43 @@ public class CheatsheetTests
     }
 
     [Fact]
+    public void A_Member_That_Inherits_Its_Documentation_Takes_The_Interfaces_Or_The_Bases_Summary()
+    {
+        var lines = SampleLines();
+
+        Assert.Contains("double Area { get; }  // The shape's area in square meters", lines);
+        Assert.Contains("IShape Scaled(double by);  // The shape made larger by a factor", lines);
+        Assert.Contains("double Size { get; }  // The shape's area in square meters", lines);
+        Assert.Contains("string Name();  // The thing's name as a reader reads it", lines);
+    }
+
+    [Fact]
+    public void A_Positional_Record_Is_Its_Types_Summary_And_Its_Parameters_With_A_Bare_Constructor()
+    {
+        var lines = SampleLines();
+
+        Assert.Contains("record struct Planted  // A place on the ground and its seed", lines);
+        Assert.Contains("Planted(Vector3 Place, uint Seed);", lines);
+        Assert.Contains("Vector3 Place { get; init; }  // Where it stands, in meters", lines);
+        Assert.Contains("uint Seed { get; init; }  // The seed it came with", lines);
+    }
+
+    [Fact]
+    public void A_Generic_Type_Is_Written_With_Its_Parameters_And_Named_By_Its_Plain_Name()
+    {
+        var lines = SampleLines();
+
+        Assert.Contains("class Pair<TKey, TValue>  // A pair of a key and a value", lines);
+        Assert.Contains("TKey? Key { get; init; }  // The pair's key", lines);
+    }
+
+    // The samples' lines as the writer writes them from the tests' own documentation file, the
+    // tests' other types among them, each comment two blanks after its declaration.
+    private static List<string> SampleLines() =>
+        [.. Block(Cheatsheet.Write(typeof(Samples.Square).Assembly, "`IShape` `Square` `Named` `Word` `Planted` `Pair<TKey, TValue>`", ""))
+            .Select(line => System.Text.RegularExpressions.Regex.Replace(line, @"\s{2,}// ", "  // "))];
+
+    [Fact]
     public void The_Types_Stand_In_The_Order_The_Readme_First_Names_Them()
     {
         var readme = "# Sample\n\nFirst `DocumentCopies`, then `ShellForms` and `ShellForm.Name`.\n";

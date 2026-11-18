@@ -143,6 +143,9 @@ public static partial class ModuleChecks
     /// </summary>
     public static IReadOnlyList<string> Unnamed(IEnumerable<string> typeNames, string readme)
     {
+        // A generic type's name carries its arity, Plan`2, where the README names it Plan or
+        // Plan<TCell, TLight>, so the arity is taken off before the name is looked for.
+        typeNames = typeNames.Select(name => name.Split('`')[0]).Distinct(StringComparer.Ordinal);
         var text = readme.ReplaceLineEndings("\n");
         var section = Section(text) ?? "";
         var rows = string.Join("\n", text.Split('\n').Where(line => line.StartsWith('|')));

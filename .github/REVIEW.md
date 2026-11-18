@@ -724,3 +724,18 @@ is documented by its type's summary, so its line repeated the type's word for wo
 summary is its type's carries no comment, and the type's line says it once. CheatsheetTests failed
 first on ShellForm's and ShellFinding's constructors, and this repository's page is written again
 with them bare. The strict build is clean and the tests pass, 128 where there were 127.
+
+The modules' findings on the cheat sheet in the commit carrying this line. A member documented by
+`<inheritdoc/>` read as having no summary, as Modeling found of five; the writer takes the summary
+its `cref` names, or else the one of the member it overrides or the interface's it implements. A
+type's name carries its arity, `SceneFieldPlan`2`, which a README never writes, so `Unnamed` and
+`UnnamedFault` take it off and find the plain name or the name with its parameters. The tests'
+project writes its documentation file, which the tests read of sample types the compiler documents,
+an interface's property and method taken by `<inheritdoc/>`, a property by `<inheritdoc cref>`, an
+override of an abstract method, a positional record struct and a generic class; the inherited
+summaries and the arity failed first. The positional record passed as it stands: the compiler
+documents its properties from its `<param>` tags and its constructor from its type's summary, and
+the constructor's line has carried no comment since `3720852`, so Landscape's four records needed
+no constructors written out. The README says what a positional record needs, a summary on its type
+and a `<param>` for each parameter. The strict build is clean and the tests pass, 132 where there
+were 128.

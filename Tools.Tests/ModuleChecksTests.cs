@@ -166,6 +166,16 @@ public class ModuleChecksTests
     }
 
     [Fact]
+    public void A_Generic_Type_Is_Named_By_Its_Plain_Name_And_Its_Parameters()
+    {
+        var readme = "# Sample\n\n## Binding it in your engine\n\nA `SceneFieldPlan<TCell, TLight>` plans the field.\n";
+
+        Assert.Empty(ModuleChecks.Unnamed(["SceneFieldPlan`2"], readme));
+        Assert.Null(ModuleChecks.UnnamedFault(["SceneFieldPlan`2"], readme));
+        Assert.StartsWith("The README names SceneField neither", ModuleChecks.UnnamedFault(["SceneField`1"], readme));
+    }
+
+    [Fact]
     public void A_Readme_Block_That_Differs_From_Its_Host_Is_Named_By_Its_Line()
     {
         var readme = "# Sample\n\n## Binding it in your engine\n\n```csharp\nvar a = 1;\nvar b = 2;\n```\n";

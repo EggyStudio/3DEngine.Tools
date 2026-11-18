@@ -70,19 +70,18 @@ public static partial class Cheatsheet
     /// feed.</summary>
     private static string List(Assembly library, XDocument documentation, string readme)
     {
-        var summaries = documentation.Descendants("member")
-            .Where(member => member.Element("summary") is not null)
-            .ToDictionary(member => member.Attribute("name")!.Value, member => member.Element("summary")!, StringComparer.Ordinal);
+        var members = documentation.Descendants("member")
+            .ToDictionary(member => member.Attribute("name")!.Value, StringComparer.Ordinal);
         var text = new StringBuilder();
         foreach (var type in Ordered(library, readme))
         {
             if (text.Length > 0) text.Append('\n');
-            var described = Summary(summaries, "T:" + Id(type));
+            var described = Summary(members, "T:" + Id(type), null);
             text.Append(Line($"{Kind(type)} {Name(type)}", described));
             // A record's constructor is documented by its type's summary, which its line repeats
             // word for word, so a member saying what its type's line says carries no comment.
             foreach (var member in Members(type))
-                text.Append(Line(Declaration(member), Summary(summaries, Id(member)) is var summary && summary == described ? "" : summary));
+                text.Append(Line(Declaration(member), Summary(members, Id(member), member) is var summary && summary == described ? "" : summary));
         }
 
         return text.ToString();
@@ -247,13 +246,61 @@ public static partial class Cheatsheet
     }
 
     // The first sentence of a summary without its full stop, since a line reminds and the README
-    // explains, a reference written as the name it refers to.
-    private static string Summary(Dictionary<string, XElement> summaries, string id)
+    // explains, a reference written as the name it refers to. A member whose documentation is
+    // inherited takes the summary its inheritdoc's cref names, or else the one of the member it
+    // overrides or the interface's it implements, as an editor shows it.
+    private static string Summary(Dictionary<string, XElement> members, string id, MemberInfo? member)
     {
-        if (!summaries.TryGetValue(id, out var summary)) return "";
-        var text = Spaces().Replace(Text(summary), " ").Trim();
-        var end = Sentence().Match(text);
-        return (end.Success ? text[..end.Index] : text).TrimEnd('.');
+        for (var depth = 0; depth < 8 && members.TryGetValue(id, out var documented); depth++)
+        {
+            if (documented.Element("summary") is { } summary)
+            {
+                var text = Spaces().Replace(Text(summary), " ").Trim();
+                var end = Sentence().Match(text);
+                return (end.Success ? text[..end.Index] : text).TrimEnd('.');
+            }
+            if (documented.Element("inheritdoc") is not { } inherited)
+                return "";
+            var next = inherited.Attribute("cref")?.Value ?? (member is null ? null : Inherited(member) is { } from ? Id(from) : null);
+            if (next is null)
+                return "";
+            (id, member) = (next, member is null || inherited.Attribute("cref") is not null ? null : Inherited(member));
+        }
+
+        return "";
+    }
+
+    // The member a member's documentation is inherited from, the one it overrides or else the
+    // member of an interface it implements.
+    private static MemberInfo? Inherited(MemberInfo member)
+    {
+        var accessor = member switch
+        {
+            MethodInfo method => method,
+            PropertyInfo property => property.GetMethod ?? property.SetMethod,
+            _ => null,
+        };
+        if (accessor is null || member.DeclaringType is not { } type)
+            return null;
+        MethodInfo? inherited = accessor.GetBaseDefinition() is var root && root != accessor ? root : null;
+        if (inherited is null && !type.IsInterface)
+            foreach (var face in type.GetInterfaces())
+            {
+                var map = type.GetInterfaceMap(face);
+                var at = Array.IndexOf(map.TargetMethods, accessor);
+                if (at >= 0)
+                {
+                    inherited = map.InterfaceMethods[at];
+                    break;
+                }
+            }
+
+        if (inherited is null)
+            return null;
+        if (member is MethodInfo)
+            return inherited;
+        return inherited.DeclaringType!.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
+            .FirstOrDefault(property => property.GetMethod == inherited || property.SetMethod == inherited);
     }
 
     private static string Text(XElement element) => string.Concat(element.Nodes().Select(node => node switch
