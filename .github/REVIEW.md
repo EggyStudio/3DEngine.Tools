@@ -426,3 +426,47 @@ pattern dropped a `<` that opens no tag and whose check read with the same patte
 would have passed it. Over the module's own sources it finds nothing to rewrap; it is run over no
 engine. The README says it and AGENTS.md's scripts row names it and the sweep, new paths both. The
 strict build is clean and the tests pass, 87 where there were 82.
+
+The rewrapper's files mended in the commit carrying this line, as the review found it walking every
+file under a folder, a submodule's, a fetched toolchain's and an ignored game's among them. The
+files are those the repository holding each path tracks under it, as `git ls-files` lists them, of
+the languages the sweep reads, and the count of comment lines past the width is taken by the
+sweep's own rule before and after, so the lines rewrapped and those left add up to the sweep's
+count. RewrapTests failed first on a made repository holding a tracked file, an ignored one, an
+untracked one and a repository of its own under it, which git tracks as a commit, the old walk
+rewriting all four; the tracked file alone is rewritten and counted, and the sweep's count over the
+same repository is the same. Dry, over the three at their heads (python3 -I scripts/rewrap.py),
+nothing written:
+
+| repository | rewrapped | left | the sweep's count |
+|---|---|---|---|
+| 3DEngine | 5,463 in 1,171 files | 83 | 5,546 |
+| BevyCSharp | 4,877 in 1,117 files | 12 | 4,889 |
+| Voxel-Sandbox | 1,509 in 187 files | 5 | 1,514 |
+
+| repository | top folder | files | lines |
+|---|---|---|---|
+| 3DEngine | `3DEngine` | 688 | 4,438 |
+| 3DEngine | `3DEngine.Tests` | 195 | 490 |
+| 3DEngine | `3DEngine.Examples` | 231 | 348 |
+| 3DEngine | `games` | 35 | 100 |
+| 3DEngine | `.github/workflows` | 2 | 29 |
+| 3DEngine | `build` | 10 | 16 |
+| 3DEngine | the rest, the Generator, the Cli, CodeFixes, the props and a template | 10 | 42 |
+| BevyCSharp | `BevyCSharp` | 552 | 3,261 |
+| BevyCSharp | `BevyCSharp.Tests` | 221 | 655 |
+| BevyCSharp | `BevyCSharp.Examples` | 151 | 280 |
+| BevyCSharp | `BevyCSharp.Editor` | 64 | 254 |
+| BevyCSharp | `native` | 68 | 146 |
+| BevyCSharp | `games` | 26 | 120 |
+| BevyCSharp | `BevyCSharp.Generator` | 12 | 109 |
+| BevyCSharp | the rest, Scripting, the workflows, the Cli, `build`, CodeFixes and the Player | 23 | 52 |
+| Voxel-Sandbox | `VoxelSandbox` | 124 | 1,315 |
+| Voxel-Sandbox | `VoxelSandbox.Tests` | 59 | 164 |
+| Voxel-Sandbox | three build scripts and the workflow | 4 | 30 |
+
+No tracked tree holds a vendored source; every folder is the repository's own, the engines' games
+and BevyCSharp's Rust under `native` among them, and no tracked path lies under a folder named
+vendor, third-party, external or deps. 3DEngine's ignore file leaves out `/Voxel-Sandbox`, which the
+old walk read as 3DEngine's as well. The strict build is clean and the tests pass, 88 where there
+were 87.

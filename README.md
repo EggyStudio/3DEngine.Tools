@@ -169,10 +169,13 @@ python3 -I scripts/sweep.py <repo>
 
 ## A comment's width
 
-`scripts/rewrap.py` rewraps the comment lines past 100 columns of the files or folders given with
-their words unchanged, filling again each paragraph that holds one, in `//` and `///` comments of
-the C family, `#` comments of Python, shell, YAML and TOML and `<!-- -->` comments of MSBuild and
-XML. A blank comment line, a documentation tag alone, a list's item and a line indented further keep
+`scripts/rewrap.py` rewraps the comment lines past 100 columns of the files a repository tracks
+under each path given, as `git ls-files` lists them, with their words unchanged, filling again each
+paragraph that holds one, in `//` and `///` comments of the C family, `#` comments of Python, shell,
+YAML and TOML and `<!-- -->` comments of MSBuild and XML. An ignored file, an untracked one and a
+submodule's are never read or written, and the files are those `sweep.py` reads, so the lines
+rewrapped and those left as they stand add up to the sweep's count of comment lines past the width.
+A blank comment line, a documentation tag alone, a list's item and a line indented further keep
 their lines, a tag stays whole, a comment after code is left as it is, and a word longer than the
 width stands on a line of its own. Without `--write` it changes nothing and prints each file it
 would change and the counts. A file whose lines of code would differ after the rewrapping, or whose

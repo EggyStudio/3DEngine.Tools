@@ -5,26 +5,33 @@
 #   python3 -I scripts/rewrap.py [--write] <file or folder> ...
 #
 # Without --write it changes nothing and prints each file it would change with the count of its
-# lines past the width, then the counts in all. A folder is read for every file whose language it
-# knows, the folders a build or a tool fills left out. A comment line is one that opens with its
-# language's mark after blanks alone, // and /// in the C family, # in Python, shell, YAML and TOML,
-# and an XML comment from <!-- to --> in MSBuild and XML files; a comment after code is left as it
-# is. A paragraph is the run of lines of one mark and one indent between a blank comment line, a
-# line holding an XML documentation tag alone, a list's item, a line indented further and the code,
-# so a list, a block of code in a comment and a summary's tags keep their lines. An XML tag is kept
-# whole on a line, and a word longer than the width, an address among them, stands on a line of
-# its own. A file is refused and left as it is where its lines of code differ after the rewrapping
-# or its comments' words differ once their blanks are joined, so a fault of the script's changes
-# no file.
-import os, re, sys
+# lines past the width, then the counts in all. The files are those the repository holding each path
+# given tracks under it, as git ls-files lists them, of the languages scripts/sweep.py reads, so an
+# ignored file, an untracked one and a submodule's are never read or written, and the count of
+# comment lines past the width is the sweep's, read by the same rule. A comment line is one that
+# opens with its language's mark after blanks alone, // and /// in the C family, # in Python, shell,
+# YAML and TOML, and an XML comment from <!-- to --> in MSBuild and XML files; a comment after code
+# is left as it is. A paragraph is the run of lines of one mark and one indent between a blank
+# comment line, a line holding an XML documentation tag alone, a list's item, a line indented
+# further and the code, so a list, a block of code in a comment and a summary's tags keep their
+# lines. An XML tag is kept whole on a line, and a word longer than the width, an address among
+# them, stands on a line of its own. A file is refused and left as it is where its lines of code
+# differ after the rewrapping or its comments' words differ once their blanks are joined, so a fault
+# of the script's changes no file.
+import os, re, subprocess, sys
 
 sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
+
+# The files and the width rule are commitcheck.py's, as scripts/sweep.py has them, imported from
+# beside this script with no compiled copy written there.
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from commitcheck import TEXT, comment_mark, line_faults  # noqa: E402
 
 COLUMNS = 100
 SLASHES = re.compile(r"\.(cs|rs|slang|wgsl|glsl|hlsl)$")
 HASH = re.compile(r"\.(py|sh|yml|yaml|toml)$")
 XML = re.compile(r"\.(csproj|props|targets|slnx|xml)$")
-FILLED = {".git", ".ref", "bin", "obj", "node_modules", "TestResults"}
 # A line comment's indent, its mark and the one blank after it, then its text.
 LINE = {"//": re.compile(r"^(\s*)(///?)( ?)(.*)$"), "#": re.compile(r"^(\s*)(#)( ?)(.*)$")}
 # A run of tags, of characters that are no blank and of a < that opens no tag, so a tag is one
@@ -147,19 +154,21 @@ def comment_text(lines, path):
     return " ".join(said), code
 
 
-def rewrap(path):
-    """The file's text rewrapped, the count of its lines past the width that were rewrapped and of
-    those left as they stand, and why it is refused, or None where it is not."""
+def rewrap(path, tracked):
+    """The file's text rewrapped, the count of its comment lines past the width that were rewrapped
+    and of those left as they stand, by the sweep's rule, and why it is refused, or None where it is
+    not. The path is the file's on disk and tracked its path in the repository."""
     with open(path, encoding="utf-8", newline="") as f:
         text = f.read()
     end = "\r\n" if "\r\n" in text else "\n"
     lines = text.split(end)
     if XML.search(path):
-        out, long = xml_comments(lines)
+        out, _ = xml_comments(lines)
     else:
-        out, long = line_paragraphs(lines, "//" if SLASHES.search(path) else "#")
+        out, _ = line_paragraphs(lines, "//" if SLASHES.search(path) else "#")
     (said, code), (said_after, code_after) = comment_text(lines, path), comment_text(out, path)
-    left = sum(len(line) > COLUMNS for line in out) - sum(len(line) > COLUMNS for line in code_after)
+    before, left = past(lines, tracked), past(out, tracked)
+    long = before - left
     if code != code_after:
         return text, long, left, "its lines of code would differ"
     if said != said_after:
@@ -167,16 +176,30 @@ def rewrap(path):
     return end.join(out), long, left, None
 
 
+def past(lines, path):
+    """How many comment lines run past the width by the rule the sweep counts with."""
+    count, in_xml = 0, False
+    for line in lines:
+        faults, in_xml = line_faults(path, line, in_xml)
+        count += any(rule == f"a comment line past {COLUMNS} columns" for _, rule, _ in faults)
+    return count
+
+
 def files(arguments):
+    """Each path given, read as the files the repository holding it tracks under it."""
     for argument in arguments:
-        if os.path.isdir(argument):
-            for folder, children, names in os.walk(argument):
-                children[:] = sorted(c for c in children if c not in FILLED)
-                for name in sorted(names):
-                    if SLASHES.search(name) or HASH.search(name) or XML.search(name):
-                        yield os.path.join(folder, name)
-        else:
-            yield argument
+        folder = argument if os.path.isdir(argument) else os.path.dirname(os.path.abspath(argument))
+        top = subprocess.run(["git", "-C", folder, "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+        if top.returncode:
+            sys.exit(f"{argument} is in no git checkout, and only a checkout's tracked files are rewrapped.")
+        root = top.stdout.strip()
+        listed = subprocess.run(["git", "-C", root, "ls-files", "-z", "--", os.path.relpath(os.path.abspath(argument), root)],
+                                capture_output=True)
+        for path in listed.stdout.decode("utf-8", "replace").split("\0"):
+            # A submodule is listed as the commit it points at, a folder and no file of its.
+            full = os.path.join(root, path)
+            if path and os.path.isfile(full) and TEXT.search(path) and comment_mark(path):
+                yield full, path
 
 
 def main():
@@ -185,8 +208,8 @@ def main():
     if not arguments:
         sys.exit("Usage is rewrap.py [--write] <file or folder> ....")
     changed = lines = standing = refused = 0
-    for path in files(arguments):
-        text, long, left, refusal = rewrap(path)
+    for path, tracked in files(arguments):
+        text, long, left, refusal = rewrap(path, tracked)
         standing += left
         if refusal:
             refused += 1

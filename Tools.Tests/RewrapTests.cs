@@ -7,6 +7,58 @@ public class RewrapTests
     private static readonly string Words = string.Join(' ', Enumerable.Repeat("word", 30));
 
     [NeedsPythonFact]
+    public void Only_The_Repositorys_Tracked_Files_Are_Read_And_The_Count_Is_The_Sweeps()
+    {
+        var comment = $"class A\n{{\n    // {Words}\n}}\n";
+
+        // An ignored file, an untracked one and a repository of its own inside the checkout, which
+        // git tracks as the commit it points at and none of its files.
+        var files = new Dictionary<string, string> { ["A.cs"] = comment, [".gitignore"] = "ignored.cs\n" };
+        var untracked = new Dictionary<string, string> { ["ignored.cs"] = comment, ["loose.cs"] = comment };
+
+        var (exit, printed, after) = RewrapWithNested(files, untracked, comment);
+
+        Assert.Equal(0, exit);
+        Assert.Contains("1 comment lines past 100 columns in 1 files rewrapped, 0 left as they stand, 0 files refused", printed);
+        Assert.NotEqual(comment, after["A.cs"]);
+        Assert.Equal(comment, after["ignored.cs"]);
+        Assert.Equal(comment, after["loose.cs"]);
+        Assert.Equal(comment, after["nested/B.cs"]);
+        Assert.Contains("FAIL a comment line past 100 columns, 1", after["sweep"]);
+    }
+
+    // As Rewrap, with a repository of its own committed under nested/ before the outer one adds it,
+    // and the sweep's output over the outer one taken first, under the name sweep.
+    private static (int Code, string Printed, Dictionary<string, string> After) RewrapWithNested(
+        Dictionary<string, string> files, Dictionary<string, string> untracked, string nestedComment)
+    {
+        var repo = Directory.CreateTempSubdirectory("rewrap-").FullName;
+        try
+        {
+            Git(repo, "init", "-q");
+            var nested = Path.Combine(repo, "nested");
+            Directory.CreateDirectory(nested);
+            Git(nested, "init", "-q");
+            Write(nested, new() { ["B.cs"] = nestedComment });
+            Git(nested, "add", "-A");
+            Git(nested, "commit", "-q", "-m", "The nested commit.");
+            Write(repo, files);
+            Git(repo, "add", "-A");
+            Write(repo, untracked);
+            var (_, swept) = Programs.Attempt("sweep.py", new() { ["FORBIDDEN_NAMES"] = null }, repo);
+            var (code, printed) = Programs.Attempt("rewrap.py", [], "--write", repo);
+            var after = files.Keys.Concat(untracked.Keys).Append("nested/B.cs").ToDictionary(name => name, name => File.ReadAllText(Path.Combine(repo, name)));
+            after["sweep"] = swept;
+            return (code, printed, after);
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
+    [NeedsPythonFact]
     public void A_Dry_Run_Counts_The_Lines_And_Changes_No_File()
     {
         var files = new Dictionary<string, string> { ["A.cs"] = $"class A\n{{\n    // {Words}\n}}\n", ["b.py"] = $"# {Words}\n# {Words}\nprint(1)\n" };
@@ -56,7 +108,7 @@ public class RewrapTests
     }
 
     [NeedsPythonFact]
-    public void A_Word_Longer_Than_The_Width_Stands_On_A_Line_Of_Its_Own_And_Is_Counted_As_Left()
+    public void A_Word_Longer_Than_The_Width_Stands_On_A_Line_Of_Its_Own_Which_The_Width_Leaves_Free()
     {
         var address = "https://example.com/" + new string('a', 100);
 
@@ -64,7 +116,9 @@ public class RewrapTests
 
         Assert.Equal(0, exit);
         Assert.Equal($"# See\n# {address}\n# for the rest of it.\nprint(1)\n", after["b.py"]);
-        Assert.Contains("1 left as they stand", printed);
+        // An address alone on its line is free of the width, as the sweep reads it, so the line is
+        // rewrapped and none is left.
+        Assert.Contains("1 comment lines past 100 columns in 1 files rewrapped, 0 left as they stand", printed);
     }
 
     [NeedsPythonFact]
@@ -72,7 +126,9 @@ public class RewrapTests
     {
         // A copy of the script whose filling drops each paragraph's last word, a fault the check
         // of the comments' words exists to stop.
-        var broken = Path.Combine(Directory.CreateTempSubdirectory("rewrap-broken-").FullName, "rewrap.py");
+        var brokenFolder = Directory.CreateTempSubdirectory("rewrap-broken-").FullName;
+        var broken = Path.Combine(brokenFolder, "rewrap.py");
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "scripts", "commitcheck.py"), Path.Combine(brokenFolder, "commitcheck.py"));
         var script = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "scripts", "rewrap.py"));
         Assert.Contains("for i, token in enumerate(tokens):", script);
         File.WriteAllText(broken, script.Replace("for i, token in enumerate(tokens):", "for i, token in enumerate(tokens[:-1]):", StringComparison.Ordinal));
@@ -87,21 +143,40 @@ public class RewrapTests
 
     private static string Join(params string[] lines) => string.Join('\n', lines) + "\n";
 
-    // The files written in a folder of their own, the script run over the folder, and the files as
-    // it leaves them.
-    private static (int Code, string Printed, Dictionary<string, string> After) Rewrap(Dictionary<string, string> files, bool write, string script = "rewrap.py")
+    // A repository whose files given are tracked, the untracked ones written beside them after, the
+    // script run over its root, and every file as it leaves them.
+    private static (int Code, string Printed, Dictionary<string, string> After) Rewrap(
+        Dictionary<string, string> files, bool write, string script = "rewrap.py", Dictionary<string, string>? untracked = null)
     {
-        var folder = Directory.CreateTempSubdirectory("rewrap-").FullName;
+        var repo = Directory.CreateTempSubdirectory("rewrap-").FullName;
         try
         {
-            foreach (var (name, text) in files) File.WriteAllText(Path.Combine(folder, name), text);
-            string[] arguments = write ? ["--write", folder] : [folder];
+            Git(repo, "init", "-q");
+            Write(repo, files);
+            Git(repo, "add", "-A");
+            Write(repo, untracked ?? []);
+            string[] arguments = write ? ["--write", repo] : [repo];
             var (code, printed) = Programs.Attempt(script, [], arguments);
-            return (code, printed, files.Keys.ToDictionary(name => name, name => File.ReadAllText(Path.Combine(folder, name))));
+            var all = files.Keys.Concat((untracked ?? []).Keys);
+            return (code, printed, all.ToDictionary(name => name, name => File.ReadAllText(Path.Combine(repo, name))));
         }
         finally
         {
-            Directory.Delete(folder, true);
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
         }
     }
+
+    private static void Write(string repo, Dictionary<string, string> files)
+    {
+        foreach (var (name, text) in files)
+        {
+            var file = Path.Combine(repo, name);
+            Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+            File.WriteAllText(file, text);
+        }
+    }
+
+    private static string Git(string repo, params string[] arguments) =>
+        Programs.Run("git", repo, ["-c", "core.autocrlf=false", "-c", "user.name=Tools", "-c", "user.email=tools@example.com", "-c", "commit.gpgsign=false", .. arguments]);
 }
