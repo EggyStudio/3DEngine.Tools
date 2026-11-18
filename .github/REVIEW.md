@@ -1176,3 +1176,17 @@ sentence tells of other work, which the page no longer shows. Tools' own NORM.md
 fall back at its line 76, and the reworded text has not reached this tree, so it stands for the
 review to carry. The run of `457f3e5` is read in the report. The strict build is clean and the tests
 pass, 192 and two skipped plain and 193 and one skipped in the variant.
+
+The commit's run in its report in the commit carrying this line, the third of the three, with the
+reworded N 4.8 the review left in this tree. `report.py --run` ends the block with the commit's
+workflow run on GitHub, its number, its state and each job's conclusion and time as run.py gives
+them, read through gh by the commit's hash from the origin's address, in either of GitHub's forms,
+or says why it was not read, no origin on GitHub or gh unreached, or that the commit has no run yet;
+its tests replace gh by answers REPORT_ANSWERS names, as status.py's do. ReportTests failed first on
+a made repository with a run of two jobs, one failed, and on no remote, no run and gh failing, with
+one fault of the test's own mended before the script was written, its recorded run saying success
+where the expected line said failure. Read live, `457f3e5`'s block gives run 44382532549 with its
+three jobs at 56 s, 1 min 29 s and 38 s, as run.py read them. The run of `457f3e5` drew on all three
+systems, Pillow 12.3.0 in Windows' toolcache Python 3.12.10 and, past Homebrew's guard as the step
+foresaw, in macOS's Python 3.15, the workflow's fact skipped in no job. The strict build is clean
+and the tests pass, 194 and two skipped plain and 195 and one skipped in the variant.

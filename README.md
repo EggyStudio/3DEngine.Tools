@@ -346,11 +346,14 @@ theories' rows of data its diff adds to C# files and the test functions it adds 
 tests, a folder of tests read whatever its case, the counts of a test run read from a TRX file, the
 one `--trx` names or the newest under the repository's TestResults folders, and `commitcheck.py`'s
 exit code with its FAIL and WARN lines counted. A count it could not read is said to be unread, with
-why, and a commit git cannot read gives exit code 2.
+why, and a commit git cannot read gives exit code 2. With `--run` it adds the commit's workflow run
+on GitHub, its number and state and each job's conclusion and time, read through gh from the
+repository's origin, or says why it was not read, no origin on GitHub or gh unreached, or that the
+commit has no run yet.
 
 ```bash
 dotnet test Tools.Tests --logger trx
-python3 -I scripts/report.py . [<commit>] [--trx=<results.trx>]
+python3 -I scripts/report.py . [<commit>] [--trx=<results.trx>] [--run]
 ```
 
 ## A module's pin

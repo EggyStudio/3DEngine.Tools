@@ -1,7 +1,10 @@
 # Prints a commit's report block, every line of it read by the script and none written by hand, so a
 # count in a report is one a reader can read again.
 #
-#   python3 -I scripts/report.py <repo> [<commit>] [--trx=<results.trx>]
+#   python3 -I scripts/report.py <repo> [<commit>] [--trx=<results.trx>] [--run]
+#
+# With --run the block ends with the commit's workflow run on GitHub, its jobs and their times, read
+# through gh from the origin's address, or the reason it was not read.
 #
 # The block gives the commit's hash and sentence, its files by kind and its lines added and removed,
 # the facts and the theories' rows of data its diff adds to C# files, as their attributes on added
@@ -11,7 +14,7 @@
 # code and its FAIL and WARN lines counted. A count the script could not read is said to be unread,
 # with why. The commit is HEAD where none is given. The exit code is 0, or 2 where git could not
 # read the commit.
-import glob, os, re, subprocess, sys
+import datetime, glob, json, os, re, subprocess, sys
 import xml.etree.ElementTree as ElementTree
 
 sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
@@ -54,6 +57,64 @@ def sentence(repo, commit):
 OUTCOMES = {"Passed": "passed", "Failed": "failed", "NotExecuted": "not executed"}
 
 
+class Unreached(Exception):
+    """gh could not be run or could not answer."""
+
+
+def gh_json(*arguments):
+    try:
+        done = subprocess.run(["gh", *arguments], capture_output=True, text=True, timeout=60)
+    except (FileNotFoundError, subprocess.TimeoutExpired) as error:
+        raise Unreached(f"gh could not be run, {error}")
+    if done.returncode:
+        lines = done.stderr.strip().splitlines()
+        raise Unreached(f"gh {' '.join(arguments[:2])} failed, {lines[-1] if lines else done.returncode}")
+    return json.loads(done.stdout or "null")
+
+
+def commit_run(slug, full):
+    """The newest workflow run of the commit on GitHub and its jobs, or None where it has none.
+    The tests replace gh by the answers REPORT_ANSWERS names."""
+    if os.environ.get("REPORT_ANSWERS"):
+        answers = json.load(open(os.environ["REPORT_ANSWERS"], encoding="utf-8"))
+        if "failed" in answers:
+            raise Unreached(f"gh run list failed, {answers['failed']}")
+        return answers.get("run"), answers.get("jobs", [])
+    runs = gh_json("run", "list", "-R", slug, "--commit", full, "-L", "1", "--json", "databaseId,status,conclusion")
+    if not runs:
+        return None, []
+    return runs[0], (gh_json("run", "view", str(runs[0]["databaseId"]), "-R", slug, "--json", "jobs") or {}).get("jobs", [])
+
+
+def took(job):
+    """A job's time as run.py gives it, 56 s or 1 min 29 s, or nothing where it has not ended."""
+    try:
+        start, end = (datetime.datetime.fromisoformat(job[k].replace("Z", "+00:00")) for k in ("startedAt", "completedAt"))
+    except (KeyError, TypeError, ValueError):
+        return ""
+    seconds = max(0, round((end - start).total_seconds()))
+    return f"{seconds // 60} min {seconds % 60} s" if seconds >= 60 else f"{seconds} s"
+
+
+def run_lines(repo, full):
+    """The run's lines of the block, its number, state and jobs, or why it was not read."""
+    remote = subprocess.run(["git", "-C", repo, "remote", "get-url", "origin"], capture_output=True, text=True).stdout.strip()
+    found = re.search(r"github\.com[:/]([^/]+/[^/]+?)(\.git)?/?$", remote)
+    if not found:
+        return ["run: not read, the repository has no origin on GitHub"]
+    slug = found.group(1)
+    try:
+        run, jobs = commit_run(slug, full)
+    except Unreached as error:
+        return [f"run: not read, {error}"]
+    if run is None:
+        return [f"run: none of {slug} for this commit yet"]
+    lines = [f"run: {run['databaseId']} of {slug}, {run.get('status', '')} {run.get('conclusion') or ''}".rstrip()]
+    for job in jobs:
+        lines.append(f"  {job.get('name')} {job.get('conclusion') or job.get('status', '')} {took(job)}".rstrip())
+    return lines
+
+
 def trx_counts(path):
     """A TRX file's counts and how they were read, by its results' outcomes where it holds results,
     since dotnet test leaves a skipped test out of every counter, or by its counters where not."""
@@ -78,7 +139,7 @@ def main():
     arguments = [a for a in sys.argv[1:] if not a.startswith("--")]
     trx = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--trx=")), None)
     if not arguments:
-        sys.exit("Usage is report.py <repo> [<commit>] [--trx=<results.trx>].")
+        sys.exit("Usage is report.py <repo> [<commit>] [--trx=<results.trx>] [--run].")
     repo, commit = arguments[0], arguments[1] if len(arguments) > 1 else "HEAD"
     full = git(repo, "rev-parse", commit).strip()
     lines = [f"`{full[:7]}` {sentence(repo, full)}"]
@@ -131,6 +192,8 @@ def main():
     fails = sum(1 for line in check.stdout.splitlines() if line.lstrip().startswith("FAIL"))
     warns = sum(1 for line in check.stdout.splitlines() if line.lstrip().startswith("WARN"))
     lines.append(f"check: commitcheck.py exit {check.returncode}, {fails} FAIL and {warns} WARN lines")
+    if "--run" in sys.argv[1:]:
+        lines += run_lines(repo, full)
     print("\n".join(lines))
 
 

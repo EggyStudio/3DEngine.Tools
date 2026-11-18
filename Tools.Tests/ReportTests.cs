@@ -45,6 +45,49 @@ public class ReportTests
     }
 
     [NeedsPythonFact]
+    public void With_Run_The_Block_Gives_The_Commits_Run_And_Its_Jobs_Read_From_Gh()
+    {
+        using var world = new World();
+        var head = world.Commit("a.txt", "a\n", "The first file.");
+        world.Remote("https://github.com/EggyStudio/Sample.git");
+        var answers = world.Answers(new
+        {
+            run = new { databaseId = 42, headSha = head, status = "completed", conclusion = "failure" },
+            jobs = new object[]
+            {
+                new { name = "test (ubuntu-24.04)", conclusion = "success", startedAt = "2026-11-18T20:00:00Z", completedAt = "2026-11-18T20:00:56Z" },
+                new { name = "test (windows-latest)", conclusion = "failure", startedAt = "2026-11-18T20:00:00Z", completedAt = "2026-11-18T20:01:29Z" },
+            },
+        });
+
+        var (code, printed) = Programs.Attempt("report.py", new() { ["REPORT_ANSWERS"] = answers }, world.Repo, "--run", "--trx=" + answers);
+
+        Assert.True(code == 0, printed);
+        var lines = Programs.Lines(printed);
+        Assert.Contains("run: 42 of EggyStudio/Sample, completed failure", lines);
+        Assert.Contains("  test (ubuntu-24.04) success 56 s", lines);
+        Assert.Contains("  test (windows-latest) failure 1 min 29 s", lines);
+    }
+
+    [NeedsPythonFact]
+    public void A_Run_Not_Made_Not_Reached_Or_With_No_Remote_Is_Said_So()
+    {
+        using var world = new World();
+        world.Commit("a.txt", "a\n", "The first file.");
+        var noRemote = Programs.Lines(Programs.Script("report.py", world.Repo, "--run"));
+        world.Remote("git@github.com:EggyStudio/Sample.git");
+        var none = world.Answers(new { run = (object?)null });
+        var failed = world.Answers(new { failed = "HTTP 503" });
+
+        var noRun = Programs.Lines(Programs.Script("report.py", new Dictionary<string, string> { ["REPORT_ANSWERS"] = none }, world.Repo, "--run"));
+        var unreached = Programs.Lines(Programs.Script("report.py", new Dictionary<string, string> { ["REPORT_ANSWERS"] = failed }, world.Repo, "--run"));
+
+        Assert.Contains("run: not read, the repository has no origin on GitHub", noRemote);
+        Assert.Contains("run: none of EggyStudio/Sample for this commit yet", noRun);
+        Assert.Contains("run: not read, gh run list failed, HTTP 503", unreached);
+    }
+
+    [NeedsPythonFact]
     public void A_Trx_Is_Read_By_Its_Results_Outcomes_Where_Its_Counters_Leave_A_Skipped_Test_Out()
     {
         using var world = new World();
@@ -109,6 +152,16 @@ public class ReportTests
             File.WriteAllText(Path.Combine(Repo, ".git", "message"), "A subject\n\n" + sentence + "\n");
             Git("commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(Repo, ".git", "message"));
             return Git("rev-parse", "HEAD").Trim();
+        }
+
+        public void Remote(string address) => Git("remote", "add", "origin", address);
+
+        // The answers gh would give, written where REPORT_ANSWERS names them for the script.
+        public string Answers(object answers)
+        {
+            var path = Path.Combine(Root, $"answers-{Guid.NewGuid():N}.json");
+            File.WriteAllText(path, System.Text.Json.JsonSerializer.Serialize(answers));
+            return path;
         }
 
         public void Dispose()
