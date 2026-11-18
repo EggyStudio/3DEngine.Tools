@@ -263,3 +263,29 @@ ground, skipped where Pillow is missing. Read over this repository's commits fro
 the head, none fails. The README says it and AGENTS.md's scripts row names it. NORM.md, naming
 eight modules, goes in with it, and STYLE.md and COMMITS.md, the sources, name none. The strict
 build is clean and the tests pass, 56 where there were 48.
+
+The tree's sweep in the commit carrying this line, with two mends of the commit's check, each with
+a test that failed first. `scripts/sweep.py` reads a checkout's tracked files as they stand by the
+rules `commitcheck.py` reads added lines with, which it imports from that script, its line's and
+picture's rules made functions for both, and prints a count a rule with the first ten places of
+each and an exit code of 1 where a failing rule is broken. Over 3DEngine's tree, read and written
+nothing to, 3,064 tracked files, 1,948 of them text and 134 pictures, took 2.4 to 3.0 seconds at a
+load of 12, where the first version took 3.3 at rest, the pictures' decoding and the patterns'
+searches each half of it (`python3 -I -m cProfile`); each list's patterns are searched as one
+before each alone, the spelling's pattern holds no lookbehind, the pictures decode on threads while
+the text is read, and a file's comment mark is found once. It reads 5,546 comment lines past 100
+columns there, 22 British spellings, 7 of "word" for four bytes and 83 pictures whose ground is not
+white, with 304 warnings of the comments' patterns and 9 pictures with no title; with no names
+given it says so. SweepTests makes a tree that keeps the
+rules, one breaking each rule with twelve long lines of which ten places are printed, an untracked
+file left out and a made-up name in a file and in a path counted and printed in neither, which
+failed first on the path, one with no names given, and one with a dark picture beside a white one.
+The first mend is the review's case arm. A comment's mark is its language's, `//`, `/*` and a
+block's `*` for the C family, `#` for Python, shell, YAML and TOML and `<!--` for MSBuild and XML,
+where one pattern for all read a shell's `*)` as a comment; RadianceCascades'
+`build/fetch-slang.sh:68` reads as code. The second is the check's own, a Markdown line held to no
+width whatever its mark, where `2a8d768` failed a heading or a list's line past 100 columns. The
+sweep writes no compiled copy of the script it imports, and the ignore file leaves those out. The
+three marks, the dashes and the middle dot stood as characters in commitcheck.py, devlog.py and
+three test files, the marks unseen in an editor and the dashes against STYLE.md's check of the C#,
+and are written as escapes. The strict build is clean and the tests pass, 62 where there were 56.

@@ -121,6 +121,21 @@ A FAIL line stops a push and makes the exit code 1, a WARN line is for the revie
 note says what to look at. The names no commit may carry are a regular expression in the
 `FORBIDDEN_NAMES` environment variable and in no file, and where it is not set the check says so.
 
+## A tree's sweep
+
+`scripts/sweep.py` reads a checkout's tracked files as they stand by the rules `commitcheck.py`
+reads a commit's added lines with, a comment line's width, the comment patterns, the middle dot, the
+dashes, the spelling and the names `FORBIDDEN_NAMES` gives, and every picture under
+`.github/assets/readings` or `.github/devlog` by the pictures' rule. It writes nothing. It prints a
+count a rule with its first ten places, any name in a place put out of sight, then the files read
+and the time taken, and exits with 1 where a rule that fails a commit is broken. It read 3DEngine's
+3,064 tracked files, 1,948 of them text and 134 pictures, in 2.5 seconds (python3 -I
+scripts/sweep.py ../../3DEngine).
+
+```bash
+python3 -I scripts/sweep.py <repo>
+```
+
 ## The shell's forms
 
 `ShellForms` in the library reads a checkout's shell scripts for the forms only GNU's tools or bash

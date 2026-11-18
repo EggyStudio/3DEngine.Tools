@@ -3,6 +3,9 @@
 bin/
 obj/
 
+# Python's compiled copies of the scripts
+__pycache__/
+
 # Tests and build logs
 TestResults/
 *.trx

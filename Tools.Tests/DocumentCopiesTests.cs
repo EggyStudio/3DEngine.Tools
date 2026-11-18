@@ -24,7 +24,7 @@ public class DocumentCopiesTests
     {
         foreach (var name in DocumentCopies.Names)
             Assert.Equal(File.ReadAllText(Path.Combine(Programs.Root(), ".github", name)), DocumentCopies.Source(name));
-        Assert.Contains("The middle dot `·` is not used either.", DocumentCopies.Source("STYLE.md"));
+        Assert.Contains("The middle dot `\u00b7` is not used either.", DocumentCopies.Source("STYLE.md"));
     }
 
     [Fact]

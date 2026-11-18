@@ -4,7 +4,7 @@ namespace Tools.Tests;
 
 public class CommitCheckTests
 {
-    private const string Lead = "‎ ‎ ‎\n\n";
+    private const string Lead = "\u200e \u200e \u200e\n\n";
 
     // A name made up for the test, which stands for the names the check is given and no file holds.
     private const string MadeUpName = "Quillon Darrowmere";
@@ -55,6 +55,26 @@ public class CommitCheckTests
         Assert.Equal(1, code);
         Assert.Contains($"FAIL scripts/a.py:1: a comment line of {comment.Length - 1} columns, past 100", printed);
         Assert.DoesNotContain("scripts/a.py:2", printed);
+    }
+
+    [NeedsPythonFact]
+    public void A_Long_Case_Arm_Of_A_Shell_Script_Is_No_Comment()
+    {
+        var arm = "    *) echo \"" + string.Join(' ', Enumerable.Repeat("word", 20)) + "\" >&2; exit 1 ;;\n";
+        var script = "case \"$1\" in\n    a) echo a ;;\n" + arm + "esac\n";
+        var (exit, printed) = Check(new() { ["build/fetch.sh"] = script }, Lead + "A script answers its argument.\n");
+
+        Assert.True(exit == 0, printed);
+    }
+
+    [NeedsPythonFact]
+    public void A_Markdown_Line_Is_Held_To_No_Width_Whatever_Its_Mark()
+    {
+        var bullet = "* " + string.Join(' ', Enumerable.Repeat("word", 25)) + "\n";
+        var heading = "# " + string.Join(' ', Enumerable.Repeat("word", 25)) + "\n";
+        var (exit, printed) = Check(new() { ["README.md"] = heading + "\n" + bullet }, Lead + "The README lists words.\n");
+
+        Assert.True(exit == 0, printed);
     }
 
     [NeedsPythonFact]

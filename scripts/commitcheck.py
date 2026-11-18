@@ -10,10 +10,10 @@
 # not set the check says it did not run. Each picture a commit adds under the readings is read for
 # its white ground and saved smaller under --thumbs, a folder under the system's temporary one
 # where none is given, to be looked at.
-import io, os, re, subprocess, sys, tempfile
+import functools, io, os, re, subprocess, sys, tempfile
 
 # Three left-to-right marks with a space between each, then the blank line that ends the subject.
-LEAD = "‎ ‎ ‎\n\n"
+LEAD = "\u200e \u200e \u200e\n\n"
 AUTHOR = "EggyStudio"
 MESSAGE_BAD = [
     ("a review's number", re.compile(r"\b(items?|verdicts?|decisions?|N)\s+\d+(\.\d+)?\b", re.I)),
@@ -21,8 +21,13 @@ MESSAGE_BAD = [
     ("a colon inside the sentence", re.compile(r"[\w)`'\"]: ")),
     ("a spaced hyphen", re.compile(r" - ")),
 ]
-# A comment's mark, a preprocessor's directive excepted, or the opening of an MSBuild comment.
-COMMENT = re.compile(r"^\s*(///?|//!|#(?!\s*(if|else|elif|endif|region|endregion|pragma|define|include|nullable)\b)|--|\*|/\*|<!--)")
+# A comment line's mark by the file's language, a block comment's inner lines with the C family's,
+# so a shell's case arm opening with * or a C# directive opening with # is read as code.
+COMMENT_MARKS = [
+    (re.compile(r"\.(cs|rs|slang|wgsl|glsl|hlsl)$"), re.compile(r"^\s*(//|/\*|\*(\s|/|$))")),
+    (re.compile(r"\.(py|sh|yml|yaml|toml)$"), re.compile(r"^\s*#")),
+    (re.compile(r"\.(csproj|props|targets|slnx|xml)$"), re.compile(r"^\s*<!--")),
+]
 COMMENT_BAD = [
     ("names the owner or a session", re.compile(r"\bowner\b|\bsession\b|\bclaude\b", re.I)),
     ("tells what the code was", re.compile(r"\b(used to|no longer|formerly|previously|earlier|was once|before this|had been|regress\w*)\b", re.I)),
@@ -32,12 +37,16 @@ COMMENT_BAD = [
     ("names a review's number", re.compile(r"\b(item|verdict|decision)\s+\d+\b", re.I)),
 ]
 PROSE_BAD = [
-    ("middle dot", re.compile("·")),
-    ("em dash", re.compile("—")),
-    ("en dash", re.compile("–")),
-    ("British spelling", re.compile(r"\b(colou?r(?<=colour)\w*|grey\w*|centre[ds]?|honou?r(?<=honour)\w*|neighbou?r(?<=neighbour)\w*|behaviou?r(?<=behaviour)\w*|normalis\w+|initialis\w+|optimis\w+)\b", re.I)),
+    ("middle dot", re.compile("\u00b7")),
+    ("em dash", re.compile("\u2014")),
+    ("en dash", re.compile("\u2013")),
+    ("British spelling", re.compile(r"\b(colour\w*|grey\w*|centre[ds]?|honour\w*|neighbour\w*|behaviour\w*|normalis\w+|initialis\w+|optimis\w+)\b", re.I)),
     ("\"word\" for four bytes", re.compile(r"\b(d?word)s?\b(?=.*\b(byte|bit|uint)\b)", re.I)),
 ]
+# Each list's patterns in one, case aside, so a line none of them matches is passed over with one
+# search rather than one a pattern, which a sweep of a whole tree spends most of its time on.
+PROSE_ANY = re.compile("|".join(f"(?:{p.pattern})" for _, p in PROSE_BAD), re.I)
+COMMENT_ANY = re.compile("|".join(f"(?:{p.pattern})" for _, p in COMMENT_BAD), re.I)
 SEEN = re.compile(r"\.(slang|wgsl|glsl|hlsl|frag|vert)$|(^|/)(Rendering|render|Shaders|shaders|Lighting|Ui)/")
 PICTURES = re.compile(r"^\.github/(assets/readings|devlog)/.*\.webp$")
 TEXT = re.compile(r"\.(cs|rs|slang|wgsl|py|sh|md|toml|yml|yaml|json|csproj|props|targets|slnx)$")
@@ -52,6 +61,61 @@ def git(repo, *arguments, raw=False):
     return done.stdout if raw else done.stdout.decode("utf-8", "replace")
 
 
+# The rules a line and a picture are read by, which scripts/sweep.py reads a whole tree with as
+# well. Each fault is its level, the rule it breaks and a sentence of what was found.
+def line_faults(path, text, in_xml):
+    """The faults of a line of a file, and whether an XML comment stands open after it."""
+    faults = []
+    # The review's files and the generated devlog are read by the reviewer, not here.
+    if path.startswith(".github/") and path.endswith(".md") or path == "DEVLOG.md":
+        return faults, in_xml
+    markdown = path.endswith(".md")
+    # An XML comment runs over lines until its close, and only an MSBuild or XML file has one,
+    # so a line of code naming the mark in a string opens none.
+    mark = comment_mark(path)
+    is_comment = bool(mark and mark.match(text)) or in_xml
+    if XML.search(path) and (in_xml or text.lstrip().startswith("<!--")):
+        in_xml = "-->" not in text
+    if not is_comment and not markdown:
+        return faults, in_xml
+    # A Markdown line is prose whatever its mark, a heading's # or a list's *, and is held to no
+    # width, since a table's row or a link runs past it.
+    address = re.sub(r"^\s*(///?|#|<!--|\*)\s*", "", text).strip()
+    if not markdown and len(text) > COLUMNS and not re.fullmatch(r"https?://\S+", address):
+        faults.append(("FAIL", f"a comment line past {COLUMNS} columns", f"a comment line of {len(text)} columns, past {COLUMNS}"))
+    for label, pattern in PROSE_BAD if PROSE_ANY.search(text) else []:
+        found = pattern.search(text)
+        if found:
+            faults.append(("FAIL", label, f"{label}, \"{found.group(0)}\""))
+    if not markdown and COMMENT_ANY.search(text):
+        for label, pattern in COMMENT_BAD:
+            found = pattern.search(text)
+            if found:
+                faults.append(("WARN", f"a comment {label}", f"a comment {label}, \"{found.group(0)}\", in {text.strip()[:110]}"))
+    return faults, in_xml
+
+
+# Found once a file, since a file's every line asks it.
+@functools.lru_cache(maxsize=None)
+def comment_mark(path):
+    return next((mark for language, mark in COMMENT_MARKS if language.search(path)), None)
+
+
+def picture_faults(image, path):
+    """The faults of a picture under the readings, an image of Pillow's in RGB."""
+    faults = []
+    w, h = image.size
+    corners = [image.getpixel(p) for p in ((2, 2), (w - 3, 2), (2, h - 3), (w - 3, h - 3))]
+    if any(min(c) < 250 for c in corners):
+        faults.append(("FAIL", "a picture's ground is not white", f"the ground is not white, its corners {corners}"))
+    strip = image.crop((0, 0, w, max(1, h // 12))).convert("L")
+    if strip.getextrema()[0] > 120:
+        faults.append(("WARN", "a picture with no title", "no dark text in the top strip, so a title may be missing"))
+    if not re.match(r"^\d{4}-\d\d-\d\d-", os.path.basename(path)):
+        faults.append(("WARN", "a picture's name without a date", "the name does not begin with a date"))
+    return faults
+
+
 def picture(repo, rev, path, thumbs, fail, warn, note):
     try:
         from PIL import Image
@@ -60,14 +124,8 @@ def picture(repo, rev, path, thumbs, fail, warn, note):
         return
     image = Image.open(io.BytesIO(git(repo, "show", f"{rev}:{path}", raw=True))).convert("RGB")
     w, h = image.size
-    corners = [image.getpixel(p) for p in ((2, 2), (w - 3, 2), (2, h - 3), (w - 3, h - 3))]
-    if any(min(c) < 250 for c in corners):
-        fail(f"{path}: the ground is not white, its corners {corners}")
-    strip = image.crop((0, 0, w, max(1, h // 12))).convert("L")
-    if strip.getextrema()[0] > 120:
-        warn(f"{path}: no dark text in the top strip, so a title may be missing")
-    if not re.match(r"^\d{4}-\d\d-\d\d-", os.path.basename(path)):
-        warn(f"{path}: the name does not begin with a date")
+    for level, _, found in picture_faults(image, path):
+        (fail if level == "FAIL" else warn)(f"{path}: {found}")
     os.makedirs(thumbs, exist_ok=True)
     image.thumbnail((1800, 1800))
     out = os.path.join(thumbs, os.path.basename(path)[:-5] + ".png")
@@ -143,29 +201,9 @@ def check(repo, rev, names, thumbs):
         added, where = line[1:], f"{path}:{number}"
         if added.rstrip() != added and not path.endswith(".md"):
             warn(f"{where}: a blank at the line's end")
-        # The review's files and the generated devlog are read by the reviewer, not here.
-        if path.startswith(".github/") and path.endswith(".md") or path == "DEVLOG.md":
-            continue
-        # An XML comment runs over lines until its close, and only an MSBuild or XML file has one,
-        # so a line of code naming the mark in a string opens none.
-        is_comment = bool(COMMENT.match(added)) or in_xml
-        if XML.search(path) and (in_xml or added.lstrip().startswith("<!--")):
-            in_xml = "-->" not in added
-        if not is_comment and not path.endswith(".md"):
-            continue
-        address = re.sub(r"^\s*(///?|#|<!--|\*)\s*", "", added).strip()
-        if is_comment and len(added) > COLUMNS and not re.fullmatch(r"https?://\S+", address):
-            fail(f"{where}: a comment line of {len(added)} columns, past {COLUMNS}")
-        for label, pattern in PROSE_BAD:
-            found = pattern.search(added)
-            if found:
-                fail(f"{where}: {label}, \"{found.group(0)}\"")
-        if path.endswith(".md"):
-            continue
-        for label, pattern in COMMENT_BAD:
-            found = pattern.search(added)
-            if found:
-                warn(f"{where}: a comment {label}, \"{found.group(0)}\", in {added.strip()[:110]}")
+        faults, in_xml = line_faults(path, added, in_xml)
+        for level, _, found in faults:
+            (fail if level == "FAIL" else warn)(f"{where}: {found}")
     return sentence, fails, warns, notes
 
 
@@ -204,4 +242,6 @@ def main():
     sys.exit(1 if failed else 0)
 
 
-main()
+# Run as a script it checks; imported, as scripts/sweep.py imports it, it gives its rules.
+if __name__ == "__main__":
+    main()

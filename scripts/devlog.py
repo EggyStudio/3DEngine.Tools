@@ -10,7 +10,7 @@ pic_dir = os.path.join(repo, PIC_DIRS[0]) if PIC_DIRS else os.path.join(repo, ".
 def git(*a): return subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True).stdout
 fl = lambda s: " ".join(l.strip() for l in s.split("\n"))
 extra = fixes.get("patterns", {}).get(name)
-BAD = re.compile(r"—|–|\bjust\b|\bsimply\b|\bwants?\b| now |\bnow\.|\bowner\b|[a-z\)`]: [a-z]" + (f"|{extra}" if extra else ""))
+BAD = re.compile("\u2014|\u2013|" r"\bjust\b|\bsimply\b|\bwants?\b| now |\bnow\.|\bowner\b|[a-z\)`]: [a-z]" + (f"|{extra}" if extra else ""))
 FIX = [tuple(pair) for pair in fixes.get("pairs", [])]
 def fix(s):
     for a, b in FIX: s = re.sub(a, b, s)
