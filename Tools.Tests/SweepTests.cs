@@ -54,7 +54,7 @@ public class SweepTests
         {
             ["scripts/earlier.py"] = "# The earlier command's output is read.\n# An earlier version read it twice.\nprint(1)\n",
             [".github/workflows/build.yml"] = "# The runner is Ubuntu's.\n# The build took 8 ms on a desktop.\non: push\n",
-            ["Library/A.cs"] = "// Read on the runner.\nclass A {}\n",
+            ["Library.Tests/A.cs"] = "// Read on the runner.\nclass A {}\n",
         });
 
         var lines = Programs.Lines(printed);
@@ -62,6 +62,26 @@ public class SweepTests
         Assert.Contains("  scripts/earlier.py:2 a comment tells what the code was, \"An earlier version\", in # An earlier version read it twice.", lines);
         Assert.Contains("WARN a comment carries a run's facts, 2", lines);
         Assert.DoesNotContain(".github/workflows/build.yml:1", printed);
+    }
+
+    // Each form the two rules read for, with a line that tells of the code or a run and a line of
+    // the same words that does not, the second warned of nowhere.
+    [Theory]
+    [InlineData("scripts/a.py", "# It used to read twice.", "# The value is used to scale the frame.")]
+    [InlineData("scripts/a.py", "# The frame used to be read twice.", "# Which way is up, used to settle the roll.")]
+    [InlineData("scripts/a.py", "# Before this change the frame was read twice.", "# The camera stands before this frame.")]
+    [InlineData("scripts/a.py", "# It no longer reads twice.", "# What had been allocated is counted.")]
+    [InlineData("Library.Tests/A.cs", "// Read on the runner.", "// Read on the runner.")]
+    public void A_Form_Is_Warned_Of_Where_It_Tells_Of_The_Code_Or_A_Run_And_Not_Where_Its_Words_Are_Plain(string path, string told, string plain)
+    {
+        // The word names a run's machine in a test's comment and a generated class in a library's.
+        var plainPath = path == "Library.Tests/A.cs" ? "Library/A.cs" : "scripts/b.py";
+        var mark = path.EndsWith(".cs", StringComparison.Ordinal) ? "class A {}" : "print(1)";
+
+        var (_, printed) = Sweep(new() { [path] = $"{told}\n{mark}\n", [plainPath] = $"{plain}\n{mark}\n" });
+
+        Assert.Contains($"{path}:1 a comment", printed);
+        Assert.DoesNotContain($"{plainPath}:1", printed);
     }
 
     [NeedsPythonFact]

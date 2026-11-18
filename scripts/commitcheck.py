@@ -32,17 +32,24 @@ COMMENT_MARKS = [
     (re.compile(r"\.(py|sh|yml|yaml|toml)$"), re.compile(r"^\s*#")),
     (re.compile(r"\.(csproj|props|targets|slnx|xml)$"), re.compile(r"^\s*<!--")),
 ]
-# The words of a run, which a workflow's and a build script's comments are not read for.
-RUN_WORDS = re.compile(r"\b(runner|lavapipe run|CI run|run \d{6,}|\d+ of \d+ (runs|starts))", re.I)
+# The words of a run, which a workflow's and a build script's comments are not read for, and the
+# runner, which is a run's machine in a test's comment alone, the generator's class or a pool's
+# worker elsewhere.
+RUN_WORDS = re.compile(r"\b(lavapipe run|CI run|run \d{6,}|\d+ of \d+ (runs|starts))", re.I)
+RUNNER = re.compile(r"\brunner\b", re.I)
 COMMENT_BAD = [
     ("names the owner or a session", re.compile(r"\bowner\b|\bsession\b|\bclaude\b", re.I)),
-    # The forms that tell of the code itself, where a plain earlier, as an earlier command, tells of
-    # nothing that was.
-    ("tells what the code was", re.compile(r"\b(used to|no longer|formerly|previously|was once|had been|before this|an earlier version)\b", re.I)),
+    # The forms that tell of the code itself. A plain earlier, as an earlier command, used to after
+    # a form of be or a comma, as is used to scale and up, used to settle, before this ahead of
+    # anything but a change, a commit or a version, and had been tell of nothing that was.
+    ("tells what the code was", re.compile(
+        r"(?<!\bis )(?<!\bare )(?<!\bbe )(?<!\bbeen )(?<!\bbeing )(?<!\bwas )(?<!\bwere )(?<!, )\bused to\b"
+        r"|\b(no longer|formerly|previously|was once|an earlier version|before this (change|commit|version))\b", re.I)),
     ("likens to another product", re.compile(r"\b(Unity|Unreal|Godot|Minecraft|HDRP|URP|Lumen|Nanite)\b")),
     ("names an asset or scene", re.compile(r"\b(Sponza|Bistro|San Miguel|san_giuseppe)\b", re.I)),
     ("carries a run's facts", re.compile(r"\b(20\d\d-\d\d-\d\d|\d+(\.\d+)? ?(ms|fps)\b)", re.I)),
     ("carries a run's facts", RUN_WORDS),
+    ("carries a run's facts", RUNNER),
     ("names a review's number", re.compile(r"\b(item|verdict|decision)\s+\d+\b", re.I)),
 ]
 PROSE_BAD = [
@@ -55,6 +62,7 @@ PROSE_BAD = [
 # A workflow and a build script speak of the machine they run on, so their comments are read for a
 # run's figures with a unit and its dates alone.
 BUILD = re.compile(r"^\.github/workflows/|\.(sh|ps1)$|^(build|scripts)/.*\.py$")
+TESTS = re.compile(r"(^|[/.])Tests?/|(^|/)tests?/")
 
 # Each list's patterns in one, case aside, so a line none of them matches is passed over with one
 # search rather than one a pattern, which a sweep of a whole tree spends most of its time on.
@@ -103,7 +111,7 @@ def line_faults(path, text, in_xml):
     if not markdown and COMMENT_ANY.search(text):
         said = set()
         for label, pattern in COMMENT_BAD:
-            if label in said or pattern is RUN_WORDS and BUILD.search(path):
+            if label in said or pattern is RUN_WORDS and BUILD.search(path) or pattern is RUNNER and not TESTS.search(path):
                 continue
             found = pattern.search(text)
             if found:

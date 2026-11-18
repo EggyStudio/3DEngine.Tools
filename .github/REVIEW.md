@@ -335,3 +335,16 @@ system, and its line was the one the carriage return hid. A test of each script 
 holding the em dash under a Latin-1 locale on Linux, Windows' own encoding there, and reads it back
 whole; both failed first, sweep.py and commitcheck.py stopping on the dash they could not encode.
 The strict build is clean and the tests pass, 77 where there were 75.
+
+The comment patterns narrowed further in the commit carrying this line, as the Reply above proposed
+and the review answered, both rules warning and never failing. A comment tells what the code was by
+used to after no form of be and no comma, before this ahead of a change, a commit or a version, and
+had been is left out; the runner is read for in a test's comment alone, where it is a run's
+machine, and the generator's runner class and a pool's worker elsewhere are left out. SweepTests
+reads each form with a line that tells of the code or a run and a line of the same words that does
+not, the second warned of nowhere, the used to after a form of be, after a comma, the before this of
+a frame, the had been allocated and a library's runner, each of which failed first. Over the
+engines at their heads (python3 -I scripts/sweep.py), BevyCSharp's warnings of the first rule fall
+from 47 to 2, an earlier version of a file and a pointer previously returned, and of the second from
+93 to 35, and 3DEngine's from 104 to 37 and from 89 to 35. The strict build is clean and the tests
+pass, 82 where there were 77.
