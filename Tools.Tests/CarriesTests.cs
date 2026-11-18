@@ -40,6 +40,28 @@ public partial class CarriesTests
         Assert.True(unknown.Count == 0, $"The table names {string.Join(", ", unknown)}, which the history of the head holds not.");
     }
 
+    // A module learns that a fact changed from the table alone, through pin.py, so a commit that
+    // changes the code of the checks' files after the table stood is named in a row, or on the line
+    // under the table of commits that change the code and no fact's reading. A check's helper, a
+    // pattern or the cheatsheet's writer, changes what the check reads as much as its own body, so
+    // the files and not the methods are read.
+    [NeedsWholeHistoryFact]
+    public void Every_Commit_That_Changes_The_Checks_Code_Since_The_Table_Stood_Is_Named_In_It()
+    {
+        string[] files = ["Tools/ModuleChecks.cs", "Tools/Cheatsheet.cs"];
+        var first = Programs.Run("git", Programs.Root(), "log", "--format=%H", "-S### What a module carries", "--", "README.md")
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)[^1];
+        var named = Commits(Readme).ToList();
+        var changing = Programs.Run("git", Programs.Root(), ["log", "--format=%H", $"{first}~1..HEAD", "--", .. files])
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Where(hash => Programs.Run("git", Programs.Root(), ["show", hash, "--format=", "-U0", "--", .. files]).Split('\n')
+                .Any(line => CodeLine().IsMatch(line)));
+
+        var unnamed = changing.Where(hash => !named.Any(name => hash.StartsWith(name, StringComparison.Ordinal))).Select(hash => hash[..7]).ToList();
+
+        Assert.True(unnamed.Count == 0, $"{string.Join(", ", unnamed)} changed the checks' code and the table of what a module carries names none of them.");
+    }
+
     [Fact]
     public void A_Fact_Without_Its_Row_A_Row_Without_Its_Fact_And_A_Row_Naming_Another_Check_Are_Found()
     {
@@ -131,4 +153,8 @@ public partial class CarriesTests
 
     [GeneratedRegex(@"`([0-9a-f]{7,40})`")]
     private static partial Regex Hash();
+
+    // An added or removed line of a diff that holds code, neither blank nor a comment.
+    [GeneratedRegex(@"^[-+](?![-+]{2} )(?!\s*(//|$))")]
+    private static partial Regex CodeLine();
 }

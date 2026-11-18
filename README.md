@@ -230,11 +230,16 @@ changed what the check reads. A module pinned before a fact's commit owes that f
 | `No_Public_Name_Or_Its_Documentation_Names_An_Engine` | `ModuleChecks.EngineNameFault` | `7d56e0f` | |
 | `The_Readme_Names_Every_Public_Type` | `ModuleChecks.UnnamedFault` | `7d56e0f` | `183e308`, a generic type's arity |
 | `The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host` | `ModuleChecks.BindingBlock` | `7d56e0f` | |
-| `The_Cheatsheet_Is_What_The_Built_Library_Writes` | `ModuleChecks.CheatsheetFault` | `17860cb` | `3720852`, a record's constructor, `183e308`, inheritdoc, `5bf6255`, infinite defaults, and `460a481`, operators, tuples and nested types |
+| `The_Cheatsheet_Is_What_The_Built_Library_Writes` | `ModuleChecks.CheatsheetFault` | `17860cb` | `3720852`, a record's constructor, `183e308`, inheritdoc, `5bf6255`, infinite defaults, `460a481`, operators, tuples and nested types, and `dc117ac`, tuples' element names |
 | `No_Tracked_Text_Names_An_Engine` | `ModuleChecks.EngineNameInTextFault` | `b817e9b` | `70543a2`, the review's archive left out |
 | `The_Readme_Opens_With_Its_Link_Row` | `ModuleChecks.LinkRowFault` | `0b0b902` | `75d77f2`, the cheatsheet as one word |
 
 `ModuleChecks.ProductNamesInText`, from `d1b04e5`, is a list a reviewer reads and no fact.
+
+A commit that changes the code of `Tools/ModuleChecks.cs` or `Tools/Cheatsheet.cs` after the table
+stood is named in the row of the fact it changes, since a module learns of a change from the table
+alone through pin.py, and CarriesTests fails a commit named nowhere. One that changes the code and
+no fact's reading is named on this line instead: none so far.
 
 A module's README opens with its link row, its first line above its title, the row's links to its
 DEVLOG.md and CHEATSHEET.md on its repository separated by a space, then a blank line and its title,

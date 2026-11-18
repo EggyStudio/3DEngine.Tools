@@ -495,3 +495,14 @@ and names the script, its tests failing first at 81 KB and on the line's new wor
 row in the table of what a module carries names `70543a2`. The README has a section for the script
 and AGENTS.md's scripts row names it. The strict build is clean and the tests pass, 198 and two
 skipped plain and 199 and one skipped in the variant.
+
+The table of what a module carries kept up in the commit carrying this line, the second of the
+three. CarriesTests fails a commit that changes the code of `Tools/ModuleChecks.cs` or
+`Tools/Cheatsheet.cs` after the table stood, a line of a diff neither blank nor a comment, which the
+table names nowhere, a row or a new line under it taking a commit that changes no fact's reading; it
+is skipped where the history is shallow. The files are read and not the methods, since `70543a2`
+changed the text fact through a pattern its check calls and not the check's body, which `git log -L`
+on the method would have missed. The fact failed first on the history itself: `dc117ac` changed the
+cheatsheet's writer, the tuples' element names, and no row named it, so pin.py told no module its
+cheatsheet would change; the cheatsheet fact's row names it now. The strict build is clean and the
+tests pass, 199 and two skipped plain and 200 and one skipped in the variant.
