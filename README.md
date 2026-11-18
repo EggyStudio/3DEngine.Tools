@@ -27,6 +27,15 @@ where no line is a FAIL, whatever WARN lines stand, 1 where a line is, and 2 whe
 not run, a revision git does not know or a pattern that is no regular expression among the causes,
 which it names, so `commitcheck.py <repo> && git push` pushes only a commit with no FAIL.
 
+Before the commit is made, `--staged` reads what the index holds by the same rules, with the message
+in the file `--message` names, so a fault is mended before the commit rather than by an amend after
+it, and the commit is then made from the same file.
+
+```bash
+FORBIDDEN_NAMES='<names>' python3 -I <Tools>/scripts/commitcheck.py <repo> --staged --message=<file>
+git commit -F <file>
+```
+
 ## A sheet of charts
 
 `scripts/chart.py` draws a sheet of data charts on a white ground from a layout in JSON, a title and
@@ -371,7 +380,13 @@ saved smaller under `--thumbs` to be looked at, which needs Pillow.
 
 ```bash
 python3 -I scripts/commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>]
+python3 -I scripts/commitcheck.py <repo> --staged [--message=<file>] [--thumbs=<folder>]
 ```
+
+With `--staged` the index is read as a commit not yet made, printed as `staged`: its files against
+HEAD, its pictures as the index holds them, the identity git would give the commit, and the message
+in the file `--message` names, which where none is given is not read, a note saying so. Nothing
+staged is said and exits 0, and a commit given with `--staged` is refused with 2.
 
 A FAIL line stops a push, a WARN line is for the reviewer to read, and a note says what to look at.
 The exit code is 0 where no line is a FAIL, 1 where a line is, and 2 where the check could not run,

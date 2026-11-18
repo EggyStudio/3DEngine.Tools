@@ -349,6 +349,96 @@ public class CommitCheckTests
         Assert.Contains("FAIL .github/assets/readings/2026-11-18-item-1-dark.webp: the ground is not white", printed);
     }
 
+    [NeedsPythonFact]
+    public void Staged_Files_And_A_Message_File_Are_Read_Before_The_Commit_And_The_Work_Tree_Is_Not()
+    {
+        var repo = Staged();
+        try
+        {
+            var comment = "# " + string.Join(' ', Enumerable.Repeat("word", 22)) + "\n";
+            File.WriteAllText(Path.Combine(repo, "b.py"), comment + "print(2)\n");
+            Git(repo, "add", "b.py");
+            // A change the work tree holds and the index does not, which the commit leaves out.
+            File.WriteAllText(Path.Combine(repo, "a.py"), comment + "print(1)\n");
+            var message = Path.Combine(repo, ".git", "next");
+            File.WriteAllText(message, "A plain subject\n\nA script prints two.\n");
+
+            var (code, printed) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "--staged", "--message=" + message);
+
+            Assert.Equal(1, code);
+            Assert.Contains("staged   FAIL  A script prints two.", printed);
+            Assert.Contains($"FAIL b.py:1: a comment line of {comment.Length - 1} columns, past 100", printed);
+            Assert.Contains("FAIL the message does not begin with the three marks and a blank line", printed);
+            Assert.DoesNotContain("a.py:1", printed);
+        }
+        finally
+        {
+            Delete(repo);
+        }
+    }
+
+    [NeedsPythonFact]
+    public void Staged_Without_A_Message_Reads_The_Files_And_Says_The_Message_Was_Not_Read_And_Nothing_Staged_Is_Said()
+    {
+        var repo = Staged();
+        try
+        {
+            var (none, nothing) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "--staged");
+            File.WriteAllText(Path.Combine(repo, "b.py"), "# Prints two.\nprint(2)\n");
+            Git(repo, "add", "b.py");
+
+            var (code, printed) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "--staged");
+
+            Assert.True(none == 0, nothing);
+            Assert.Contains("nothing is staged", nothing);
+            Assert.True(code == 0, printed);
+            Assert.Contains("staged   ok  (no message given)", printed);
+            Assert.Contains("note no message is given with --message, so the message was not read", printed);
+        }
+        finally
+        {
+            Delete(repo);
+        }
+    }
+
+    [NeedsPillowFact]
+    public void A_Staged_Picture_On_A_Dark_Ground_Fails_Read_From_The_Index()
+    {
+        var repo = Staged();
+        try
+        {
+            var file = Path.Combine(repo, ".github", "assets", "readings", "2026-11-18-dark.webp");
+            Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+            Programs.Run(Programs.Python.Value!, repo, "-I", "-c", $"from PIL import Image; Image.new('RGB', (64, 32), 'black').save(r'{file}')");
+            Git(repo, "add", "-A");
+            // The work tree's picture is made white after it is staged, so a dark ground is read
+            // from the index alone.
+            Programs.Run(Programs.Python.Value!, repo, "-I", "-c", $"from PIL import Image; Image.new('RGB', (64, 32), 'white').save(r'{file}')");
+
+            var (code, printed) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "--staged", "--thumbs=" + Path.Combine(repo, ".git", "thumbs"));
+
+            Assert.Equal(1, code);
+            Assert.Contains("FAIL .github/assets/readings/2026-11-18-dark.webp: ", printed);
+        }
+        finally
+        {
+            Delete(repo);
+        }
+    }
+
+    // A repository of one commit in the form, its identity set in its own configuration, which the
+    // check reads for a commit not yet made.
+    private static string Staged()
+    {
+        var repo = Directory.CreateTempSubdirectory("commitcheck-").FullName;
+        Git(repo, "init", "-q");
+        Git(repo, "config", "user.name", "EggyStudio");
+        Git(repo, "config", "user.email", "owner@example.com");
+        Git(repo, "config", "core.autocrlf", "false");
+        Commit(repo, "a.py", Lead + "A script prints one.\n");
+        return repo;
+    }
+
     // A repository of one commit holding the files given, a picture's text naming its color, and
     // the check run over it with the made-up name given or none.
     private static (int Code, string Printed) Check(Dictionary<string, string> files, string message, string? names = MadeUpName, Dictionary<string, string?>? environment = null)

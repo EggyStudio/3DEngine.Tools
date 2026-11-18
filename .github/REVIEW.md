@@ -1049,3 +1049,19 @@ of this commit read 191 total and 190 passed and nothing else: dotnet test count
 in no counter, its notExecuted 0, while its result's outcome is NotExecuted; a third test failed
 first on a made TRX of that form. The strict build is clean and the tests pass, 191 and one skipped
 plain and 192 in the variant.
+
+The index read before a commit in the commit carrying this line, the first of the three by the
+review's order. `commitcheck.py <repo> --staged [--message=<file>]` reads what the index holds by
+the rules a commit is read by, printed as `staged`: its files against HEAD by `git diff --cached`,
+its pictures as the index holds them, the identity git would give the commit by `git var`, and the
+message in the file named, the one `git commit -F` then takes, the message's checks moved whole into
+a function of their own that both read. Where no message is given it is not read and a note says so;
+nothing staged is said with 0, and a commit given with `--staged` is refused with 2.
+CommitCheckTests failed first on three made repositories: a staged script with a comment past 100
+columns and a message without its marks, both failing while a work tree's change unstaged is not
+read; no message given and nothing staged; and a staged picture on a dark ground, the work tree's
+copy made white after it was staged. Run on this batch before its commit it found a comment line of
+101 columns in the new tests in 0.09 seconds, mended before the commit. The README says it in its
+section for a session and in the check's own. COMMITS.md's pass before a commit could name it, which
+is the review's text to change. The strict build is clean and the tests pass, 194 and one skipped
+plain and 195 in the variant.

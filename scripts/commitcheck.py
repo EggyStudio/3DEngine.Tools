@@ -2,7 +2,11 @@
 # before they are reported and pushed.
 #
 #   python3 -I scripts/commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>]
+#   python3 -I scripts/commitcheck.py <repo> --staged [--message=<file>] [--thumbs=<folder>]
 #
+# With --staged it reads what the index holds, before the commit is made, and the message in the
+# file --message names, the one the commit is then made with by git commit -F, the identity the
+# commit would take read from git, so a fault is found before the commit and not after it.
 # The range is origin/main..HEAD where none is given. A FAIL line stops a push and the exit code is
 # 1 where any commit has one; a WARN line is read by the reviewer, who decides; a note says what to
 # look at. The names no commit may carry come from the FORBIDDEN_NAMES environment variable alone,
@@ -179,12 +183,13 @@ def picture_faults(image, path):
 
 
 def picture(repo, rev, path, thumbs, fail, warn, note):
+    # A revision of None is the index, which git names by a colon alone.
     try:
         from PIL import Image
     except ImportError:
         warn(f"{path}: Pillow is missing here, so the ground is not read")
         return
-    image = Image.open(io.BytesIO(git(repo, "show", f"{rev}:{path}", raw=True))).convert("RGB")
+    image = Image.open(io.BytesIO(git(repo, "show", f"{rev or ''}:{path}", raw=True))).convert("RGB")
     w, h = image.size
     for level, _, found in picture_faults(image, path):
         (fail if level == "FAIL" else warn)(f"{path}: {found}")
@@ -202,10 +207,8 @@ def message(repo, rev):
     return commit.split("\n\n", 1)[1] if "\n\n" in commit else ""
 
 
-def check(repo, rev, names, thumbs):
-    fails, warns, notes = [], [], []
-    fail, warn, note = fails.append, warns.append, notes.append
-    text = message(repo, rev)
+def read_message(text, fail, warn):
+    """Reads a message against the form, its sentence returned."""
     if not text.startswith(LEAD):
         fail(f"the message does not begin with the three marks and a blank line, it begins {text[:13].encode('utf-8').hex()}")
     body = text[len(LEAD):] if text.startswith(LEAD) else text.split("\n\n", 1)[-1]
@@ -221,27 +224,49 @@ def check(repo, rev, names, thumbs):
         found = pattern.search(sentence)
         if found:
             fail(f"the message has {label}, \"{found.group(0)}\"")
+    return sentence
+
+
+def check(repo, rev, names, thumbs, text=None):
+    """Reads a commit, or the index where rev is None with the message text given, if any."""
+    fails, warns, notes = [], [], []
+    fail, warn, note = fails.append, warns.append, notes.append
+    if rev is not None:
+        text = message(repo, rev)
+    if text is None:
+        note("no message is given with --message, so the message was not read")
+        sentence = "(no message given)"
+    else:
+        sentence = read_message(text, fail, warn)
     # A module is a repository under Modules other than Tools, whose scripts name the repositories
     # they read by their work, and its message names no engine, which a devlog would show.
     top = git(repo, "rev-parse", "--show-toplevel").strip()
     module = os.path.basename(os.path.dirname(top)) == "Modules" and os.path.basename(top) != "Tools"
-    named = ENGINE.search(sentence) if module else None
+    named = ENGINE.search(sentence) if module and text is not None else None
     if named:
         fail(f"the message names an engine, \"{named.group(0)}\", which a module names nowhere but in its assembly's name")
-    author, committer, parents = git(repo, "log", "-1", "--format=%an%x00%cn%x00%P", rev).strip().split("\x00")
+    if rev is None:
+        # The names git would give the commit, each identity line read up to its address.
+        author, committer = (git(repo, "var", v).rsplit(" <", 1)[0] for v in ("GIT_AUTHOR_IDENT", "GIT_COMMITTER_IDENT"))
+        parents = ""
+    else:
+        author, committer, parents = git(repo, "log", "-1", "--format=%an%x00%cn%x00%P", rev).strip().split("\x00")
     if author != AUTHOR or committer != AUTHOR:
         fail(f"author {author} and committer {committer}, where {AUTHOR} is the identity of both")
     # A merge has more than one parent, and a repository's first commit has none.
     if len(parents.split()) > 1:
         fail(f"{len(parents.split())} parents, where a commit on main has one")
     if names:
-        shown = git(repo, "show", "--format=%B%n%an%n%ae%n%cn%n%ce", rev)
+        shown = git(repo, "show", "--format=%B%n%an%n%ae%n%cn%n%ce", rev) if rev else f"{text or ''}\n{author}\n{committer}"
         count = len(re.findall(names, shown, re.I))
         if count:
             fail(f"{count} hits of a forbidden name")
     else:
         warn("FORBIDDEN_NAMES is not set, so the names were not read for")
-    status = [line.split("\t") for line in git(repo, "show", "--format=", "--name-status", rev).splitlines() if line]
+    # What the commit changes, or what the index changes against HEAD.
+    changes = ("show", "--format=") if rev else ("diff", "--cached")
+    revision = [rev] if rev else []
+    status = [line.split("\t") for line in git(repo, *changes, "--name-status", *revision).splitlines() if line]
     pictures = [p[-1] for p in status if p[0][0] in "AM" and PICTURES.match(p[-1])]
     seen = [p[-1] for p in status if SEEN.search(p[-1]) and not p[-1].startswith(".github/") and "Tests" not in p[-1]]
     if seen and not pictures:
@@ -255,7 +280,7 @@ def check(repo, rev, names, thumbs):
         picture(repo, rev, p, thumbs, fail, warn, note)
 
     path, number, in_xml = None, 0, False
-    for line in git(repo, "show", "--format=", "--unified=0", rev).splitlines():
+    for line in git(repo, *changes, "--unified=0", *revision).splitlines():
         if line.startswith("+++ "):
             path = line[6:] if line.startswith("+++ b/") else None
             in_xml = False
@@ -291,7 +316,9 @@ def main():
     arguments = [a for a in sys.argv[1:] if not a.startswith("--")]
     thumbs = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--thumbs=")), os.path.join(tempfile.gettempdir(), "commitcheck"))
     if not arguments:
-        stop("Usage is commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>].")
+        stop("Usage is commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>], or <repo> --staged [--message=<file>].")
+    staged = "--staged" in sys.argv[1:]
+    given = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--message=")), None)
     repo, revs = arguments[0], arguments[1:] or ["origin/main..HEAD"]
     names = os.environ.get("FORBIDDEN_NAMES")
     if names:
@@ -300,6 +327,14 @@ def main():
         except re.error as error:
             stop(f"FORBIDDEN_NAMES is no regular expression, {error}.")
     hashes = []
+    if staged:
+        if arguments[1:]:
+            stop("--staged reads the index, so no commit is given with it.")
+        try:
+            text = open(given, encoding="utf-8").read() if given else None
+        except OSError as error:
+            stop(f"The message file could not be read, {error}.")
+        revs = []
     for rev in revs:
         hashes += git(repo, "rev-list", "--reverse", rev).split() if ".." in rev else [git(repo, "rev-parse", rev).strip()]
     branch = git(repo, "rev-parse", "--abbrev-ref", "HEAD").strip()
@@ -307,9 +342,15 @@ def main():
     if branch.startswith("claude/"):
         print(f"FAIL the branch is {branch}")
         failed += 1
-    for commit in hashes:
-        sentence, fails, warns, notes = check(repo, commit, names, thumbs)
-        print(f"{commit[:8]} {'FAIL' if fails else 'WARN' if warns else 'ok'}  {sentence[:110]}")
+    # The index is read as a commit of its own, named "staged", where anything is staged.
+    readings = [(commit, commit[:8]) for commit in hashes]
+    if staged and git(repo, "diff", "--cached", "--name-only").strip():
+        readings.append((None, "staged  "))
+    elif staged:
+        print("nothing is staged")
+    for commit, label in readings:
+        sentence, fails, warns, notes = check(repo, commit, names, thumbs, text if commit is None else None)
+        print(f"{label} {'FAIL' if fails else 'WARN' if warns else 'ok'}  {sentence[:110]}")
         for line in fails:
             print(f"  FAIL {line}")
         for line in warns:
@@ -317,7 +358,7 @@ def main():
         for line in notes:
             print(f"  note {line}")
         failed += bool(fails)
-    if not hashes:
+    if not hashes and not staged:
         print("no commits in the range")
     sys.exit(1 if failed else 0)
 
