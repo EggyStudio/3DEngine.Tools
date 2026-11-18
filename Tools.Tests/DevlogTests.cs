@@ -10,7 +10,8 @@ public class DevlogTests
         var repo = Directory.CreateTempSubdirectory("devlog-").FullName;
         try
         {
-            // A repository of one commit, which the review's one item names as the commit that closed it.
+            // A repository of one commit, which the review's one item names as the commit that
+            // closed it.
             Git(repo, "init", "-q");
             File.WriteAllText(Path.Combine(repo, "README.md"), "# Sample\n");
             Git(repo, "add", "-A");

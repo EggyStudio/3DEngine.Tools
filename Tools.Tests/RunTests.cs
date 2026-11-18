@@ -18,8 +18,8 @@ public class RunTests
             log.Add("2026-10-31T12:01:00.0000000Z ##[group]Run build/play.sh");
             for (int i = 0; i < 100; i++) log.Add($"2026-10-31T12:01:{i % 60:00}.5000000Z play {i}");
             log.Add("2026-10-31T12:02:00.0000000Z ##[error]Process completed with exit code 1.");
-            // The next step begins in the second the failing one ends, as GitHub's whole-second times
-            // often have it, and its header is no line of the failing step's.
+            // The next step begins in the second the failing one ends, as GitHub's whole-second
+            // times often have it, and its header is no line of the failing step's.
             log.Add("2026-10-31T12:02:00.5000000Z ##[group]Run actions/upload-artifact@v7");
             log.Add("2026-10-31T12:02:00.5000000Z ##[endgroup]");
             for (int i = 0; i < 10; i++) log.Add($"2026-10-31T12:02:05.0000000Z clean up {i}");

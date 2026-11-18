@@ -108,4 +108,98 @@ session's scripts going into Tools; each engine's session binds the module (item
 reads REVIEW.md's head, its items and the Replies before a batch, as N 7.7 says, and the reviewing
 session pushes.
 
+6. **The module is worked by a session of its own.** Decided at 16:43 on 2026-11-18 for the seven
+    modules at once. From its first commit the module's session alone writes the module's source,
+    tests and documents, and the engines' sessions write here no longer; an engine's coder that
+    needs something of the module asks the module's session in a message and takes the commit by
+    moving its submodule's pointer. Every open item above that names an engine's or the game's
+    session as its worker is the module's session's, apart from the binding inside an engine, which
+    stays that engine's. The session's first Reply reads this file against the tree and says what is
+    done, what is open and the order it proposes; the review answers, and that order stands. The
+    rules are NORM.md's as before, among them no engine referenced (N 2.1), tests that need no
+    window and no GPU, the commit's form, a failing test before a mend, a picture on a white ground
+    where a thing is seen, and any GPU program through the lock of N 7.9 with a waiting file. The
+    session reports each checked commit to the reviewing session, which reads it, pushes it and
+    reads its run; it does not push.
+
 ## Replies
+
+Decision 6's first Reply, this file read against the tree at `67e6e30`, the last commit here and on
+origin.
+
+**Done.** Items 1 and 2 at `e28b3b4` and `13c8202`, and item 3's devlog generator and run reader at
+`7532128` and `321de49`, as the head says. The head does not name `67e6e30` of 2026-11-17, devlog.py
+reading its rewrites, patterns and undated day from the file `--fixes` names, which is on origin
+with its run green (44111799256). The strict build is clean and the 3 tests pass (dotnet build
+Tools.slnx -warnaserror, dotnet test Tools.Tests).
+
+**Open.** Item 3's sheet composer, and the check item 3 asks of each repository's copies, which has
+no part. Item 4 has none, neither engine's `.gitmodules` naming Tools. DEVLOG.md ends at 2026-10-31
+without item 3's parts, and is regenerated with the next commit.
+
+**What the module holds.** The scripts a session runs from this checkout over any repository,
+Python 3 under `-I` with Pillow where a picture is written, taking paths and JSON files, devlog.py,
+run.py and the sheet composer. The sources of STYLE.md and COMMITS.md, the files under `.github`,
+which the six other modules carry, COMMITS.md to the byte in all six and STYLE.md in five, Levels'
+adding the middle dot's paragraph that 3DEngine's holds as well, and which the engines carry with
+paragraphs of their own (50 and 196 lines changed, `diff` of this STYLE.md against 3DEngine's and
+BevyCSharp's). NORM.md is the review's (N 7.3) and no source here. The library holds what both
+engines' tests run over their own checkouts and hold twice today, the shell forms only GNU's tools
+or bash 4 read, 3DEngine's ScriptTests reading seven and BevyCSharp's ten, and the copies' check. No
+editor and no editor shell, which wait on the owner's word (3DEngine Decision 114). The texture
+encoders Modeling's and Vegetation's `build/textures.py` share, 24 functions of the same name with
+BC7's and BC5's encoders, the KTX2 writer and the mipmaps among them, stay there, since no module
+takes another, until the review decides whether one does.
+
+**The interface.** The module needs nothing of a renderer, a world or a scheduler. It reads a
+checkout's files through System.IO, a checkout being plain files and no engine's asset store, so it
+declares no interface for an engine to implement. An engine binds it by the submodule at
+`modules/Tools` referenced from its test project alone, since nothing an engine ships calls it, one
+test of its own calling the library with its root and the words its copies put for the module's,
+and the scripts run by their path under `modules/Tools/scripts`.
+
+**The first three commits.**
+
+1. The sheet composer, `scripts/sheet.py`, item 3's last part, begun with this Reply. A JSON layout
+   of rows of panels on a white ground, a heading a column and a title a row in dark text. A panel
+   is a capture, PNG or PFM, cropped, the PFM's linear light at a gain, or at the gain that puts a
+   reference's mean at a value, in sRGB; the signed difference of two in red where brighter and
+   blue where darker, full at a share of the reference's mean; or the largest channel's difference
+   times a factor. A box is drawn only with the mean it measures inside, printed beside it and on
+   the terminal. SheetTests composes a sheet from two PFMs and a PNG it writes and reads its white
+   ground, a panel's pixels where placed, the difference red and blue where it made a frame brighter
+   and darker, and the box's mean as it computes it, skipped with its reason where Python or Pillow
+   is missing (N 3.2). The workflow installs `python3-pil` on Ubuntu as 3DEngine's captures do, so
+   it runs there. A sheet the test makes goes to `.github/assets/readings` (N 4.8).
+2. The shell forms, `ShellForms` in the library, BevyCSharp's ten with 3DEngine's seven among them,
+   a line's comment left out, the scripts a workflow's Windows or macOS jobs run and those they
+   call, and every script of a checkout. The engines' cases of each form come with it, and a test
+   reads the module's own `build/version.sh`, which gives N 6.6 its test here.
+3. The copies' check, `DocumentCopies`, STYLE.md and COMMITS.md carried in the assembly. Every
+   paragraph of a source, with the copy's words for the module's put in, stands in the copy in its
+   order, and the copy adds paragraphs of its own between; a paragraph it lacks or changes is named
+   by its first words. Tests of a copy that adds a paragraph, changes a word, drops one and puts its
+   words in. The source takes the middle dot's paragraph 3DEngine and Levels hold, if the review
+   agrees.
+
+Then item 4, each engine's binding, deleting its own table of forms and taking the check, the
+paragraphs it changed set apart as its own or offered to the source. Item 3's Shared line goes by
+message to each engine's session and to the review as a part lands, this session writing here
+alone.
+
+Item 3's last part, the sheet composer, in the commit carrying this line, with N 4.11's test.
+`scripts/sheet.py` as the first commit above gives it, its layout's keys in the README, a box's
+reading to four significant figures, since the first sheet read the floor of 3DEngine's room at
+0.0005 and 0.0004 to four decimals where 0.0005032 and 0.0004174 tell the two apart. The sheet of
+that room is the devlog's picture, `.github/assets/readings/2026-11-18-item-3-sheet.webp`, composed
+in a second from the PFMs of four 1280 by 720 frames. SheetTests composes a sheet of a capture with
+two boxes, a signed difference and a difference from two PFMs and two PPMs it writes, and reads the
+white ground, a capture at 0.25 shown as 137, the red, blue and white of the signed panel, the
+difference's 215 and the boxes' 0.5 and 0.375; it runs where Python 3 imports Pillow and is skipped
+with its reason elsewhere, and the workflow installs `python3-pil` on Ubuntu. CommentTests reads
+every comment line of the C#, Python, shell, YAML and MSBuild sources and failed on 14 past 100
+columns, in the scripts, the tests, both project files and the workflow, which are wrapped. The
+strict build is clean and the tests pass, 15 where there were 3 (dotnet test Tools.Tests). DEVLOG.md
+is regenerated. AGENTS.md's DEVLOG.md row carries its link at `67e6e30`, so nothing there
+changes, and its scripts row, which names devlog.py and run.py, waits on the owner's word to name
+sheet.py (N 7.4).

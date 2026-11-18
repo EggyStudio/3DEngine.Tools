@@ -43,7 +43,8 @@ if sent_json:
                 small = src.endswith(".png") and os.path.getsize(src) < 200_000 and im.size[0] <= 800
                 im.save(os.path.join(pic_dir, dst), "WEBP", lossless=small, quality=85, method=6)
             captions.setdefault(os.path.relpath(pic_dir, repo) + "/" + dst, cap); cap = ""
-# the pictures folders, each picture on the day its name says, captioned by the sessions' line or its commit's sentence
+# the pictures folders, each picture on the day its name says, captioned by the sessions' line or
+# its commit's sentence
 for d in PIC_DIRS:
     for f in sorted(os.listdir(os.path.join(repo, d))):
         if not f.endswith(".webp"): continue
@@ -55,7 +56,8 @@ for d in PIC_DIRS:
         if cap is None and len(added) == 3: cap, h = fix(fl(git("log", "-1", "--format=%b", added[2])).strip()), added[2]
         when = int(added[1]) if len(added) == 3 else 1 << 40
         day(date)["pictures"].append(((0, when, f), rel, cap or "", h))
-# notes the sessions wrote for the devlog, a Markdown file a note beside the pictures, named by the day and the item
+# notes the sessions wrote for the devlog, a Markdown file a note beside the pictures, named by the
+# day and the item
 for d in PIC_DIRS:
     for f in sorted(os.listdir(os.path.join(repo, d))):
         m = re.match(r"(\d{4}-\d{2}-\d{2})-.*\.md$", f)

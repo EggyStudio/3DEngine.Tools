@@ -10,7 +10,8 @@
         <ProjectReference Include="..\Tools\Tools.csproj" />
     </ItemGroup>
 
-    <!-- The scripts the tests run, copied beside them so a test finds them wherever it runs from. -->
+    <!-- The scripts the tests run, copied beside them so a test finds them wherever it runs
+         from. -->
     <ItemGroup>
         <None Include="..\scripts\*.py" Link="scripts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>

@@ -38,12 +38,19 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # Pillow, which the sheet composer reads and writes pictures with, from Ubuntu's archive as
+      # the engines' captures take it. Windows and macOS report the sheet's test skipped with its
+      # reason (N 3.2).
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y python3-pil
+
       - run: dotnet build Tools.slnx -warnaserror
 
       - run: dotnet test Tools.Tests --no-build --logger trx --results-directory Tools.Tests/TestResults
 
       - uses: actions/upload-artifact@v7
-        # Kept for a job canceled as well as one that failed, since a cut-short run is the one to read.
+        # Kept for a job canceled as well as one that failed, since a cut-short run is the one to
+        # read.
         if: failure() || cancelled()
         with:
           name: test-results-${{ matrix.os }}

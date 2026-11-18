@@ -1,7 +1,7 @@
-# Reads a GitHub Actions run, its jobs with their conclusions and times and, for each job that failed,
-# timed out or was canceled, the annotations of its check run and the last 60 lines of the step it
-# stopped at. The lines go to a file whose path is printed, never to the terminal, since a job's log
-# runs to thousands of lines and the end of one step is the part read.
+# Reads a GitHub Actions run, its jobs with their conclusions and times and, for each job that
+# failed, timed out or was canceled, the annotations of its check run and the last 60 lines of the
+# step it stopped at. The lines go to a file whose path is printed, never to the terminal, since a
+# job's log runs to thousands of lines and the end of one step is the part read.
 #
 #   python3 -I scripts/run.py <account/repo> <run id> <folder for the logs>
 #
@@ -47,7 +47,8 @@ def took(job):
     return f"{seconds // 60} min {seconds % 60} s" if seconds >= 60 else f"{seconds} s"
 
 
-# The jobs come a hundred to a page, the most GitHub gives, and a page more is asked while some are missing.
+# The jobs come a hundred to a page, the most GitHub gives, and a page more is asked while some are
+# missing.
 jobs, page = [], 1
 while True:
     answer = api(f"repos/{repo}/actions/runs/{run}/jobs?per_page=100&page={page}")

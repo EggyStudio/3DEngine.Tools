@@ -4,12 +4,27 @@ using Xunit;
 
 namespace Tools.Tests;
 
-/// <summary>Skipped where no Python 3 runs, so a run's summary says the script's tests did not run.</summary>
+/// <summary>
+/// Skipped where no Python 3 runs, so a run's summary says the script's tests did not run.
+/// </summary>
 public sealed class NeedsPythonFactAttribute : FactAttribute
 {
     public NeedsPythonFactAttribute()
     {
         if (Programs.Python.Value is null) Skip = "No Python 3 runs here as python3 or python.";
+    }
+}
+
+/// <summary>
+/// Skipped where no Python 3 runs or the one that does has no Pillow, which a script needs to read
+/// or write a picture.
+/// </summary>
+public sealed class NeedsPillowFactAttribute : FactAttribute
+{
+    public NeedsPillowFactAttribute()
+    {
+        if (Programs.Python.Value is null) Skip = "No Python 3 runs here as python3 or python.";
+        else if (!Programs.Pillow.Value) Skip = $"{Programs.Python.Value} has no Pillow, which the sheet needs.";
     }
 }
 
@@ -22,14 +37,36 @@ public static class Programs
     /// </summary>
     public static readonly Lazy<string?> Python = new(() => new[] { "python3", "python" }.FirstOrDefault(Runs));
 
-    /// <summary>Runs a script copied beside the tests with Python's isolated mode, as a repository runs it, and returns what it printed.</summary>
+    /// <summary>
+    /// Whether the Python that runs imports Pillow, in isolated mode as the scripts run.
+    /// </summary>
+    public static readonly Lazy<bool> Pillow = new(() => Python.Value is { } python && Exits(python, "-I", "-c", "import PIL"));
+
+    /// <summary>The checkout's root, the folder above the tests that holds Tools.slnx.</summary>
+    public static string Root()
+    {
+        for (var folder = new DirectoryInfo(AppContext.BaseDirectory); folder is not null; folder = folder.Parent)
+            if (File.Exists(Path.Combine(folder.FullName, "Tools.slnx"))) return folder.FullName;
+        throw new DirectoryNotFoundException($"No folder above {AppContext.BaseDirectory} holds Tools.slnx.");
+    }
+
+    /// <summary>
+    /// Runs a script copied beside the tests with Python's isolated mode, as a repository runs it,
+    /// and returns what it printed.
+    /// </summary>
     public static string Script(string name, params string[] arguments) => Script(name, [], arguments);
 
-    /// <summary>Runs a script as <see cref="Script(string, string[])"/> does, with variables set in its environment.</summary>
+    /// <summary>
+    /// Runs a script as <see cref="Script(string, string[])"/> does, with variables set in its
+    /// environment.
+    /// </summary>
     public static string Script(string name, Dictionary<string, string> environment, params string[] arguments) =>
         Run(Python.Value!, AppContext.BaseDirectory, environment, ["-I", Path.Combine(AppContext.BaseDirectory, "scripts", name), .. arguments]);
 
-    /// <summary>Runs a program in a folder and returns what it printed, failing the test where it exits with an error.</summary>
+    /// <summary>
+    /// Runs a program in a folder and returns what it printed, failing the test where it exits with
+    /// an error.
+    /// </summary>
     public static string Run(string program, string folder, params string[] arguments) => Run(program, folder, [], arguments);
 
     private static string Run(string program, string folder, Dictionary<string, string> environment, string[] arguments)
@@ -45,8 +82,20 @@ public static class Programs
         return output;
     }
 
-    // Windows names a Store installer python3 where no Python is installed, which prints where to get
-    // one and exits with an error, so the version it prints is read rather than its being found.
+    private static bool Exits(string program, params string[] arguments)
+    {
+        var start = new ProcessStartInfo(program) { RedirectStandardOutput = true, RedirectStandardError = true };
+        foreach (var argument in arguments) start.ArgumentList.Add(argument);
+        using var process = Process.Start(start)!;
+        process.StandardOutput.ReadToEnd();
+        process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        return process.ExitCode == 0;
+    }
+
+    // Windows names a Store installer python3 where no Python is installed, which prints where to
+    // get one and exits with an error, so the version it prints is read rather than its being
+    // found.
     private static bool Runs(string command)
     {
         try
