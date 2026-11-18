@@ -242,3 +242,24 @@ dot's paragraph alone; with `engine` put for `module`, 3DEngine's STYLE.md diffe
 and its COMMITS.md in 9, BevyCSharp's in 29 and 9, which each engine's binding settles, its own text
 set apart or offered to the source. The strict build is clean and the tests pass, 48 where there
 were 41.
+
+The fourth commit, the commit's check, in the commit carrying this line. `scripts/commitcheck.py` is
+the review's check taken whole, the forbidden names read from FORBIDDEN_NAMES alone and printed
+nowhere, with these mends. The message is read from the commit object, where `log --format=%B`
+added a line end of its own and the count of lines stood on it. The sentence fails on a colon
+inside it, a spaced hyphen and an en dash, and prose on an en dash, which STYLE.md forbids beside
+the em dash. A comment line past 100 columns fails, N 4.11 being a rule, where it warned, and a
+line holding an address alone is free as the rule has it. An MSBuild comment is read, over its
+lines in an MSBuild or XML file alone, since the first reading of this repository's commits took a
+C# string naming `<!--` as the opening of one and failed two lines of code; a test failed first on
+it. A repository's first commit passes, where its no parents failed; a merge still fails. A bad
+revision or a pattern that does not compile stops with a sentence, where it ended in a traceback,
+and the thumbnails' folder is made where it is missing, under the system's temporary folder where
+none is given. CommitCheckTests makes a repository of one commit for each case, a commit in the
+form, one without the marks, one without its full stop, one with a line after its sentence, a
+comment line past 100 columns beside an address alone, a line of code naming the XML mark, a
+made-up name given in the environment and the warning where none is, and a picture on a black
+ground, skipped where Pillow is missing. Read over this repository's commits from `1c0015a` to
+the head, none fails. The README says it and AGENTS.md's scripts row names it. NORM.md, naming
+eight modules, goes in with it, and STYLE.md and COMMITS.md, the sources, name none. The strict
+build is clean and the tests pass, 56 where there were 48.

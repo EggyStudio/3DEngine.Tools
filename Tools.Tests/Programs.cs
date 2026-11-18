@@ -69,17 +69,35 @@ public static class Programs
     /// </summary>
     public static string Run(string program, string folder, params string[] arguments) => Run(program, folder, [], arguments);
 
+    /// <summary>
+    /// Runs a script as <see cref="Script(string, string[])"/> does and returns its exit code with
+    /// what it printed and what it wrote as errors, for a script whose failing a test reads. A
+    /// variable given as null is taken out of the script's environment.
+    /// </summary>
+    public static (int Code, string Output) Attempt(string name, Dictionary<string, string?> environment, params string[] arguments) =>
+        Start(Python.Value!, AppContext.BaseDirectory, environment, ["-I", Path.Combine(AppContext.BaseDirectory, "scripts", name), .. arguments]) is var (code, output, error)
+            ? (code, output + error)
+            : default;
+
     private static string Run(string program, string folder, Dictionary<string, string> environment, string[] arguments)
+    {
+        var (code, output, error) = Start(program, folder, environment.ToDictionary(pair => pair.Key, pair => (string?)pair.Value), arguments);
+        Assert.True(code == 0, $"{program} {string.Join(' ', arguments)} exited with {code}. {error}");
+        return output;
+    }
+
+    private static (int Code, string Output, string Error) Start(string program, string folder, Dictionary<string, string?> environment, string[] arguments)
     {
         var start = new ProcessStartInfo(program) { WorkingDirectory = folder, RedirectStandardOutput = true, RedirectStandardError = true };
         foreach (var argument in arguments) start.ArgumentList.Add(argument);
-        foreach (var (key, value) in environment) start.Environment[key] = value;
+        foreach (var (key, value) in environment)
+            if (value is null) start.Environment.Remove(key);
+            else start.Environment[key] = value;
         using var process = Process.Start(start)!;
         var error = process.StandardError.ReadToEndAsync();
         var output = process.StandardOutput.ReadToEnd();
         process.WaitForExit();
-        Assert.True(process.ExitCode == 0, $"{program} {string.Join(' ', arguments)} exited with {process.ExitCode}. {error.Result}");
-        return output;
+        return (process.ExitCode, output, error.Result);
     }
 
     private static bool Exits(string program, params string[] arguments)

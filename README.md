@@ -102,6 +102,25 @@ A box under `boxes` is given in the capture's own pixels and drawn on a capture'
 the mean luminance in linear light it reads there written at its corner. The script prints the
 place of each title, each row's labels and each panel on the sheet, and each box's reading.
 
+## A commit's check
+
+`scripts/commitcheck.py` reads commits against the form COMMITS.md gives and the rules of NORM.md a
+pattern can read, so a session runs it on its own commit before reporting it. The message is the
+three marks, a blank line and one sentence ending in a full stop, with no review's number, no tool's
+name, no colon inside it and no spaced hyphen; author and committer are the repository's identity; a
+merge fails. An added comment line runs to 100 columns at most, a line holding an address alone
+apart, and added prose holds no em or en dash, no middle dot and no British spelling. A picture
+added under `.github/assets/readings` stands on a white ground and is saved smaller under `--thumbs`
+to be looked at, which needs Pillow.
+
+```bash
+python3 -I scripts/commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>]
+```
+
+A FAIL line stops a push and makes the exit code 1, a WARN line is for the reviewer to read, and a
+note says what to look at. The names no commit may carry are a regular expression in the
+`FORBIDDEN_NAMES` environment variable and in no file, and where it is not set the check says so.
+
 ## The shell's forms
 
 `ShellForms` in the library reads a checkout's shell scripts for the forms only GNU's tools or bash
