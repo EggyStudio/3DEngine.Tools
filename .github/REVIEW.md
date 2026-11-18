@@ -646,3 +646,24 @@ the three (python3 -I scripts/daily.py):
 in its generator, 3 in its examples and 2 in `build` (the report's hand work read by folder); the
 pictures are the ground the table of 2026-11-18 read. The strict build is clean and the tests
 pass, 112 where there were 111.
+
+The rewrap's proof in the commit carrying this line. `scripts/rewrapcheck.py` copies a
+repository's tracked files of the languages the rewrap reads into a folder of their own under the
+work folder given, makes it a repository, runs `rewrap.py --write` over the copy alone, and holds a
+file where its code, every line but its comment lines as the script reads them by a rule apart from
+the rewrap's, is byte-equal before and after, its comments' words are the same once their blanks
+are joined, and a second run changes nothing. Run over the three at their heads, a copy each in
+the session's scratch folder (python3 -I scripts/rewrapcheck.py <work> ..., 6.6 seconds, 59 MB),
+every file holds, the repositories' `git status --porcelain` the same before and after:
+
+| repository | files copied | rewrapped | lines rewrapped | lines more | left | the second run |
+|---|---|---|---|---|---|---|
+| 3DEngine | 1,820 | 1,170 | 5,449 | 3,496 | 70 | nothing changed |
+| BevyCSharp | 2,237 | 1,114 | 4,821 | 2,783 | 11 | nothing changed |
+| Voxel-Sandbox | 221 | 186 | 1,412 | 869 | 1 | nothing changed |
+
+RewrapCheckTests reads a made repository rewrapped in its copy alone with the second run changing
+nothing, a copy of the scripts whose rewrap changes a line of code with its own check of the code
+switched off, which the proof finds by its own rule, and a work folder inside the repository
+refused. The rewrap's run over the repositories themselves stays the owner's word. The strict build
+is clean and the tests pass, 115 where there were 112.

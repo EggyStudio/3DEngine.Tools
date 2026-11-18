@@ -265,6 +265,20 @@ exit code 1.
 python3 -I scripts/rewrap.py [--write] <file or folder> ...
 ```
 
+## A rewrap's proof
+
+`scripts/rewrapcheck.py` proves the rewrap safe to run over the repositories given by running it
+over a copy of each alone, the tracked files of the languages the rewrap reads copied into a folder
+of their own under the work folder given and made a repository there. A file holds where its code,
+every line but its comment lines as this script reads them apart from the rewrap's rule, is
+byte-equal before and after, its comments' words are the same once their blanks are joined, and a
+second run changes nothing. The repositories are read and never written, and a work folder inside
+one is refused.
+
+```bash
+python3 -I scripts/rewrapcheck.py <work folder> <repo> ...
+```
+
 ## The shell's forms
 
 `ShellForms` in the library reads a checkout's shell scripts for the forms only GNU's tools or bash
