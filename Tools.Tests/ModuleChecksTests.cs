@@ -47,6 +47,13 @@ public class ModuleChecksTests
         var fault = ModuleChecks.BindingBlock(Readme, File.ReadAllText(Path.Combine(Root, Host)));
         Assert.True(fault is null, fault);
     }
+
+    [Fact]
+    public void The_Readme_Opens_With_Its_Link_Row()
+    {
+        var fault = ModuleChecks.LinkRowFault(Assembly.Load(Library), Readme);
+        Assert.True(fault is null, fault);
+    }
     // The end marker.
 
     [Fact]
@@ -228,6 +235,21 @@ public class ModuleChecksTests
             foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
             Directory.Delete(repo, true);
         }
+    }
+
+    [Fact]
+    public void A_Readme_Opens_With_Its_Link_Row_Above_Its_Title()
+    {
+        const string row = "[Devlog](https://github.com/EggyStudio/Sample/blob/main/DEVLOG.md) [Cheat sheet](https://github.com/EggyStudio/Sample/blob/main/CHEATSHEET.md)";
+
+        Assert.Null(ModuleChecks.LinkRowFault("Sample", $"{row}\n\n# Sample\n\nA module.\n"));
+        Assert.Null(ModuleChecks.LinkRowFault("Sample", $"{row}\r\n\r\n# Sample\r\n"));
+        Assert.StartsWith("The README opens with \"# Sample\" where a module's README opens with its link row", ModuleChecks.LinkRowFault("Sample", $"# Sample\n\n{row}\n"));
+        Assert.NotNull(ModuleChecks.LinkRowFault("Sample", row.Replace(") [", ") \u00b7 [", StringComparison.Ordinal) + "\n\n# Sample\n"));
+        Assert.NotNull(ModuleChecks.LinkRowFault("Sample", "[Devlog](https://github.com/EggyStudio/Sample/blob/main/DEVLOG.md)\n\n# Sample\n"));
+        Assert.NotNull(ModuleChecks.LinkRowFault("Sample", $"{row}\n# Sample\n"));
+        Assert.NotNull(ModuleChecks.LinkRowFault("Sample", $"{row}\n\n# Other\n"));
+        Assert.EndsWith($"\"{row}\", a blank line and its title \"# Sample\". Put the row there, its links apart by a space.", ModuleChecks.LinkRowFault("Sample", "# Sample\n"));
     }
 
     [Fact]

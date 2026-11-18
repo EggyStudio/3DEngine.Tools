@@ -363,6 +363,33 @@ public static partial class ModuleChecks
         return listed.Split('\0', StringSplitOptions.RemoveEmptyEntries);
     }
 
+    /// <summary>
+    /// Null where a README opens with its module's link row, a blank line and its title, else a
+    /// sentence naming its first line, the row it should be and what to do.
+    /// </summary>
+    /// <remarks>
+    /// The row is the README's first line, above its title, its links to the module's DEVLOG.md
+    /// and CHEATSHEET.md on its repository separated by a space.
+    /// </remarks>
+    /// <param name="name">The module's name, as its repository and its title give it.</param>
+    /// <param name="readme">The README's text.</param>
+    public static string? LinkRowFault(string name, string readme)
+    {
+        var row = $"[Devlog](https://github.com/EggyStudio/{name}/blob/main/DEVLOG.md) [Cheat sheet](https://github.com/EggyStudio/{name}/blob/main/CHEATSHEET.md)";
+        var lines = readme.ReplaceLineEndings("\n").Split('\n');
+        if (lines.Length >= 3 && lines[0] == row && lines[1].Length == 0 && lines[2] == $"# {name}")
+            return null;
+        return $"The README opens with \"{lines[0]}\" where a module's README opens with its link row, "
+            + $"\"{row}\", a blank line and its title \"# {name}\". Put the row there, its links apart by a space.";
+    }
+
+    /// <summary>
+    /// <see cref="LinkRowFault(string, string)"/> of a built library's module, its name the
+    /// assembly's after its prefix.
+    /// </summary>
+    public static string? LinkRowFault(Assembly library, string readme) =>
+        LinkRowFault(library.GetName().Name!.Split('.', 2)[^1], readme);
+
     private static string? Fault(IReadOnlyList<string> found, Func<string, string> sentence) =>
         found.Count == 0 ? null : sentence(string.Join(", ", found));
 

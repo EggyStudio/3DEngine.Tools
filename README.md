@@ -1,6 +1,6 @@
-# Tools
+[Devlog](https://github.com/EggyStudio/Tools/blob/main/DEVLOG.md) [Cheat sheet](https://github.com/EggyStudio/Tools/blob/main/CHEATSHEET.md)
 
-[DEVLOG.md](DEVLOG.md) [CHEATSHEET.md](CHEATSHEET.md)
+# Tools
 
 Tools is a library and a set of scripts that any engine takes as a git submodule, for what its
 repositories otherwise copy by hand, the devlog's generator, the composer of reading sheets, the run
@@ -65,7 +65,7 @@ A module takes the repository as a submodule under `modules/` as an engine does 
 the library from its test project alone, so its own library and package take nothing of Tools',
 and `ModuleChecks.Refused` fails a library that references it. The module adds three things, the
 submodule, two items of its test project, the reference and a target that stops the build with one
-sentence naming the command where the submodule is not fetched, and one test of four facts.
+sentence naming the command where the submodule is not fetched, and one test of five facts.
 
 ```bash
 git submodule add https://github.com/EggyStudio/Tools.git modules/Tools
@@ -119,6 +119,13 @@ public void The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host()
     var fault = ModuleChecks.BindingBlock(Readme, File.ReadAllText(Path.Combine(Root, Host)));
     Assert.True(fault is null, fault);
 }
+
+[Fact]
+public void The_Readme_Opens_With_Its_Link_Row()
+{
+    var fault = ModuleChecks.LinkRowFault(Assembly.Load(Library), Readme);
+    Assert.True(fault is null, fault);
+}
 ```
 
 The module's workflow checks the submodule out with `submodules: true` on `actions/checkout`. A
@@ -135,7 +142,7 @@ and captions, its assembly's and package's name of the form `3DEngine.<Module>` 
 `ModuleChecks.EngineNameInTextFault` reads every tracked text file of a module's checkout but its
 `modules/` and its `.github/REVIEW.md` and `.github/NORM.md`, and is null where none names an
 engine, else names the first line with what it names and how many more do. A module adds this fact
-beside its four. `ModuleChecks.ProductNamesInText` lists each line that names another product,
+beside its five. `ModuleChecks.ProductNamesInText` lists each line that names another product,
 Unity, HDRP, Unreal or Godot, a license's file and a line citing a source by an address or a year
 apart, a warning a reviewer reads and no fact, since a module's text stands on its own terms, and
 `commitcheck.py` warns of each such line a module's commit adds. This repository's scripts and
@@ -164,7 +171,7 @@ documented by `<inheritdoc/>` takes the summary its `cref` names, or else the on
 overrides or the interface's it implements. A positional record needs a summary on its type and a
 `<param>` for each of its parameters, from which the build documents its properties and its
 constructor, whose line carries no comment since its type's says it, so no constructor is written
-out for the page. A module that keeps a cheat sheet adds this fact beside its four, and this
+out for the page. A module that keeps a cheat sheet adds this fact beside its five, and this
 repository's own page is [CHEATSHEET.md](CHEATSHEET.md).
 
 ```csharp
@@ -190,15 +197,18 @@ changed what the check reads. A module pinned before a fact's commit owes that f
 | `The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host` | `ModuleChecks.BindingBlock` | `7d56e0f` | |
 | `The_Cheatsheet_Is_What_The_Built_Library_Writes` | `ModuleChecks.CheatsheetFault` | `17860cb` | `3720852`, a record's constructor, and `183e308`, inheritdoc |
 | `No_Tracked_Text_Names_An_Engine` | `ModuleChecks.EngineNameInTextFault` | `b817e9b` | |
+| `The_Readme_Opens_With_Its_Link_Row` | `ModuleChecks.LinkRowFault` | the commit after `712203d` | |
 
 `ModuleChecks.ProductNamesInText`, from `d1b04e5`, is a list a reviewer reads and no fact.
 
-The README's first line under its title is a row of links to the module's DEVLOG.md and
-CHEATSHEET.md, separated by a space, as this README's is. A middle dot or a bar between them is the
-punctuation STYLE.md refuses, and the commit's check fails it.
+A module's README opens with its link row, its first line above its title, the row's links to its
+DEVLOG.md and CHEATSHEET.md on its repository separated by a space, then a blank line and its title,
+as this README opens. `ModuleChecks.LinkRowFault` fails a README that opens otherwise.
 
 ```markdown
-[DEVLOG.md](DEVLOG.md) [CHEATSHEET.md](CHEATSHEET.md)
+[Devlog](https://github.com/EggyStudio/Tools/blob/main/DEVLOG.md) [Cheat sheet](https://github.com/EggyStudio/Tools/blob/main/CHEATSHEET.md)
+
+# Tools
 ```
 
 A clone of the engine fetches the module with `git clone --recurse-submodules`, or with

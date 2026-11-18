@@ -790,3 +790,16 @@ The README's top row in the commit carrying this line, since two modules wrote a
 their devlog's and cheat sheet's links and were stopped at the push. "What a module carries" says
 the row's links are separated by a space, with the row as its example, and this README's row links
 the cheat sheet beside the devlog. The 136 tests pass.
+
+The README's link row by the owner's word in the commit carrying this line. A module's README opens
+with its link row as its first line, above its title, `[Devlog](...)` and `[Cheat sheet](...)` on
+its repository separated by a space, then a blank line and `# <Name>`, as this README opens where
+its row stood below the title. "What a module carries" gives the form with the row as its example,
+where the note on the row stood, and the README's block of facts holds a fifth,
+`The_Readme_Opens_With_Its_Link_Row`, calling `ModuleChecks.LinkRowFault`, whose module is its
+assembly's name after the prefix. ModuleChecksTests failed first on README openings with the title
+first, a middle dot between the links, the devlog's link alone, no blank line and another title,
+each named, and the row with either line end passing; the block's own check found the README's fifth
+fact lacking the blank line the host has. The seven modules' READMEs open with the row at their
+heads (sed of their first three lines). The strict build is clean and the tests pass, 138 where
+there were 136.
