@@ -50,6 +50,8 @@ string? EngineNameFault(Assembly library);               // EngineNameFault of a
 string? UnnamedFault(IEnumerable<string> typeNames, string readme);  // Null where Unnamed finds nothing, else a sentence naming the types, the rule and what to do
 string? UnnamedFault(Assembly library, string readme);   // UnnamedFault of a built library
 string? CheatsheetFault(Assembly library, string readme, string page);  // Null where the page at page holds what Write writes from the built library, else a sentence naming its first line that differs and what to do
+IReadOnlyList<string> EngineNamesInText(string root);    // Each line of a module's tracked text files that names an engine, by its path and number, the module's own assembly and package name apart
+string? EngineNameInTextFault(string root);              // Null where EngineNamesInText finds nothing, else a sentence naming the first line, what it names, the rule and what to do
 
 class Cheatsheet                                         // Writes a module's CHEATSHEET.md from its built library and documentation file, every public type with its public members a line each, the declaration without its modifiers and the first sentence of its summary
 string Marker = "<!-- written by Cheatsheet.Write from the built library -->";  // The line the page's written list stands under, followed by its C# block

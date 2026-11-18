@@ -176,6 +176,39 @@ public class ModuleChecksTests
     }
 
     [Fact]
+    public void A_Modules_Tracked_Text_That_Names_An_Engine_Is_Found_Outside_Its_Assembly_Name()
+    {
+        var repo = Directory.CreateTempSubdirectory("module-").FullName;
+        try
+        {
+            // The assembly's name of the form the rule keeps, the review's and the norm's files and
+            // the module's own submodule left out, an untracked file read by no one, and two lines
+            // that name an engine where a module names none.
+            Write(repo, "Sample/Sample.csproj", "<Project><PropertyGroup><AssemblyName>3DEngine.Sample</AssemblyName></PropertyGroup></Project>\n");
+            Write(repo, "README.md", "# Sample\n\nA module any engine takes.\nIt was drawn in BevyCSharp first.\n");
+            Write(repo, "Sample/Scene.cs", "namespace Sample;\n// The scene as 3DEngine's renderer draws it.\npublic class Scene { }\n");
+            Write(repo, ".github/REVIEW.md", "3DEngine's item 136.\n");
+            Write(repo, ".github/NORM.md", "The engines, 3DEngine and BevyCSharp.\n");
+            Write(repo, "modules/Tools/README.md", "Both engines, 3DEngine and BevyCSharp.\n");
+            Programs.Run("git", repo, "init", "-q");
+            Programs.Run("git", repo, "add", "-A");
+            Write(repo, "notes.md", "Bevy\n");
+
+            Assert.Equal(["README.md:4", "Sample/Scene.cs:2"], ModuleChecks.EngineNamesInText(repo));
+            Assert.Equal("README.md:4 names an engine, \"BevyCSharp\", where a module names none outside its assembly's name of the form 3DEngine.<Module>, "
+                + "and 1 line more does. Say it in the module's own terms, as any engine reads them.", ModuleChecks.EngineNameInTextFault(repo));
+            File.WriteAllText(Path.Combine(repo, "README.md"), "# Sample\n");
+            File.WriteAllText(Path.Combine(repo, "Sample/Scene.cs"), "namespace Sample;\npublic class Scene { }\n");
+            Assert.Null(ModuleChecks.EngineNameInTextFault(repo));
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
+    [Fact]
     public void A_Readme_Block_That_Differs_From_Its_Host_Is_Named_By_Its_Line()
     {
         var readme = "# Sample\n\n## Binding it in your engine\n\n```csharp\nvar a = 1;\nvar b = 2;\n```\n";

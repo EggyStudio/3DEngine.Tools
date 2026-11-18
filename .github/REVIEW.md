@@ -739,3 +739,21 @@ the constructor's line has carried no comment since `3720852`, so Landscape's fo
 no constructors written out. The README says what a positional record needs, a summary on its type
 and a `<param>` for each parameter. The strict build is clean and the tests pass, 132 where there
 were 128.
+
+The owner's rule that a module names no engine, its first part in the commit carrying this line.
+`ModuleChecks.EngineNamesInText` reads every tracked text file of a module's checkout but its
+`modules/`, `.github/REVIEW.md` and `.github/NORM.md` for a line that names an engine, 3DEngine,
+BevyCSharp or Bevy or E3D as a word, outside the form `3DEngine.<Name>` its assembly and package
+take, and `EngineNameInTextFault` names the first with what it names and how many more do.
+ModuleChecksTests failed first on a made repository whose README and a comment name an engine,
+beside the assembly's name, the review's, the norm's and a submodule's files and an untracked one,
+finding the two lines alone, and null when they go. The README's section gives the fact a module
+adds; this repository's own tests run it over made repositories alone, since its scripts and reports
+name the repositories they read. Read over the seven modules at their heads, Levels and Sky hold no
+such line, Landscape 2, Vegetation 8, Materials 9, Modeling 10 and RadianceCascades 744, of which
+741 are in its `.github/KERNELS.md`; each of Landscape's, Modeling's, RadianceCascades' and
+Vegetation's AGENTS.md has one, which waits on the owner's word (N 7.4). Tools' library names an
+engine in two lines, ModuleChecks' refused names, which must hold the engines' assemblies to refuse
+them, and the pattern the engines' names are found by, and neither can go; its project's
+`3DEngine.Tools` is the form the rule keeps. The strict build is clean and the tests pass, 133 where
+there were 132.

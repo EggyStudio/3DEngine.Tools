@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -284,6 +286,63 @@ public static partial class ModuleChecks
             + $"where it writes \"{(line < then.Length ? then[line] : "nothing")}\". Run the tests with CHEATSHEET_WRITE=1 to write it again.";
     }
 
+    /// <summary>
+    /// Each line of a module's tracked text files that names an engine, by its path and number,
+    /// the module's own assembly and package name apart.
+    /// </summary>
+    /// <remarks>
+    /// The files are those <c>git ls-files</c> lists, of the languages and documents a module
+    /// keeps, apart from its own <c>modules/</c>, where its submodules stand, and the review's and
+    /// the norm's files, which are written about the repositories by their review. A module names
+    /// no engine, so a stranger reads it as one any engine takes.
+    /// </remarks>
+    /// <param name="root">The module's checkout.</param>
+    /// <exception cref="InvalidOperationException">git does not list the checkout's
+    /// files.</exception>
+    public static IReadOnlyList<string> EngineNamesInText(string root)
+    {
+        var found = new List<string>();
+        foreach (var path in Tracked(root).Where(path => Texts().IsMatch(path) && !LeftOut().IsMatch(path)).Order(StringComparer.Ordinal))
+        {
+            var file = Path.Combine(root, path);
+            if (!File.Exists(file)) continue;
+            var lines = File.ReadAllLines(file);
+            for (int i = 0; i < lines.Length; i++)
+                if (EngineInText().IsMatch(lines[i]))
+                    found.Add($"{path}:{i + 1}");
+        }
+
+        return found;
+    }
+
+    /// <summary>
+    /// Null where <see cref="EngineNamesInText"/> finds nothing, else a sentence naming the first
+    /// line, what it names, the rule and what to do.
+    /// </summary>
+    public static string? EngineNameInTextFault(string root)
+    {
+        var found = EngineNamesInText(root);
+        if (found.Count == 0) return null;
+        var first = found[0];
+        var at = first.LastIndexOf(':');
+        var named = EngineInText().Match(File.ReadAllLines(Path.Combine(root, first[..at]))[int.Parse(first[(at + 1)..]) - 1]).Value;
+        var more = found.Count switch { 1 => "", 2 => ", and 1 line more does", _ => $", and {found.Count - 1} lines more do" };
+        return $"{first} names an engine, \"{named}\", where a module names none outside its assembly's name of the form 3DEngine.<Module>{more}. "
+            + "Say it in the module's own terms, as any engine reads them.";
+    }
+
+    private static IEnumerable<string> Tracked(string root)
+    {
+        var start = new ProcessStartInfo("git") { RedirectStandardOutput = true, RedirectStandardError = true, StandardOutputEncoding = Encoding.UTF8 };
+        foreach (var argument in new[] { "-C", root, "ls-files", "-z" }) start.ArgumentList.Add(argument);
+        using var git = Process.Start(start) ?? throw new InvalidOperationException("git did not start.");
+        var listed = git.StandardOutput.ReadToEnd();
+        var error = git.StandardError.ReadToEnd();
+        git.WaitForExit();
+        if (git.ExitCode != 0) throw new InvalidOperationException($"git ls-files failed in {root}. {error.Trim()}");
+        return listed.Split('\0', StringSplitOptions.RemoveEmptyEntries);
+    }
+
     private static string? Fault(IReadOnlyList<string> found, Func<string, string> sentence) =>
         found.Count == 0 ? null : sentence(string.Join(", ", found));
 
@@ -299,6 +358,17 @@ public static partial class ModuleChecks
         var end = readme.IndexOf("\n## ", start + 1, StringComparison.Ordinal);
         return readme[start..(end < 0 ? readme.Length : end)];
     }
+
+    // An engine's name or its API's prefix as a word of its own, apart from the form 3DEngine.Name
+    // a module's assembly and package take.
+    [GeneratedRegex(@"3DEngine(?!\.[A-Za-z])|\bBevy(CSharp)?\b|\bE3D\b", RegexOptions.IgnoreCase)]
+    private static partial Regex EngineInText();
+
+    [GeneratedRegex(@"\.(cs|rs|slang|wgsl|glsl|hlsl|py|sh|ps1|md|toml|yml|yaml|json|csproj|props|targets|slnx|xml|txt)$", RegexOptions.IgnoreCase)]
+    private static partial Regex Texts();
+
+    [GeneratedRegex(@"^(modules/|\.github/(REVIEW|NORM)\.md$)")]
+    private static partial Regex LeftOut();
 
     // Each engine's name and its API's prefix, as a word of its own.
     [GeneratedRegex(@"3DEngine|\bBevy(CSharp)?\b|\bE3D\b", RegexOptions.IgnoreCase)]
