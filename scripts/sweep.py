@@ -25,30 +25,25 @@ from commitcheck import PICTURES, TEXT, line_faults, picture_faults  # noqa: E40
 SHOWN = 10
 
 
-def main():
-    if len(sys.argv) != 2:
-        sys.exit("Usage is sweep.py <repo>.")
-    repo = sys.argv[1]
-    started = time.monotonic()
+def forbidden_names():
+    """The names FORBIDDEN_NAMES gives as one pattern, or None where it is not set."""
     names = os.environ.get("FORBIDDEN_NAMES")
     try:
-        forbidden = re.compile(names, re.I) if names else None
+        return re.compile(names, re.I) if names else None
     except re.error as error:
         sys.exit(f"FORBIDDEN_NAMES is no regular expression, {error}.")
+
+
+def read_tree(repo, forbidden):
+    """Every fault of a checkout's tracked files, each its level, its rule, the file's path and the
+    place with what was found, any name in either put out of sight, with the counts of the text
+    files, the pictures and the tracked files read. scripts/daily.py reads trees by it as well."""
     listed = subprocess.run(["git", "-C", repo, "ls-files", "-z"], capture_output=True)
     if listed.returncode:
         sys.exit(f"git ls-files failed in {repo}. {listed.stderr.decode('utf-8', 'replace').strip()}")
     paths = [p for p in listed.stdout.decode("utf-8", "replace").split("\0") if p]
-
-    # Each rule's level, count and first places, in the order the rules are first broken.
-    rules = {}
-
-    # A place is printed with any name in it put out of sight, a file's path among them.
-    def found(level, rule, place):
-        entry = rules.setdefault(rule, [level, 0, []])
-        entry[1] += 1
-        if len(entry[2]) < SHOWN:
-            entry[2].append(forbidden.sub("<a name>", place) if forbidden else place)
+    hide = (lambda text: forbidden.sub("<a name>", text)) if forbidden else (lambda text: text)
+    found = []
 
     # Decoding the pictures takes most of a sweep's time where a tree keeps many, and Pillow's
     # decoders let other threads run meanwhile, so each is decoded on a thread of its own while the
@@ -60,7 +55,7 @@ def main():
         if not os.path.isfile(full):
             continue
         if forbidden and forbidden.search(path):
-            found("FAIL", "a forbidden name", path)
+            found.append(("FAIL", "a forbidden name", hide(path), hide(path)))
         if PICTURES.match(path):
             pictures.append(pool.submit(read_picture, full, path))
             continue
@@ -73,26 +68,42 @@ def main():
         if forbidden and forbidden.search(text):
             for number, line in enumerate(text.split("\n"), 1):
                 if forbidden.search(line):
-                    found("FAIL", "a forbidden name", f"{path}:{number}")
+                    found.append(("FAIL", "a forbidden name", hide(path), hide(f"{path}:{number}")))
         in_xml = False
         for number, line in enumerate(text.split("\n"), 1):
             faults, in_xml = line_faults(path, line, in_xml)
             for level, rule, said in faults:
-                found(level, rule, f"{path}:{number} {said}")
+                found.append((level, rule, hide(path), hide(f"{path}:{number} {said}")))
 
     for picture in pictures:
         path, faults = picture.result()
         for level, rule, said in faults:
-            found(level, rule, f"{path} {said}")
+            found.append((level, rule, hide(path), hide(f"{path} {said}")))
     pool.shutdown()
+    return found, texts, len(pictures), len(paths)
 
+
+def main():
+    if len(sys.argv) != 2:
+        sys.exit("Usage is sweep.py <repo>.")
+    started = time.monotonic()
+    forbidden = forbidden_names()
+    found, texts, pictures, tracked = read_tree(sys.argv[1], forbidden)
+
+    # Each rule's level, count and first places, in the order the rules are first broken.
+    rules = {}
+    for level, rule, _, place in found:
+        entry = rules.setdefault(rule, [level, 0, []])
+        entry[1] += 1
+        if len(entry[2]) < SHOWN:
+            entry[2].append(place)
     for rule, (level, count, places) in rules.items():
         print(f"{level} {rule}, {count}")
         for place in places:
             print(f"  {place[:150]}")
-    if not names:
+    if not forbidden:
         print("WARN FORBIDDEN_NAMES is not set, so the names were not read for")
-    print(f"swept {texts} text files and {len(pictures)} pictures of {len(paths)} tracked in {time.monotonic() - started:.1f} s")
+    print(f"swept {texts} text files and {pictures} pictures of {tracked} tracked in {time.monotonic() - started:.1f} s")
     sys.exit(1 if any(level == "FAIL" for level, _, _ in rules.values()) else 0)
 
 
@@ -105,4 +116,6 @@ def read_picture(full, path):
         return path, picture_faults(image.convert("RGB"), path)
 
 
-main()
+# Run as a script it sweeps; imported, as scripts/daily.py imports it, it gives read_tree.
+if __name__ == "__main__":
+    main()

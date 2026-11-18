@@ -167,6 +167,21 @@ scripts/sweep.py ../../3DEngine).
 python3 -I scripts/sweep.py <repo>
 ```
 
+## A day's sweep
+
+`scripts/daily.py` sweeps the repositories given by `sweep.py`'s rules and writes one Markdown
+report to the path given, a row a repository with its counts of failures and warnings, then for each
+its count a rule, its counts a top folder and the ten files a rule holds most of. Given the report
+before, it reads that report's counts from the JSON at its end and gives the change in each count, a
+rule no longer broken among them. It reads the repositories and writes the report alone, and any
+name `FORBIDDEN_NAMES` gives is put out of sight in a place and a path. It read 3DEngine,
+BevyCSharp, Voxel-Sandbox and this repository in 7.7 seconds (python3 -I scripts/daily.py <report>
+...).
+
+```bash
+python3 -I scripts/daily.py <report.md> [--previous=<report.md>] <repo> ...
+```
+
 ## A comment's width
 
 `scripts/rewrap.py` rewraps the comment lines past 100 columns of the files a repository tracks

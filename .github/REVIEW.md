@@ -470,3 +470,20 @@ and BevyCSharp's Rust under `native` among them, and no tracked path lies under 
 vendor, third-party, external or deps. 3DEngine's ignore file leaves out `/Voxel-Sandbox`, which the
 old walk read as 3DEngine's as well. The strict build is clean and the tests pass, 88 where there
 were 87.
+
+The day's sweep in the commit carrying this line. `scripts/daily.py` sweeps the repositories given
+by `sweep.py`'s own reading, made a function, `read_tree`, that both call, and writes one Markdown
+report to the path given, a row a repository with its failures, its warnings, their change and the
+time taken, then for each its count a rule with its change, its counts a top folder and the ten
+files a rule holds most of with the rest counted. Given the report before, it reads that report's
+counts from the JSON an HTML comment at its end carries, so the Markdown is free to change its form,
+and a rule no longer broken stands at 0 with its fall; a file that carries no counts is refused by
+name. It reads the repositories and writes the report alone, and a name is put out of sight in a
+place and a path. DailyTests reads a report over a faulty and a clean repository, every count by
+rule and by folder, the worst files and the repositories' status unchanged, a second report's
+change from the first with a rule no longer broken, twelve files of which ten are listed and two
+counted, a made-up name counted and written nowhere, and a file that is no report refused with no
+report written. Over 3DEngine, BevyCSharp, Voxel-Sandbox and this repository at their heads it
+wrote its report in 7.7 seconds, the second with the first as its previous the same and every change
+0. The comment in DevlogTests that named a runner, the one warning the module's own tree gave, says
+a workflow. The strict build is clean and the tests pass, 93 where there were 88.

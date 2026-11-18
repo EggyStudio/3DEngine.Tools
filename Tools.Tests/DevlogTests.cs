@@ -40,7 +40,7 @@ public class DevlogTests
     }
 
     // The machine's own settings left out, an identity given and signing off, so a commit is made
-    // alike on a runner with no identity and on a desktop that signs.
+    // alike in a workflow with no identity and on a desktop that signs.
     private static string Git(string repo, params string[] arguments) =>
         Programs.Run("git", repo, ["-c", "user.name=Tools", "-c", "user.email=tools@example.com", "-c", "commit.gpgsign=false", .. arguments]);
 }
