@@ -2,9 +2,10 @@
 # remote heads and how many commits it is ahead, its last build run's head, status and conclusion,
 # the size of its .github/REVIEW.md where it passes 80 KB, with scripts/archive.py named to move it,
 # whether DEVLOG.md was last committed before its newest picture, its pin of Tools against Tools'
-# head, and whether its README opens with the link row.
+# head, and whether its README opens with the link row. After them it names each mark in the GPU
+# lock's waiting folder older than ten minutes, its owner, its age and whether its process lives.
 #
-#   python3 -I scripts/status.py [--tools=<Tools checkout>] [<repo> ...]
+#   python3 -I scripts/status.py [--tools=<Tools checkout>] [--waiting=<folder>] [<repo> ...]
 #
 # With no repository given it reads 3DEngine, BevyCSharp and 3DEngine/Voxel-Sandbox beside the
 # Modules folder this checkout stands in, and every folder of Modules. The remote head is read by
@@ -13,7 +14,7 @@
 # instead, a run, null for none or an object naming why gh failed, which is how the tests run it.
 # The exit code is 0, or 2 where git or gh could not be reached for a repository, its line saying
 # which.
-import json, os, re, subprocess, sys
+import json, os, re, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
 
 sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
@@ -119,8 +120,39 @@ def line(repo, tools_head, tools):
     return "  ".join(parts), bool(unreached)
 
 
+# The folder a timing puts its mark in while it waits for the GPU's lock or holds it (N 7.9), and
+# the age past which a mark is named, since a stale one stops every shared job behind it.
+WAITING = "/run/user/1000/gpu.waiting"
+STALE_MINUTES = 10
+
+
+def waiting_lines(folder):
+    """A line for each mark older than ten minutes, its owner read from its name, repository and
+    pid, its age, and on Linux whether its process lives."""
+    lines = []
+    try:
+        names = sorted(os.listdir(folder))
+    except OSError:
+        return lines
+    for name in names:
+        try:
+            age = (time.time() - os.path.getmtime(os.path.join(folder, name))) / 60
+        except OSError:
+            continue
+        if age < STALE_MINUTES:
+            continue
+        repository, _, pid = name.rpartition("-")
+        owner = f"{repository}'s pid {pid}" if repository and pid.isdigit() else "an owner its name does not give"
+        # Linux keeps a folder a living process; elsewhere no probe is sent, since os.kill with
+        # signal 0 on Windows sends Ctrl and C.
+        alive = ("its process living" if os.path.exists(f"/proc/{pid}") else "its process gone") if sys.platform.startswith("linux") and pid.isdigit() else "its process not read"
+        lines.append(f"waiting {name}, {owner}, {int(age)} min old, {alive}")
+    return lines
+
+
 def main():
     tools = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--tools=")), HERE)
+    waiting = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--waiting=")), WAITING)
     repos = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not repos:
         modules = os.path.dirname(HERE)
@@ -138,6 +170,8 @@ def main():
         for text, missed in pool.map(lambda repo: line(repo, tools_head, tools), repos):
             print(text)
             unreached |= missed
+    for text in waiting_lines(waiting):
+        print(text)
     sys.exit(2 if unreached else 0)
 
 

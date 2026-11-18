@@ -541,3 +541,10 @@ usage.py's hours in the commit carrying this line, the hour's step: each hour on
 in local time, the date read in local time, and `--since=<hour>` keeping the hours from it on;
 UsageTests failed first with TZ an hour east of UTC, the other day's request falling on the day
 before in local time and `--since=17` leaving the earlier hour out. Tests pass both ways.
+
+Stale waiting marks in the commit carrying this line, the hour's step. status.py names each mark in
+the lock's waiting folder older than ten minutes, `--waiting` giving the folder and the lock's the
+default, as `waiting <name>, <repository>'s pid <pid>, <age> min old`, with whether its process
+lives read from `/proc` on Linux and not read elsewhere, since `os.kill` with signal 0 on Windows
+sends Ctrl and C. StatusTests failed first on a made folder of a mark 25 minutes old whose process
+is gone and one made just now, which is not named. Tests pass both ways.

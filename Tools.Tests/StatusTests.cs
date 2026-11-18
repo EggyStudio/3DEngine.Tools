@@ -42,6 +42,28 @@ public class StatusTests
     }
 
     [NeedsPythonFact]
+    public void A_Waiting_Mark_Older_Than_Ten_Minutes_Is_Named_With_Its_Age_And_Owner()
+    {
+        using var world = new World();
+        var tools = world.Tools(commits: 1);
+        var repo = world.Module("Sample", Row + "\n\n# Sample\n", tools, pinnedBack: 0);
+        var waiting = Path.Combine(world.Root, "gpu.waiting");
+        Directory.CreateDirectory(waiting);
+        // A mark left 25 minutes ago by a process long gone, and one made just now.
+        File.WriteAllText(Path.Combine(waiting, "Sky-999999999"), "");
+        File.SetLastWriteTimeUtc(Path.Combine(waiting, "Sky-999999999"), DateTime.UtcNow.AddMinutes(-25));
+        File.WriteAllText(Path.Combine(waiting, "Levels-1234"), "");
+
+        var (code, printed) = world.Status(new() { ["EggyStudio/Sample"] = null }, tools, ["--waiting=" + waiting, repo]);
+
+        Assert.True(code == 0, printed);
+        var mark = Assert.Single(Programs.Lines(printed), l => l.StartsWith("waiting ", StringComparison.Ordinal));
+        Assert.StartsWith("waiting Sky-999999999, Sky's pid 999999999, 25 min old", mark);
+        if (OperatingSystem.IsLinux()) Assert.EndsWith(", its process gone", mark);
+        Assert.DoesNotContain("Levels-1234", printed);
+    }
+
+    [NeedsPythonFact]
     public void A_Readme_Without_The_Row_And_A_Repository_At_Its_Pin_Read_As_Such()
     {
         using var world = new World();

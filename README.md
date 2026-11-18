@@ -418,7 +418,10 @@ was last committed before its newest picture, its pin of Tools against Tools' he
 README opens with the link row. With no repository given it reads 3DEngine, BevyCSharp and
 Voxel-Sandbox beside the Modules folder this checkout stands in, and every folder of Modules, the
 eleven in 2.5 seconds. The exit code is 0, or 2 where git or gh could not be reached for a
-repository, its line saying which.
+repository, its line saying which. After the repositories it names each mark in the GPU lock's
+waiting folder, `/run/user/1000/gpu.waiting` or the folder `--waiting` gives, older than ten
+minutes, with its owner read from its name, its age, and on Linux whether its process lives, since a
+stale mark stops every shared job behind it.
 
 ```bash
 python3 -I scripts/status.py [--tools=<Tools checkout>] [<repo> ...]
