@@ -341,6 +341,31 @@ public class CommitCheckTests
     }
 
     [NeedsPillowFact]
+    public void A_Picture_Added_Without_Its_Caption_Fails_Naming_The_Line_That_Would_Satisfy_It_In_Either_Folder()
+    {
+        foreach (var folder in new[] { ".github/assets/readings", ".github/devlog" })
+        {
+            var (code, printed) = Check(new() { [$"{folder}/2026-11-18-item-1-room.webp"] = "white" }, Lead + "A room is read.\n");
+
+            Assert.Equal(1, code);
+            Assert.Contains($"FAIL {folder}/2026-11-18-item-1-room.webp: no caption, which {folder}/captions.md gives as the line \"2026-11-18-item-1-room.webp | <one sentence>.\"", printed);
+        }
+    }
+
+    [NeedsPillowFact]
+    public void A_Picture_With_Its_Caption_Passes_And_A_Caption_Out_Of_Form_Fails()
+    {
+        var picture = ".github/assets/readings/2026-11-18-item-1-room.webp";
+        var (code, printed) = Check(new() { [picture] = "white", [".github/assets/readings/captions.md"] = "2026-11-18-item-1-room.webp | The room at noon.\n" }, Lead + "A room is read.\n");
+        var (unstopped, said) = Check(new() { [picture] = "white", [".github/assets/readings/captions.md"] = "2026-11-18-item-1-room.webp | The room at noon\n" }, Lead + "A room is read.\n");
+
+        Assert.DoesNotContain("caption", printed);
+        Assert.DoesNotContain("FAIL", printed);
+        Assert.Equal(1, unstopped);
+        Assert.Contains($"FAIL {picture}: its caption is not one sentence ending in a full stop, \"The room at noon\"", said);
+    }
+
+    [NeedsPillowFact]
     public void A_Picture_On_A_Dark_Ground_Fails()
     {
         var (code, printed) = Check(new() { [".github/assets/readings/2026-11-18-item-1-dark.webp"] = "black" }, Lead + "A dark picture is kept.\n");

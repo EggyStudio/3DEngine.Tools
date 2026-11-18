@@ -28,6 +28,7 @@ FIX = [tuple(pair) for pair in fixes.get("pairs", [])]
 def fix(s):
     for a, b in FIX: s = re.sub(a, b, s)
     return s
+uncaptioned = []
 days = {}  # date -> {"pictures": [(sortkey, path, caption, hash)], "done": [(num, hash, title)]}
 def day(d): return days.setdefault(d, {"pictures": [], "notes": [], "done": [], "commits": []})
 in_pic_dir = lambda rel: any(rel.startswith(d + "/") for d in PIC_DIRS)
@@ -56,8 +57,7 @@ if sent_json:
                 small = src.endswith(".png") and os.path.getsize(src) < 200_000 and im.size[0] <= 800
                 im.save(os.path.join(pic_dir, dst), "WEBP", lossless=small, quality=85, method=6)
             captions.setdefault(os.path.relpath(pic_dir, repo) + "/" + dst, cap); cap = ""
-# the pictures folders, each picture on the day its name says, captioned by the sessions' line or
-# its commit's sentence
+# the pictures folders, each picture on the day its name says, captioned by the sessions' line
 for d in PIC_DIRS:
     for f in sorted(os.listdir(os.path.join(repo, d))):
         if not f.endswith(".webp"): continue
@@ -65,8 +65,10 @@ for d in PIC_DIRS:
         added = git("log", "--diff-filter=A", "-1", "--format=%cs|%ct|%h", "--", rel).strip().split("|")
         date = m.group(1) if m else (added[0] if added[0] else None)
         if not date: continue
+        # A picture's caption is its captions.md line alone, the commit's sentence telling of the
+        # work and not the picture, so one with none stands without a caption and is counted.
         cap = captions.get(rel); h = None
-        if cap is None and len(added) == 3: cap, h = fix(fl(git("log", "-1", "--format=%b", added[2])).strip()), added[2]
+        if cap is None: uncaptioned.append(rel)
         when = int(added[1]) if len(added) == 3 else 1 << 40
         day(date)["pictures"].append(((0, when, f), rel, cap or "", h))
 # notes the sessions wrote for the devlog, a Markdown file a note beside the pictures, named by the
@@ -169,6 +171,8 @@ open(os.path.join(repo, "DEVLOG.md"), "w").write(text)
 bad = [l for l in text.split("\n") if BAD.search(l) and not l.startswith("![")]
 print(name, "days", len([d for d in days if days[d]["pictures"] or days[d]["done"] or days[d]["commits"]]), "pictures", sum(len(e["pictures"]) for e in days.values()), "done", sum(len(e["done"]) for e in days.values()), "commits", sum(len(e["commits"]) for e in days.values()), "bad lines", len(bad))
 for l in bad[:12]: print("  BAD:", l[:140])
+if uncaptioned:
+    print(f"{len(uncaptioned)} picture with no caption, shown without one" if len(uncaptioned) == 1 else f"{len(uncaptioned)} pictures with no caption, shown without one")
 if left_out:
     print(f"{left_out} commit left out, its sentence naming an engine" if left_out == 1 else f"{left_out} commits left out, their sentences naming an engine")
 if failing:

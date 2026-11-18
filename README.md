@@ -254,12 +254,14 @@ this repository does not have.
 
 ## The devlog
 
-`scripts/devlog.py` writes a repository's `DEVLOG.md`, what landed by day and newest first. It
-takes the pictures under `.github/devlog` or `.github/assets/readings` with their captions and the
-notes beside them, the captures under `.github/assets`, and the items of `.github/REVIEW.md` and
+`scripts/devlog.py` writes a repository's `DEVLOG.md`, what landed by day and newest first. It takes
+the pictures under `.github/devlog` or `.github/assets/readings` with their captions and the notes
+beside them, the captures under `.github/assets`, and the items of `.github/REVIEW.md` and
 `.github/REVIEW-ARCHIVE.md` marked done, each on the day of the commit that closed it. A repository
 runs it with its path and its name, and with a list of the pictures sent on the way where it keeps
-one, which needs Pillow to save them as WebP.
+one, which needs Pillow to save them as WebP. A picture's caption is the line its folder's
+captions.md gives it and nothing else, the commit's sentence telling of the work rather than the
+picture, so a picture with none stands without a caption and the script counts it on its output.
 
 ```bash
 python3 -I scripts/devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>] [--commits]
@@ -315,7 +317,10 @@ written as two words fails on any added line of any repository, and the sweep re
 it. In a repository under `Modules` other than this one, an added line of a text file that names an
 engine outside the form `3DEngine.<Module>` fails, the module's own `modules/` and its review's and
 norm's files apart. A picture added under `.github/assets/readings` stands on a white ground and is
-saved smaller under `--thumbs` to be looked at, which needs Pillow.
+saved smaller under `--thumbs` to be looked at, which needs Pillow. A picture a commit adds or
+renames there, or under `.github/devlog`, fails where the captions.md beside it gives it no line,
+the failure naming the line that would satisfy it, its file's name, a bar and one sentence, or where
+its line is not one sentence ending in a full stop.
 
 ```bash
 python3 -I scripts/commitcheck.py <repo> [<range or commit> ...] [--thumbs=<folder>]

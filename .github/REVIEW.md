@@ -1162,3 +1162,17 @@ coming in with a commit whose sentence tells of other work, each row giving that
 sentence; the counts chart there keeps the old label in its legend. The strict build is clean and
 the tests pass, 189 and two skipped plain and 190 and one skipped in the variant, the new fact the
 skipped one in both.
+
+Captions at the commit's check in the commit carrying this line, by the reworded N 4.8. A picture a
+commit adds or renames under `.github/assets/readings` or `.github/devlog` fails where the
+captions.md beside it, as the commit or the index holds it, gives it no line, the failure naming the
+line that would satisfy it, `<name> | <one sentence>.`, or where its line does not end in a full
+stop; each repository's place is the picture's own folder, readings beside readings in the engines
+and `.github/devlog/captions.md` in the game. devlog.py no longer captions a picture with its
+commit's sentence, a picture with no line standing without a caption and counted on its output.
+Three tests failed first: CommitCheckTests on a picture with no caption in either folder and on one
+with its line and one whose line has no full stop, and DevlogTests on a picture whose commit's
+sentence tells of other work, which the page no longer shows. Tools' own NORM.md still gives the
+fall back at its line 76, and the reworded text has not reached this tree, so it stands for the
+review to carry. The run of `457f3e5` is read in the report. The strict build is clean and the tests
+pass, 192 and two skipped plain and 193 and one skipped in the variant.

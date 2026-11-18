@@ -200,6 +200,19 @@ def picture(repo, rev, path, thumbs, fail, warn, note):
     note(f"{path}: {w}x{h}, look at {out}")
 
 
+def caption_faults(repo, rev, path, fail):
+    """Fails a picture whose folder's captions.md, as the commit or the index holds it, gives it no
+    line, or a line that is not one sentence ending in a full stop, naming the line it wants."""
+    folder, name = path.rsplit("/", 1)
+    shown = subprocess.run(["git", "-C", repo, "show", f"{rev or ''}:{folder}/captions.md"], capture_output=True)
+    text = shown.stdout.decode("utf-8", "replace") if shown.returncode == 0 else ""
+    lines = [line.split(" | ", 1)[1].strip() for line in text.splitlines() if line.split(" | ", 1)[0].strip() == name and " | " in line]
+    if not lines:
+        fail(f"{path}: no caption, which {folder}/captions.md gives as the line \"{name} | <one sentence>.\"")
+    elif not lines[-1].endswith("."):
+        fail(f"{path}: its caption is not one sentence ending in a full stop, \"{lines[-1][:80]}\"")
+
+
 # The message is read from the commit object itself, where git log's format would add a line end of
 # its own and leave the count of the message's lines to the format.
 def message(repo, rev):
@@ -278,6 +291,10 @@ def check(repo, rev, names, thumbs, text=None):
             note(f"changes a workflow, {p[-1]}")
     for p in pictures:
         picture(repo, rev, p, thumbs, fail, warn, note)
+    # A picture the commit adds carries its caption, the line the captions.md beside it gives it,
+    # the file's name then a bar then one sentence, which is its caption in the devlog (N 4.8).
+    for p in [s[-1] for s in status if s[0][0] in "AR" and PICTURES.match(s[-1])]:
+        caption_faults(repo, rev, p, fail)
 
     path, number, in_xml = None, 0, False
     for line in git(repo, *changes, "--unified=0", *revision).splitlines():

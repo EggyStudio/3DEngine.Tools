@@ -123,6 +123,29 @@ public class DevlogTests
         }
     }
 
+    [NeedsPythonFact]
+    public void A_Picture_With_No_Caption_Stands_Without_One_And_Is_Counted_And_Its_Commits_Sentence_Is_Not_Its_Caption()
+    {
+        var repo = Directory.CreateTempSubdirectory("devlog-").FullName;
+        try
+        {
+            Git(repo, "init", "-q");
+            Commit(repo, ".github/assets/readings/2026-11-18-item-1-room.webp", "The test runner splits a part by its classes.");
+
+            var printed = Programs.Script("devlog.py", repo, "Sample");
+            var devlog = File.ReadAllText(Path.Combine(repo, "DEVLOG.md"));
+
+            Assert.Contains("![](.github/assets/readings/2026-11-18-item-1-room.webp)", devlog);
+            Assert.DoesNotContain("test runner", devlog);
+            Assert.Contains("1 picture with no caption, shown without one", printed);
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
     // A commit of one file, its message the three marks, a blank line and the lines given.
     private static void Commit(string repo, string path, string lines)
     {
