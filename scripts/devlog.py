@@ -5,10 +5,14 @@ sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8
 # --fixes names a file of the caption rewrites, the pattern each repository's STYLE.md adds to the
 # check by its name, and the day an undated sent picture is put on, which no repository holds.
 args, fixes = sys.argv[1:], {}
+# --commits lists each day's commits by their sentences, which a module's devlog reads where its
+# review records no item done.
+commits = "--commits" in args
+args = [a for a in args if a != "--commits"]
 if "--fixes" in args:
     at = args.index("--fixes"); fixes = json.load(open(args[at + 1])); del args[at:at + 2]
 if len(args) < 2:
-    sys.exit("Usage is devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>].")
+    sys.exit("Usage is devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>] [--commits].")
 repo, name, sent_json = args[0], args[1], (args[2] if len(args) > 2 else None)
 PIC_DIRS = [d for d in (".github/devlog", ".github/assets/readings") if os.path.isdir(os.path.join(repo, d))]
 pic_dir = os.path.join(repo, PIC_DIRS[0]) if PIC_DIRS else os.path.join(repo, ".github", "devlog")
@@ -21,7 +25,7 @@ def fix(s):
     for a, b in FIX: s = re.sub(a, b, s)
     return s
 days = {}  # date -> {"pictures": [(sortkey, path, caption, hash)], "done": [(num, hash, title)]}
-def day(d): return days.setdefault(d, {"pictures": [], "notes": [], "done": []})
+def day(d): return days.setdefault(d, {"pictures": [], "notes": [], "done": [], "commits": []})
 in_pic_dir = lambda rel: any(rel.startswith(d + "/") for d in PIC_DIRS)
 # captions the sessions wrote, a line a file, the file's name then a bar then one sentence
 captions = {}
@@ -100,6 +104,16 @@ for f, q in paras:
     title = re.sub(r",? done at `[0-9a-f]+`[^.]*", "", title).strip()
     title = fix(title).replace(": ", ", ").rstrip(";., ") + "."
     day(date)["done"].append((num, h, title))
+# the commits by their sentences, a message's first line under its subject or its two where it has
+# two, those that change the review's files or the devlog alone left out
+OWN = {".github/REVIEW.md", ".github/REVIEW-ARCHIVE.md", ".github/NORM.md", "DEVLOG.md"}
+if commits:
+    for entry in git("log", "--format=@@%h%x00%cs%x00%B%x00", "--name-only").split("@@")[1:]:
+        h, d, body, files = (entry.split("\x00") + ["", "", "", ""])[:4]
+        changed = {f for f in files.split("\n") if f.strip()}
+        if not changed or changed <= OWN: continue
+        said = [l.strip() for l in body.split("\n\n", 1)[-1].split("\n") if l.strip()][:2] if "\n\n" in body else []
+        if said: day(d)["commits"].append((h, fix(" ".join(said))))
 # write
 folder = ", ".join(f"`{d}`" for d in PIC_DIRS)
 intro = (f"What landed in {name}, by day and newest first, with the pictures taken on the way, the captures the repository "
@@ -108,7 +122,7 @@ intro = (f"What landed in {name}, by day and newest first, with the pictures tak
 lines = [f"# {name} devlog", ""] + textwrap.wrap(intro, 100, break_on_hyphens=False) + [""]
 for d in sorted(days, reverse=True):
     e = days[d]
-    if not e["pictures"] and not e["done"] and not e["notes"]: continue
+    if not e["pictures"] and not e["done"] and not e["notes"] and not e["commits"]: continue
     lines += [f"## {d}", ""]
     groups = []
     for key, path, cap, h in sorted(e["pictures"], key=lambda r: r[0]):
@@ -125,8 +139,13 @@ for d in sorted(days, reverse=True):
         for num, h, title in sorted(e["done"]):
             lines += textwrap.wrap(f"- Item {num} at `{h}`. {title}", 100, subsequent_indent="  ")
         lines.append("")
+    if e["commits"]:
+        lines.append("Commits that day"); lines.append("")
+        for h, said in e["commits"]:
+            lines += textwrap.wrap(f"- `{h}` {said}", 100, subsequent_indent="  ")
+        lines.append("")
 text = "\n".join(lines).rstrip("\n") + "\n"
 open(os.path.join(repo, "DEVLOG.md"), "w").write(text)
 bad = [l for l in text.split("\n") if BAD.search(l) and not l.startswith("![")]
-print(name, "days", len([d for d in days if days[d]["pictures"] or days[d]["done"]]), "pictures", sum(len(e["pictures"]) for e in days.values()), "done", sum(len(e["done"]) for e in days.values()), "bad lines", len(bad))
+print(name, "days", len([d for d in days if days[d]["pictures"] or days[d]["done"] or days[d]["commits"]]), "pictures", sum(len(e["pictures"]) for e in days.values()), "done", sum(len(e["done"]) for e in days.values()), "commits", sum(len(e["commits"]) for e in days.values()), "bad lines", len(bad))
 for l in bad[:12]: print("  BAD:", l[:140])

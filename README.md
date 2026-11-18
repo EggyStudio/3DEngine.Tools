@@ -38,8 +38,8 @@ needs Pillow and nothing else, and names nothing of these repositories, so it st
 python3 -I scripts/chart.py <layout.json> <sheet.webp>
 ```
 
-[examples/README.md](examples/README.md) shows both scripts for a reader new to them, each layout beside
-the picture it draws.
+[examples/README.md](examples/README.md) shows both scripts for a reader new to them, each layout
+beside the picture it draws.
 
 The layout's `title`, `subtitle` and `notes` are lines of text, `legend` a list of `label` and
 `color`, `columns` the grid's columns, `width` the sheet's width, `panel_height` a panel's height
@@ -272,8 +272,13 @@ runs it with its path and its name, and with a list of the pictures sent on the 
 one, which needs Pillow to save them as WebP.
 
 ```bash
-python3 -I scripts/devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>]
+python3 -I scripts/devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>] [--commits]
 ```
+
+With `--commits` each day lists the commits of that day by their sentences, newest first, a
+message's first line under its subject or its two where it has two, a commit that changes the
+review's files or DEVLOG.md alone left out, so a repository whose review records no item done reads
+what landed in its devlog.
 
 `--fixes` names a JSON file kept outside the repositories, an object whose `pairs` are a pattern and
 its replacement each, applied in turn to every caption and title, whose `patterns` give by a
@@ -288,7 +293,7 @@ A module keeps its own devlog, generated again in every commit that closes an it
 the script of the Tools it takes as its submodule, run from the module's root with its name.
 
 ```bash
-python3 -I modules/Tools/scripts/devlog.py . Levels
+python3 -I modules/Tools/scripts/devlog.py . Levels --commits
 ```
 
 ## A workflow run

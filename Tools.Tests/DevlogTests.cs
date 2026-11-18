@@ -40,12 +40,52 @@ public class DevlogTests
     }
 
     [NeedsPythonFact]
+    public void With_Commits_Each_Day_Lists_Its_Commits_Sentences_Newest_First_The_Reviews_And_The_Devlogs_Own_Left_Out()
+    {
+        var repo = Directory.CreateTempSubdirectory("devlog-").FullName;
+        try
+        {
+            Git(repo, "init", "-q");
+            Commit(repo, "a.txt", "The first file holds a letter.");
+            Commit(repo, ".github/REVIEW.md", "The review reads the first file.");
+            Commit(repo, "b.txt", "The second file holds a letter.\nIts letter is the first's.");
+            Commit(repo, "DEVLOG.md", "The devlog is written again.");
+            var (first, second) = (Git(repo, "rev-parse", "--short=7", "HEAD~3").Trim(), Git(repo, "rev-parse", "--short=7", "HEAD~1").Trim());
+
+            Programs.Script("devlog.py", repo, "Sample", "--commits");
+            var devlog = File.ReadAllLines(Path.Combine(repo, "DEVLOG.md"));
+            var commits = devlog.SkipWhile(line => line != "Commits that day").Skip(2).TakeWhile(line => line.Length > 0).ToList();
+
+            Assert.Equal([$"- `{second}` The second file holds a letter. Its letter is the first's.", $"- `{first}` The first file holds a letter."], commits);
+
+            Programs.Script("devlog.py", repo, "Sample");
+            Assert.DoesNotContain("Commits that day", File.ReadAllLines(Path.Combine(repo, "DEVLOG.md")));
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
+    // A commit of one file, its message the three marks, a blank line and the lines given.
+    private static void Commit(string repo, string path, string lines)
+    {
+        var file = Path.Combine(repo, path);
+        Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+        File.WriteAllText(file, path + "\n");
+        Git(repo, "add", "-A");
+        File.WriteAllText(Path.Combine(repo, ".git", "message"), "\u200e \u200e \u200e\n\n" + lines + "\n");
+        Git(repo, "commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(repo, ".git", "message"));
+    }
+
+    [NeedsPythonFact]
     public void Run_With_No_Repository_It_Says_How_It_Is_Run()
     {
         var (code, printed) = Programs.Attempt("devlog.py", []);
 
         Assert.True(code != 0, printed);
-        Assert.Contains("Usage is devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>].", printed);
+        Assert.Contains("Usage is devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>] [--commits].", printed);
         Assert.DoesNotContain("Traceback", printed);
     }
 

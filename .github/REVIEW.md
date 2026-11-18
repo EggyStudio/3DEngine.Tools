@@ -990,3 +990,18 @@ member's tuples, each tuple's names before its elements', as `(Plan<TMesh, TTag>
 Moved)` and `((int Low, int High) Range, string? Name)` beside an unnamed `(int, int)`; both lines
 failed first, and the writer reads each element once since its reading takes names from the list.
 The strict build is clean and the tests pass, 183 and one skipped plain and 184 in the variant.
+
+A module's devlog of commits in the commit carrying this line, the first of the three by the
+review's order. `devlog.py --commits` lists each day's commits under it, newest first, each by its
+sentence, a message's first line under its subject or its two lines where it has two, as ``
+`abc1234` The sentence. ``, and leaves out a commit that changes the review's files or DEVLOG.md
+alone; the items done still stand above where a review records them. DevlogTests failed first on a
+made repository of four commits, one sentence of two lines, one of the review alone and one of the
+devlog alone, the two listed newest first and the two left out, and no list without the flag. The
+README says it, and a module's command takes the flag. A clone of Landscape reads 19 commits over
+its three days. One consequence is the review's to settle: the text fact reads DEVLOG.md, and the
+histories of Levels, Modeling, Sky and Vegetation each hold one message line naming an engine
+outside the assembly's form (git log --format=%B), which a devlog written with `--commits` would
+carry into the text the fact fails; DEVLOG.md can be left out of the fact as the review's files are,
+being written from the history, or those commits left out of the devlog. The strict build is clean
+and the tests pass, 184 and one skipped plain and 185 in the variant.
