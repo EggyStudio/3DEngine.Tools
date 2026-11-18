@@ -529,3 +529,10 @@ each commit, the build and the tests both plain and through build/variants.sh, `
 for the block, and a short report to the review, which pushes. Nothing is open here: the three items
 are done, the 80 or so uncaptioned standing readings of the big repositories stand as their day's
 record, counted by the sweep, and no work is proposed until the review or the owner brings it.
+
+A day's use in the commit carrying this line, the hour's step. `scripts/usage.py [<date>]` sums the
+transcripts' usage by session and by hour, a request counted once by its requestId, its context its
+input, cache written and cache read; UsageTests failed first on made transcripts of a repeated
+request, another day's, a subagent's, a broken line and a second session. Today's read: 12 sessions,
+8,441 turns, 3.36 billion tokens of cache read, each session's mean context between 223,500 and
+523,002. Tests pass both ways.

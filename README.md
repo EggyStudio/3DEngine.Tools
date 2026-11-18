@@ -375,6 +375,21 @@ section missing gives exit code 2.
 python3 -I scripts/archive.py <repo> [--under=<KB>]
 ```
 
+## A day's use
+
+`scripts/usage.py` sums a day's token use by session from the transcripts under
+`~/.claude/projects`, its subagents' among them, reading of each line only an assistant entry's
+usage, time, session and request and an agent-name entry's name, so the hourly watch can say whether
+the quiet protocol works. A request is counted once however many entries repeat it, and its context
+is its input, cache written and cache read. It prints a line a session, the largest first, with its
+turns, cache read, cache written, output and mean and largest context, a line of turns and cache
+read by hour, and a total, on the date given in UTC or today; a line it cannot read is counted with
+its file, and a projects folder missing gives 2.
+
+```bash
+python3 -I scripts/usage.py [<date>] [--projects=<folder>]
+```
+
 ## A module's pin
 
 `scripts/pin.py` moves a module's pin of Tools to a head, run from the module's root by its own
