@@ -45,9 +45,51 @@ types in the namespace `Tools`, and its `Directory.Build.props` stops it taking 
 that calls `ShellForms` over its scripts and one that calls `DocumentCopies` over its STYLE.md and
 COMMITS.md with its own word for the module's, as the sections below show, and runs the scripts by
 their path under `modules/Tools/scripts` with Python 3, Pillow where a picture is read or written.
-The tests' `ReferenceTests.cs` is the form of a test that a library references no engine, window or
-graphics API, read from the built assembly and its packages, which a module copies with its own
-library's name.
+
+| type | what it is |
+|---|---|
+| `ShellForms` | the shell forms only GNU's tools or bash 4 read, and a checkout's scripts read for them |
+| `ShellForm` | one such form, with what reads alike on both systems in its place |
+| `ShellFinding` | a line of a script that holds a form |
+| `DocumentCopies` | the sources of STYLE.md and COMMITS.md, and a copy read against its source |
+| `ModuleChecks` | the checks that a module's library is one any engine takes |
+
+### A module's checks
+
+A module takes the repository as a submodule under `modules/` as an engine does and references
+the library from its test project alone, so its own library and package take nothing of Tools',
+and `ModuleChecks.Refused` fails a library that references it. The module adds three things, the
+submodule, two items of its test project, the reference and a target that stops the build with one
+sentence naming the command where the submodule is not fetched, and one test of four facts.
+
+```bash
+git submodule add https://github.com/EggyStudio/Tools.git modules/Tools
+```
+
+```xml
+<ItemGroup>
+    <ProjectReference Include="..\modules\Tools\Tools\Tools.csproj" />
+</ItemGroup>
+<Target Name="NeedsTools" BeforeTargets="Restore;CollectPackageReferences;ResolveProjectReferences" Condition="!Exists('$(MSBuildThisFileDirectory)..\modules\Tools\Tools\Tools.csproj')">
+    <Error Text="The Tools submodule is not fetched. Run git submodule update --init modules/Tools." />
+</Target>
+```
+
+The test's facts read the module's built library by its assembly's name, `Library`, its checkout's
+root, `Root`, and the source of the test whose host runs the README's own binding block, `Host`,
+the three a module sets.
+
+```csharp
+var library = Assembly.Load(Library);
+var deps = Path.Combine(AppContext.BaseDirectory, Assembly.GetExecutingAssembly().GetName().Name + ".deps.json");
+var readme = File.ReadAllText(Path.Combine(Root, "README.md"));
+Assert.Empty(ModuleChecks.Refused(library, deps));
+Assert.Empty(ModuleChecks.EngineNames(library));
+Assert.Empty(ModuleChecks.Unnamed(library, readme));
+Assert.Null(ModuleChecks.BindingBlock(readme, File.ReadAllText(Path.Combine(Root, Host))));
+```
+
+The module's workflow checks the submodule out with `submodules: true` on `actions/checkout`.
 
 A clone of the engine fetches the module with `git clone --recurse-submodules`, or with
 `git submodule update --init` in a clone made without it, and a workflow checks it out with

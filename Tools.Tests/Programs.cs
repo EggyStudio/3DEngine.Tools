@@ -107,6 +107,25 @@ public static class Programs
             ? (code, output + error)
             : default;
 
+    /// <summary>
+    /// Builds the project in a folder with the SDK that runs the tests and returns its exit code
+    /// with what it printed, for a test whose build's failing is what it reads.
+    /// </summary>
+    /// <remarks>
+    /// The variables a test run inherits from the MSBuild that started it are taken out, so the
+    /// build is one a contributor starts, and MSBuild's nodes end with it.
+    /// </remarks>
+    public static (int Code, string Output) Build(string folder)
+    {
+        var environment = Environment.GetEnvironmentVariables().Keys.Cast<string>()
+            .Where(key => key.StartsWith("MSBuild", StringComparison.OrdinalIgnoreCase) || key.StartsWith("VSTEST", StringComparison.OrdinalIgnoreCase))
+            .ToDictionary(key => key, string? (_) => null);
+        environment["MSBUILDDISABLENODEREUSE"] = "1";
+        environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
+        var (code, output, error) = Start("dotnet", folder, environment, ["build", "-nologo"]);
+        return (code, output + error);
+    }
+
     private static string Run(string program, string folder, Dictionary<string, string> environment, string[] arguments)
     {
         var (code, output, error) = Start(program, folder, environment.ToDictionary(pair => pair.Key, pair => (string?)pair.Value), arguments);

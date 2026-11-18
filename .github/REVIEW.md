@@ -505,3 +505,58 @@ test is skipped on Windows, which makes a link only in developer mode or for an 
 file given through a link is read as well, and the dry run over 3DEngine at its head gives 5,449
 lines rewrapped and 83 left, the sweep's 5,532. The strict build is clean and the tests pass, 94
 where there were 93.
+
+A proposal, not built, for the modules' four agnostic checks as one piece. The four are the
+references (ReferenceTests, in Levels, Sky, Vegetation and Materials), the engines' names in the
+public surface and its documentation (Levels' EngineNameTests at `80bbc12`), every public type named
+in the README's binding section or a table, and the README's binding block standing word for word in
+the test's host (both in Sky's BindingTests at `d4b3b0a`). The four copies of ReferenceTests differ
+from Tools' in their names alone today (`diff` of each against `Tools.Tests/ReferenceTests.cs`),
+since the copies are hours old; Tools' own changed once since the first, its Library and the
+comment over it at `9f6e0c6`.
+
+The checks become plain functions of the library, as ShellForms and DocumentCopies are, returning
+what they find, with no xunit in them: `ModuleChecks.Refused(library, depsFile)`,
+`ModuleChecks.EngineNames(library, documentationFile)`, `ModuleChecks.Unnamed(library, readme)`
+and `ModuleChecks.BindingBlock(readme, hostSource)`, one list of the engines' names and the
+refused names shared by the first two. A module's tests keep their own host, which is the module's,
+and hold four facts of a line or two that assert each list empty.
+
+| | A, Tools as the module's submodule, referenced from its tests | B, files copied and compared |
+|---|---|---|
+| what the module holds | `modules/Tools` in `.gitmodules`, one ProjectReference in its test project, four facts of 15 lines | the four tests' files, 250 lines, each opening with the Tools commit it was copied at, its names in one file of its own |
+| its workflow | `submodules: true` on the checkout, and 2 seconds more for the library's build | nothing |
+| a change to a check | reaches a module when its pointer moves, one commit there, as an engine takes it (N 7.1) | reaches a module when its files are copied again |
+| drift | none, the build compiles the check a pointer names | read by a Tools script over the modules' checkouts in the day's sweep, each copy against Tools at its commit and at the head |
+| a stranger | runs the tests after `git clone --recurse-submodules`; the library ships with no Tools in it | runs the tests as cloned |
+| an engine taking the module | builds the module's library alone, and clones with no recursion, so Tools stands once in it | nothing |
+| the copies of STYLE.md and COMMITS.md | a fifth fact, `DocumentCopies` against the sources at the pointer, in the module's own suite | read by the Tools script beside the tests' files |
+
+The proposal is A. Rules held here change often, commitcheck.py's in four commits after the one that
+made it, the same day (git log --oneline -- scripts/commitcheck.py), a copy costs a commit in seven
+repositories each time, and a pointer moves a change in with the same one commit while the build
+proves the module and the check agree; a stranger pays one flag on the clone, and the module's
+library still ships with nothing of Tools'. The cost A carries is the nested submodule in an
+engine's tree, which an engine's clone leaves unfetched unless it recurses, and B is the fallback if
+the review reads that cost as too high.
+The review chose A, and ModuleChecks is in the commit carrying this line with the proposal above.
+`ModuleChecks` holds the four checks as functions that return what they find, each with a form
+that reads a built assembly and a form that reads what it is given: `Refused` over a library's
+assembly references and the packages its dependency file records, its names `RefusedNames`, the
+engines', the windows', the graphics APIs' and every assembly of the prefix this one carries, so a
+library that takes Tools is refused; `EngineNames` over the public types and members and the
+documentation of the public members alone, since a regular expression's generator documents the
+private method it writes with its pattern, which the first run over this library found; `Unnamed`
+over the public types the README names neither in its section Binding it in your engine nor in a
+table; and `BindingBlock` between the section's first C# block and a host's lines between its two
+markers. ModuleChecksTests plants a fault for each, a refused name and one passed, a package a
+library brings through another, a library that takes Tools beside a test project that does, a
+public name, a public member's summary and a private member's remark of which the last is passed,
+a type named outside the section and one named only as the start of another, a block that differs
+by a line, and it runs the README's block of four facts word for word over this library. It builds
+a module's test project from the README's own items with no submodule beside it, and the build
+stops before its restore with one error, the sentence naming `git submodule update --init
+modules/Tools`, and no compiler's or restore's error. The README's section names the module's three
+additions, the submodule, the test project's two items and the facts, with a table of this
+library's types, and ReferenceTests' cases move into ModuleChecksTests. The strict build is clean
+and the tests pass, 100 where there were 94.
