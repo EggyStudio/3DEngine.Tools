@@ -32,7 +32,11 @@ jobs:
     # only where a restore or a test hangs (N 6.8).
     timeout-minutes: 30
     steps:
+      # The whole history, which the version's patch is counted from and which the README's table
+      # of a module's facts names commits of.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v6
         with:

@@ -127,7 +127,7 @@ public static partial class Cheatsheet
             case FieldInfo field when field.DeclaringType!.IsEnum:
                 return $"{field.Name} = {Convert.ToInt64(field.GetRawConstantValue())},";
             case FieldInfo field:
-                return $"{TypeName(field.FieldType, nullability.Create(field))} {field.Name}" + (field.IsLiteral ? $" = {Value(field.GetRawConstantValue(), field.FieldType)};" : ";");
+                return $"{TypeName(field.FieldType, nullability.Create(field), Names.Of(field))} {field.Name}" + (field.IsLiteral ? $" = {Value(field.GetRawConstantValue(), field.FieldType)};" : ";");
             case ConstructorInfo constructor:
                 return $"{Plain(constructor.DeclaringType!.Name)}({Parameters(constructor, nullability)});";
             case PropertyInfo property:
@@ -136,10 +136,10 @@ public static partial class Cheatsheet
                     : "";
                 var index = property.GetIndexParameters();
                 var name = index.Length == 0 ? property.Name : $"this[{string.Join(", ", index.Select(p => Parameter(p, nullability)))}]";
-                return $"{TypeName(property.PropertyType, nullability.Create(property))} {name} {{ get;{setter} }}";
+                return $"{TypeName(property.PropertyType, nullability.Create(property), Names.Of(property))} {name} {{ get;{setter} }}";
             case MethodInfo method:
                 var generic = method.IsGenericMethod ? $"<{string.Join(", ", method.GetGenericArguments().Select(a => a.Name))}>" : "";
-                var returned = TypeName(method.ReturnType, nullability.Create(method.ReturnParameter));
+                var returned = TypeName(method.ReturnType, nullability.Create(method.ReturnParameter), Names.Of(method.ReturnParameter));
                 var extension = method.IsDefined(typeof(ExtensionAttribute)) ? "this " : "";
                 // A conversion is written by its kind and the type it gives, an operator by its
                 // symbol, as C# declares them, where the build names both as methods.
@@ -148,7 +148,7 @@ public static partial class Cheatsheet
                 var called = Operators.TryGetValue(method.Name, out var symbol) ? $"operator {symbol}" : method.Name;
                 return $"{returned} {called}{generic}({extension}{Parameters(method, nullability)});";
             case EventInfo @event:
-                return $"event {TypeName(@event.EventHandlerType!, nullability.Create(@event))} {@event.Name};";
+                return $"event {TypeName(@event.EventHandlerType!, nullability.Create(@event), Names.Of(@event))} {@event.Name};";
             default:
                 return member.Name;
         }
@@ -162,7 +162,7 @@ public static partial class Cheatsheet
         var type = parameter.ParameterType;
         var modifier = parameter.IsDefined(typeof(ParamArrayAttribute)) ? "params "
             : type.IsByRef ? (parameter.IsOut ? "out " : parameter.IsIn ? "in " : "ref ") : "";
-        var text = $"{modifier}{TypeName(type.IsByRef ? type.GetElementType()! : type, nullability.Create(parameter))} {parameter.Name}";
+        var text = $"{modifier}{TypeName(type.IsByRef ? type.GetElementType()! : type, nullability.Create(parameter), Names.Of(parameter))} {parameter.Name}";
         return parameter.HasDefaultValue ? $"{text} = {Value(parameter.RawDefaultValue, type)}" : text;
     }
 
@@ -218,25 +218,59 @@ public static partial class Cheatsheet
     };
 
     // A type as C# writes it in a declaration, its nullable reference marked where the build says.
-    private static string TypeName(Type type, NullabilityInfo? nullability)
+    // A member's tuples' element names, which the build keeps in one list for the member in the
+    // order of a depth-first walk of its type, each tuple's names before its elements', null for
+    // an element unnamed.
+    private sealed class Names(IList<string?> names)
+    {
+        private int next;
+
+        public static Names? Of(ICustomAttributeProvider member) =>
+            member.GetCustomAttributes(typeof(TupleElementNamesAttribute), false).FirstOrDefault() is TupleElementNamesAttribute found
+                ? new Names(found.TransformNames)
+                : null;
+
+        public string?[] Take(int count)
+        {
+            var taken = Enumerable.Range(next, count).Select(i => i < names.Count ? names[i] : null).ToArray();
+            next += count;
+            return taken;
+        }
+    }
+
+    private static string TypeName(Type type, NullabilityInfo? nullability, Names? names = null)
     {
         var mark = nullability is { ReadState: NullabilityState.Nullable } && !type.IsValueType ? "?" : "";
         if (Nullable.GetUnderlyingType(type) is { } underlying)
-            return TypeName(underlying, null) + "?";
+            return TypeName(underlying, null, names) + "?";
         if (type.IsArray)
-            return TypeName(type.GetElementType()!, nullability?.ElementType) + "[]" + mark;
+            return TypeName(type.GetElementType()!, nullability?.ElementType, names) + "[]" + mark;
         if (Aliases.TryGetValue(type, out var alias))
             return alias + mark;
         if (type.IsGenericParameter)
             return type.Name + mark;
         var arguments = type.IsGenericType ? type.GetGenericArguments() : [];
         var infos = nullability?.GenericTypeArguments ?? [];
-        string argument(int i) => TypeName(arguments[i], i < infos.Length ? infos[i] : null);
+        string argument(int i) => TypeName(arguments[i], i < infos.Length ? infos[i] : null, names);
         // A tuple is read by its definition, since a tuple of a generic's parameters has no full
         // name of its own.
         if (type.IsGenericType && type.GetGenericTypeDefinition() is { Namespace: "System" } definition
             && definition.Name.StartsWith("ValueTuple`", StringComparison.Ordinal))
-            return $"({string.Join(", ", arguments.Select((_, i) => argument(i)))})" + mark;
+        {
+            // The tuple takes its own names before its elements are read, as the build ordered
+            // them.
+            var named = names?.Take(arguments.Length) ?? new string?[arguments.Length];
+            // Each element is read once and in its order, since its reading takes names from the
+            // list.
+            var elements = new List<string>();
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                var text = argument(i);
+                elements.Add(named[i] is { } name ? $"{text} {name}" : text);
+            }
+
+            return $"({string.Join(", ", elements)})" + mark;
+        }
         return Chain(type, argument) + mark;
     }
 

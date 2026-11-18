@@ -974,3 +974,19 @@ RadianceCascades' tuples `IReadOnlyList<(SceneFieldPlan<TMesh, TTag>.Instance, b
 element names, which an attribute of the member holds, are not read, so a named tuple is written
 with its types alone. The strict build is clean and the tests pass, 179 and one skipped plain and
 180 in the variant.
+
+The check of what a module carries in the commit carrying this line, the third of the three, with a
+named tuple's element names on the cheatsheet beside it. CarriesTests reads the README's section
+Binding it in your engine, and the table of "What a module carries" names every fact its C# blocks
+give with the check the fact's block calls and names no other fact; every commit the table names is
+an ancestor of the head, read where the checkout holds its whole history and skipped with its reason
+where it does not, and the workflow's checkout takes the whole history, which the version's patch is
+counted from as well. A made README with a fact the table lacks, a row no block gives and a row
+naming another check reads the three faults. The table named none of the commits that changed what
+two facts read after their own, `75d77f2` for the link row's one word and `5bf6255` and `460a481`
+for the cheatsheet's defaults and forms, which it names. The cheatsheet writes a tuple's element
+names from the attribute the build keeps them in, a list in the order of a depth-first walk of the
+member's tuples, each tuple's names before its elements', as `(Plan<TMesh, TTag>.Item Item, bool
+Moved)` and `((int Low, int High) Range, string? Name)` beside an unnamed `(int, int)`; both lines
+failed first, and the writer reads each element once since its reading takes names from the list.
+The strict build is clean and the tests pass, 183 and one skipped plain and 184 in the variant.

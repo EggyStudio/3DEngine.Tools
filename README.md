@@ -240,9 +240,9 @@ changed what the check reads. A module pinned before a fact's commit owes that f
 | `No_Public_Name_Or_Its_Documentation_Names_An_Engine` | `ModuleChecks.EngineNameFault` | `7d56e0f` | |
 | `The_Readme_Names_Every_Public_Type` | `ModuleChecks.UnnamedFault` | `7d56e0f` | `183e308`, a generic type's arity |
 | `The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host` | `ModuleChecks.BindingBlock` | `7d56e0f` | |
-| `The_Cheatsheet_Is_What_The_Built_Library_Writes` | `ModuleChecks.CheatsheetFault` | `17860cb` | `3720852`, a record's constructor, and `183e308`, inheritdoc |
+| `The_Cheatsheet_Is_What_The_Built_Library_Writes` | `ModuleChecks.CheatsheetFault` | `17860cb` | `3720852`, a record's constructor, `183e308`, inheritdoc, `5bf6255`, infinite defaults, and `460a481`, operators, tuples and nested types |
 | `No_Tracked_Text_Names_An_Engine` | `ModuleChecks.EngineNameInTextFault` | `b817e9b` | |
-| `The_Readme_Opens_With_Its_Link_Row` | `ModuleChecks.LinkRowFault` | `0b0b902` | |
+| `The_Readme_Opens_With_Its_Link_Row` | `ModuleChecks.LinkRowFault` | `0b0b902` | `75d77f2`, the cheatsheet as one word |
 
 `ModuleChecks.ProductNamesInText`, from `d1b04e5`, is a list a reviewer reads and no fact.
 

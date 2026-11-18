@@ -48,6 +48,9 @@ public sealed class Plan<TMesh, TTag>
     /// <summary>Whether a thing stands still.</summary>
     public bool IsStill(in Item item) => true;
 
+    /// <summary>The range the marks span and its name, of cells unnamed and marks named.</summary>
+    public ((int Low, int High) Range, string? Name) Bounds((int, int) cells, (float At, (int Row, int Column) Cell)[] marks) => ((0, 0), null);
+
     /// <summary>The first thing drawn of a kind, if any.</summary>
     public bool TryFirst<TKind>(out TKind? found) where TKind : class
     {
