@@ -1030,3 +1030,22 @@ repository of a sentence naming the assembly's form and one naming an engine, th
 commit's message in a module, in another module naming its assembly and in Tools. The README says
 both and AGENTS.md's scripts row names pin.py. The strict build is clean and the tests pass, 188 and
 one skipped plain and 189 in the variant.
+
+A commit's report in the commit carrying this line, the third of the three. `scripts/report.py`
+prints a commit's block, every line read by the script and none by hand: the hash and the sentence,
+the files by kind and the lines added and removed, the facts and the theories' rows of data the diff
+adds to C# files counted on added lines alone, a theory's own attribute not counted and an
+attribute's form in a page not read, the counts of a test run read from a TRX file, the one `--trx`
+names or the newest under the repository's TestResults folders, and `commitcheck.py`'s exit code
+with its FAIL and WARN lines counted. By the review's word a count it could not read is said unread
+with why, a TRX missing or broken, and a commit git cannot read gives 2. ReportTests failed first,
+the script being set aside, on a made commit of a test file, a script and a page whose block reads
+its sentence of two lines, three files of three kinds, 17 lines, two facts and two rows, a TRX's
+five counts and a check that fails a message without the marks, and on the unread TRX in both forms
+and the unread commit. The README says it and AGENTS.md's scripts row names it. The run of
+`eb6ded6`, 44375686499, is green on Linux, Windows and macOS, read with run.py. A TRX file is read
+by its results' outcomes, and by its counters only where it holds no results, since the first block
+of this commit read 191 total and 190 passed and nothing else: dotnet test counts the skipped test
+in no counter, its notExecuted 0, while its result's outcome is NotExecuted; a third test failed
+first on a made TRX of that form. The strict build is clean and the tests pass, 191 and one skipped
+plain and 192 in the variant.

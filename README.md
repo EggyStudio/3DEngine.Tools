@@ -379,6 +379,20 @@ with the reason written to the error output. The names no commit may carry are a
 in the `FORBIDDEN_NAMES` environment variable and in no file, and where it is not set the check says
 so.
 
+## A commit's report
+
+`scripts/report.py` prints a commit's report block, every line of it read by the script: the
+commit's hash and sentence, its files by kind and its lines added and removed, the facts and the
+theories' rows of data its diff adds to C# files, the counts of a test run read from a TRX file, the
+one `--trx` names or the newest under the repository's TestResults folders, and `commitcheck.py`'s
+exit code with its FAIL and WARN lines counted. A count it could not read is said to be unread, with
+why, and a commit git cannot read gives exit code 2.
+
+```bash
+dotnet test Tools.Tests --logger trx
+python3 -I scripts/report.py . [<commit>] [--trx=<results.trx>]
+```
+
 ## A module's pin
 
 `scripts/pin.py` moves a module's pin of Tools to a head, run from the module's root by its own
