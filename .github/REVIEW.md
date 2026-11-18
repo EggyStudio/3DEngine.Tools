@@ -307,3 +307,18 @@ section, where Taking it into an engine stood, says that the module needs nothin
 declares no interface, references the library from a test project alone, and names the two tests
 an engine adds, the scripts' needs and the reference test's form. The strict build is clean and the
 tests pass, 74 where there were 62.
+
+The comment patterns narrowed in the commit carrying this line, as the review read the sweep's
+output. A comment tells what the code was by used to, no longer, formerly, previously, was once, had
+been, before this or an earlier version, where a plain earlier, as an earlier command, and a
+regression counted. A comment in a workflow or a build script, a `.sh` or `.ps1` file or Python
+under `build` or `scripts`, is read for a run's figures with a unit and its dates alone, and the
+words of a run, runner, a CI run or a run's number, are read for elsewhere. SweepTests failed first
+on a made tree with a plain earlier, an earlier version, a workflow's runner, a workflow's 8 ms and
+a C# comment's runner, two warnings of each rule expected and three and one read. Over BevyCSharp
+at its head (python3 -I scripts/sweep.py ../../BevyCSharp), the first rule's warnings fall from 99
+to 47 and the second's from 147 to 93. Most of those left are plain as well, is used to, before this
+frame, had been allocated and the generator's runner class, so a narrower reading is proposed, used
+to after no form of be, before this followed by change, commit or version, had been left out, and
+runner read in a test's comment alone. The strict build is clean and the tests pass, 75 where there
+were 74.

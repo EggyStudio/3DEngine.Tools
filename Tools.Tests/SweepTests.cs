@@ -48,6 +48,23 @@ public class SweepTests
     }
 
     [NeedsPythonFact]
+    public void A_Plain_Earlier_And_A_Workflows_Runner_Are_No_Account_Of_The_Code_Or_A_Run()
+    {
+        var (_, printed) = Sweep(new()
+        {
+            ["scripts/earlier.py"] = "# The earlier command's output is read.\n# An earlier version read it twice.\nprint(1)\n",
+            [".github/workflows/build.yml"] = "# The runner is Ubuntu's.\n# The build took 8 ms on a desktop.\non: push\n",
+            ["Library/A.cs"] = "// Read on the runner.\nclass A {}\n",
+        });
+
+        var lines = printed.Split('\n');
+        Assert.Contains("WARN a comment tells what the code was, 1", lines);
+        Assert.Contains("  scripts/earlier.py:2 a comment tells what the code was, \"An earlier version\", in # An earlier version read it twice.", lines);
+        Assert.Contains("WARN a comment carries a run's facts, 2", lines);
+        Assert.DoesNotContain(".github/workflows/build.yml:1", printed);
+    }
+
+    [NeedsPythonFact]
     public void Where_No_Names_Are_Given_The_Sweep_Says_It_Did_Not_Read_For_Them()
     {
         var (exit, printed) = Sweep(new() { ["docs/thanks.md"] = $"Written for {MadeUpName}.\n" }, names: null);
