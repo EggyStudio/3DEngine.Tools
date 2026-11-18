@@ -139,6 +139,37 @@ public class CommitCheckTests
     }
 
     [NeedsPythonFact]
+    public void Another_Product_In_A_Modules_Text_Warns_Outside_A_License_Or_A_Citation()
+    {
+        var parent = Directory.CreateTempSubdirectory("commitcheck-").FullName;
+        try
+        {
+            var repo = Path.Combine(parent, "Modules", "Sample");
+            Directory.CreateDirectory(Path.Combine(repo, "Sample"));
+            Git(repo, "init", "-q");
+            File.WriteAllText(Path.Combine(repo, "README.md"), "# Sample\n\nThe sky as Unity lights it.\nThe air after HDRP's model (2019).\nSee https://example.com/godot for more.\n");
+            File.WriteAllText(Path.Combine(repo, "LICENSE"), "Parts by Unity Technologies.\n");
+            File.WriteAllText(Path.Combine(repo, "Sample", "Sky.cs"), "namespace Sample;\n// The haze as Unreal draws it.\npublic class Sky { }\n");
+            Git(repo, "add", "-A");
+            File.WriteAllText(Path.Combine(repo, ".git", "message"), Lead + "A module holds a sky.\n");
+            Git(repo, "commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(repo, ".git", "message"));
+
+            var (code, printed) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "HEAD");
+
+            Assert.True(code == 0, printed);
+            Assert.Contains("WARN README.md:3: names another product, \"Unity\", where a module's text stands on its own terms", printed);
+            Assert.DoesNotContain("README.md:4", printed);
+            Assert.DoesNotContain("README.md:5", printed);
+            Assert.DoesNotContain("LICENSE", printed);
+            Assert.Single(Programs.Lines(printed), line => line.Contains("Sample/Sky.cs:2", StringComparison.Ordinal));
+        }
+        finally
+        {
+            Delete(parent);
+        }
+    }
+
+    [NeedsPythonFact]
     public void A_Message_Without_The_Three_Marks_Fails()
     {
         var (code, printed) = Check(new() { ["a.txt"] = "a\n" }, "Add a file.\n\nA file holds a letter.\n");

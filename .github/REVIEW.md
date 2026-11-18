@@ -766,3 +766,13 @@ CommitCheckTests failed first on one commit made three times, under `Modules/Sam
 `Modules/Tools` and `Other/Sample`, its README naming an engine beside an assembly's name and a
 review's line, the module's failing on the README's line alone and the other two passing. The README
 says it. The strict build is clean and the tests pass, 134 where there were 133.
+
+Other products in a module's text in the commit carrying this line, as a warning. A line naming
+Unity, HDRP, Unreal or Godot in a module's tracked text, a license's file and a line citing a source
+by an address or a year apart, is listed by `ModuleChecks.ProductNamesInText`, a warning a reviewer
+reads and no fact, and `commitcheck.py` warns of each such line a module's commit adds, once a line
+where a comment's pattern warns of it already. A test of each failed first on a made module whose
+README names a product, cites one by its year and one by an address, beside a license's file and a
+comment naming one, the README's first line and the comment alone read. The seven modules at their
+heads name none (grep of their tracked files). The README says it. The strict build is clean and the
+tests pass, 136 where there were 134.

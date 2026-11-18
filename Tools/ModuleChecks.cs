@@ -299,16 +299,36 @@ public static partial class ModuleChecks
     /// <param name="root">The module's checkout.</param>
     /// <exception cref="InvalidOperationException">git does not list the checkout's
     /// files.</exception>
-    public static IReadOnlyList<string> EngineNamesInText(string root)
+    public static IReadOnlyList<string> EngineNamesInText(string root) => InText(root, line => EngineInText().IsMatch(line), _ => false);
+
+    /// <summary>
+    /// Each line of a module's tracked text files that names another product, Unity, HDRP, Unreal
+    /// or Godot, by its path and number, a license's file and a line citing a source by an address
+    /// or a year apart.
+    /// </summary>
+    /// <remarks>
+    /// A module's text stands on its own terms, so a product named in it is read as a warning, a
+    /// line a reviewer reads, and no fact fails on it. The files are those
+    /// <see cref="EngineNamesInText"/> reads.
+    /// </remarks>
+    /// <param name="root">The module's checkout.</param>
+    /// <exception cref="InvalidOperationException">git does not list the checkout's
+    /// files.</exception>
+    public static IReadOnlyList<string> ProductNamesInText(string root) =>
+        InText(root, line => Product().IsMatch(line) && !Citation().IsMatch(line), path => License().IsMatch(Path.GetFileName(path)));
+
+    // The lines of a module's tracked text that match, by path and number, a file the rule leaves
+    // out read for none.
+    private static List<string> InText(string root, Func<string, bool> matches, Func<string, bool> leftOut)
     {
         var found = new List<string>();
-        foreach (var path in Tracked(root).Where(path => Texts().IsMatch(path) && !LeftOut().IsMatch(path)).Order(StringComparer.Ordinal))
+        foreach (var path in Tracked(root).Where(path => Texts().IsMatch(path) && !LeftOut().IsMatch(path) && !leftOut(path)).Order(StringComparer.Ordinal))
         {
             var file = Path.Combine(root, path);
             if (!File.Exists(file)) continue;
             var lines = File.ReadAllLines(file);
             for (int i = 0; i < lines.Length; i++)
-                if (EngineInText().IsMatch(lines[i]))
+                if (matches(lines[i]))
                     found.Add($"{path}:{i + 1}");
         }
 
@@ -364,7 +384,17 @@ public static partial class ModuleChecks
     [GeneratedRegex(@"3DEngine(?!\.[A-Za-z])|\bBevy(CSharp)?\b|\bE3D\b", RegexOptions.IgnoreCase)]
     private static partial Regex EngineInText();
 
-    [GeneratedRegex(@"\.(cs|rs|slang|wgsl|glsl|hlsl|py|sh|ps1|md|toml|yml|yaml|json|csproj|props|targets|slnx|xml|txt)$", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"\b(Unity|HDRP|Unreal|Godot)\b")]
+    private static partial Regex Product();
+
+    // A line that cites a source names it by an address or by its year.
+    [GeneratedRegex(@"https?://|\b(19|20)\d\d\b")]
+    private static partial Regex Citation();
+
+    [GeneratedRegex(@"^(LICENSE|COPYING|NOTICE|THIRD-PARTY-NOTICES)", RegexOptions.IgnoreCase)]
+    private static partial Regex License();
+
+    [GeneratedRegex(@"(^|\.)(cs|rs|slang|wgsl|glsl|hlsl|py|sh|ps1|md|toml|yml|yaml|json|csproj|props|targets|slnx|xml|txt)$|(^|/)(LICENSE|COPYING|NOTICE)[^/]*$", RegexOptions.IgnoreCase)]
     private static partial Regex Texts();
 
     [GeneratedRegex(@"^(modules/|\.github/(REVIEW|NORM)\.md$)")]

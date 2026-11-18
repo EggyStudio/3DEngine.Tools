@@ -80,6 +80,11 @@ COLUMNS = 100
 ENGINE = re.compile(r"3DEngine(?!\.[A-Za-z])|\bBevy(CSharp)?\b|\bE3D\b", re.I)
 MODULE_TEXT = re.compile(r"\.(cs|rs|slang|wgsl|glsl|hlsl|py|sh|ps1|md|toml|yml|yaml|json|csproj|props|targets|slnx|xml|txt)$", re.I)
 MODULE_LEFT_OUT = re.compile(r"^(modules/|\.github/(REVIEW|NORM)\.md$)")
+# Another product, which a module's text names as a warning, its stand on its own terms read by a
+# reviewer, apart from a license's file and a line citing a source by an address or a year.
+PRODUCT = re.compile(r"\b(Unity|HDRP|Unreal|Godot)\b")
+CITATION = re.compile(r"https?://|\b(19|20)\d\d\b")
+LICENSE = re.compile(r"(^|/)(LICENSE|COPYING|NOTICE|THIRD-PARTY-NOTICES)[^/]*$", re.I)
 
 
 # A check that cannot run exits with 2, apart from a commit's FAIL, which exits with 1, so a push
@@ -255,15 +260,22 @@ def check(repo, rev, names, thumbs):
             continue
         number += 1
         added, where = line[1:], f"{path}:{number}"
-        if module and MODULE_TEXT.search(path) and not MODULE_LEFT_OUT.match(path) and ENGINE.search(added):
+        read = module and (MODULE_TEXT.search(path) or LICENSE.search(path)) and not MODULE_LEFT_OUT.match(path)
+        if read and ENGINE.search(added):
             fail(f"{where}: names an engine, \"{ENGINE.search(added).group(0)}\", which a module names nowhere but in its assembly's name")
+        # A comment's line naming a product is warned of by the comment patterns, once a line.
+        named = PRODUCT.search(added) if read and not LICENSE.search(path) and not CITATION.search(added) else None
         if not TEXT.search(path):
+            if named:
+                warn(f"{where}: names another product, \"{named.group(0)}\", where a module's text stands on its own terms")
             continue
         if added.rstrip() != added and not path.endswith(".md"):
             warn(f"{where}: a blank at the line's end")
         faults, in_xml = line_faults(path, added, in_xml)
         for level, _, found in faults:
             (fail if level == "FAIL" else warn)(f"{where}: {found}")
+        if named and not any(rule == "a comment likens to another product" for _, rule, _ in faults):
+            warn(f"{where}: names another product, \"{named.group(0)}\", where a module's text stands on its own terms")
     return sentence, fails, warns, notes
 
 

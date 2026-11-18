@@ -209,6 +209,28 @@ public class ModuleChecksTests
     }
 
     [Fact]
+    public void Another_Product_In_A_Modules_Text_Is_Listed_Outside_A_License_Or_A_Citation()
+    {
+        var repo = Directory.CreateTempSubdirectory("module-").FullName;
+        try
+        {
+            Write(repo, "README.md", "# Sample\n\nThe sky as Unity lights it.\nThe air after HDRP's model (2019).\nSee https://example.com/godot for more.\n");
+            Write(repo, "LICENSE", "Parts by Unity Technologies.\n");
+            Write(repo, "THIRD-PARTY-NOTICES.md", "Godot's shaders, under its license.\n");
+            Write(repo, "Sample/Sky.cs", "namespace Sample;\n// The haze as Unreal draws it.\npublic class Sky { }\n");
+            Programs.Run("git", repo, "init", "-q");
+            Programs.Run("git", repo, "add", "-A");
+
+            Assert.Equal(["README.md:3", "Sample/Sky.cs:2"], ModuleChecks.ProductNamesInText(repo));
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
+    [Fact]
     public void A_Readme_Block_That_Differs_From_Its_Host_Is_Named_By_Its_Line()
     {
         var readme = "# Sample\n\n## Binding it in your engine\n\n```csharp\nvar a = 1;\nvar b = 2;\n```\n";

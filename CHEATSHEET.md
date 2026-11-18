@@ -51,6 +51,7 @@ string? UnnamedFault(IEnumerable<string> typeNames, string readme);  // Null whe
 string? UnnamedFault(Assembly library, string readme);   // UnnamedFault of a built library
 string? CheatsheetFault(Assembly library, string readme, string page);  // Null where the page at page holds what Write writes from the built library, else a sentence naming its first line that differs and what to do
 IReadOnlyList<string> EngineNamesInText(string root);    // Each line of a module's tracked text files that names an engine, by its path and number, the module's own assembly and package name apart
+IReadOnlyList<string> ProductNamesInText(string root);   // Each line of a module's tracked text files that names another product, Unity, HDRP, Unreal or Godot, by its path and number, a license's file and a line citing a source by an address or a year apart
 string? EngineNameInTextFault(string root);              // Null where EngineNamesInText finds nothing, else a sentence naming the first line, what it names, the rule and what to do
 
 class Cheatsheet                                         // Writes a module's CHEATSHEET.md from its built library and documentation file, every public type with its public members a line each, the declaration without its modifiers and the first sentence of its summary
