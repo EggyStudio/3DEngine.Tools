@@ -382,12 +382,13 @@ python3 -I scripts/archive.py <repo> [--under=<KB>]
 usage, time, session and request and an agent-name entry's name, so the hourly watch can say whether
 the quiet protocol works. A request is counted once however many entries repeat it, and its context
 is its input, cache written and cache read. It prints a line a session, the largest first, with its
-turns, cache read, cache written, output and mean and largest context, a line of turns and cache
-read by hour, and a total, on the date given in UTC or today; a line it cannot read is counted with
-its file, and a projects folder missing gives 2.
+turns, cache read, cache written, output and mean and largest context, the turns and cache read of
+each hour on a line of its own in local time, and a total, on the date given in local time or today,
+from the hour `--since` gives where a watch reads the last hours alone; a line it cannot read is
+counted with its file, and a projects folder missing gives 2.
 
 ```bash
-python3 -I scripts/usage.py [<date>] [--projects=<folder>]
+python3 -I scripts/usage.py [<date>] [--since=<hour>] [--projects=<folder>]
 ```
 
 ## A module's pin

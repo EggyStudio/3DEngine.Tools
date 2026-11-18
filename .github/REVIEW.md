@@ -536,3 +536,8 @@ input, cache written and cache read; UsageTests failed first on made transcripts
 request, another day's, a subagent's, a broken line and a second session. Today's read: 12 sessions,
 8,441 turns, 3.36 billion tokens of cache read, each session's mean context between 223,500 and
 523,002. Tests pass both ways.
+
+usage.py's hours in the commit carrying this line, the hour's step: each hour on a line of its own
+in local time, the date read in local time, and `--since=<hour>` keeping the hours from it on;
+UsageTests failed first with TZ an hour east of UTC, the other day's request falling on the day
+before in local time and `--since=17` leaving the earlier hour out. Tests pass both ways.
