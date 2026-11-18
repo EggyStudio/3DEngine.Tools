@@ -292,9 +292,10 @@ public static partial class ModuleChecks
     /// </summary>
     /// <remarks>
     /// The files are those <c>git ls-files</c> lists, of the languages and documents a module
-    /// keeps, apart from its own <c>modules/</c>, where its submodules stand, and the review's and
-    /// the norm's files, which are written about the repositories by their review. A module names
-    /// no engine, so a stranger reads it as one any engine takes.
+    /// keeps, apart from its own <c>modules/</c>, where its submodules stand, and the review's
+    /// files, <c>REVIEW.md</c> and its archive, and the norm's, which are written about the
+    /// repositories by their review. A module names no engine, so a stranger reads it as one any
+    /// engine takes.
     /// </remarks>
     /// <param name="root">The module's checkout.</param>
     /// <exception cref="InvalidOperationException">git does not list the checkout's
@@ -424,7 +425,7 @@ public static partial class ModuleChecks
     [GeneratedRegex(@"(^|\.)(cs|rs|slang|wgsl|glsl|hlsl|py|sh|ps1|md|toml|yml|yaml|json|csproj|props|targets|slnx|xml|txt)$|(^|/)(LICENSE|COPYING|NOTICE)[^/]*$", RegexOptions.IgnoreCase)]
     private static partial Regex Texts();
 
-    [GeneratedRegex(@"^(modules/|\.github/(REVIEW|NORM)\.md$)")]
+    [GeneratedRegex(@"^(modules/|\.github/(REVIEW|REVIEW-ARCHIVE|NORM)\.md$)")]
     private static partial Regex LeftOut();
 
     // Each engine's name and its API's prefix, as a word of its own.

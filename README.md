@@ -175,14 +175,14 @@ module's library alone, which takes nothing of Tools', so it needs the module's 
 A module names no engine anywhere in it, its code, comments, README, AGENTS.md, CHEATSHEET.md, tests
 and captions, its assembly's and package's name of the form `3DEngine.<Module>` apart.
 `ModuleChecks.EngineNameInTextFault` reads every tracked text file of a module's checkout but its
-`modules/` and its `.github/REVIEW.md` and `.github/NORM.md`, and is null where none names an
-engine, else names the first line with what it names and how many more do. A module adds this fact
-beside its five. `ModuleChecks.ProductNamesInText` lists each line that names another product,
-Unity, HDRP, Unreal or Godot, a license's file and a line citing a source by an address or a year
-apart, a warning a reviewer reads and no fact, since a module's text stands on its own terms, and
-`commitcheck.py` warns of each such line a module's commit adds. This repository's scripts and
-reports name the repositories they read, so its own tests run the check over made repositories
-alone.
+`modules/` and its `.github/REVIEW.md`, `.github/REVIEW-ARCHIVE.md` and `.github/NORM.md`, and is
+null where none names an engine, else names the first line with what it names and how many more do.
+A module adds this fact beside its five. `ModuleChecks.ProductNamesInText` lists each line that
+names another product, Unity, HDRP, Unreal or Godot, a license's file and a line citing a source by
+an address or a year apart, a warning a reviewer reads and no fact, since a module's text stands on
+its own terms, and `commitcheck.py` warns of each such line a module's commit adds. This
+repository's scripts and reports name the repositories they read, so its own tests run the check
+over made repositories alone.
 
 ```csharp
 [Fact]

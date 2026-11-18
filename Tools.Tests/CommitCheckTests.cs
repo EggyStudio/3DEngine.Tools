@@ -115,6 +115,7 @@ public class CommitCheckTests
                 File.WriteAllText(Path.Combine(repo, "README.md"), "# Sample\n\nIt was drawn in BevyCSharp first.\n");
                 File.WriteAllText(Path.Combine(repo, "Sample", "Sample.csproj"), "<Project><PropertyGroup><AssemblyName>3DEngine.Sample</AssemblyName></PropertyGroup></Project>\n");
                 File.WriteAllText(Path.Combine(repo, ".github", "REVIEW.md"), "3DEngine's item 136.\n");
+                File.WriteAllText(Path.Combine(repo, ".github", "REVIEW-ARCHIVE.md"), "BevyCSharp's item 51.\n");
                 Git(repo, "add", "-A");
                 File.WriteAllText(Path.Combine(repo, ".git", "message"), Lead + "A module holds a sample.\n");
                 Git(repo, "commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(repo, ".git", "message"));
@@ -129,6 +130,7 @@ public class CommitCheckTests
             Assert.Contains("FAIL README.md:3: names an engine, \"BevyCSharp\", which a module names nowhere but in its assembly's name", printed);
             Assert.DoesNotContain("Sample.csproj", printed);
             Assert.DoesNotContain("REVIEW.md", printed);
+            Assert.DoesNotContain("REVIEW-ARCHIVE.md", printed);
             Assert.True(tools == 0, toolsPrinted);
             Assert.True(other == 0, otherPrinted);
         }

@@ -195,6 +195,7 @@ public class ModuleChecksTests
             Write(repo, "README.md", "# Sample\n\nA module any engine takes.\nIt was drawn in BevyCSharp first.\n");
             Write(repo, "Sample/Scene.cs", "namespace Sample;\n// The scene as 3DEngine's renderer draws it.\npublic class Scene { }\n");
             Write(repo, ".github/REVIEW.md", "3DEngine's item 136.\n");
+            Write(repo, ".github/REVIEW-ARCHIVE.md", "BevyCSharp's item 51.\n");
             Write(repo, ".github/NORM.md", "The engines, 3DEngine and BevyCSharp.\n");
             Write(repo, "modules/Tools/README.md", "Both engines, 3DEngine and BevyCSharp.\n");
             Programs.Run("git", repo, "init", "-q");

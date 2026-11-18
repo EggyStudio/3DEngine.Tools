@@ -84,7 +84,7 @@ TWO_WORDS = re.compile(r"\bcheat\s+sheets?\b", re.I)
 # for it, its own submodules and the review's and the norm's files apart.
 ENGINE = re.compile(r"3DEngine(?!\.[A-Za-z])|\bBevy(CSharp)?\b|\bE3D\b", re.I)
 MODULE_TEXT = re.compile(r"\.(cs|rs|slang|wgsl|glsl|hlsl|py|sh|ps1|md|toml|yml|yaml|json|csproj|props|targets|slnx|xml|txt)$", re.I)
-MODULE_LEFT_OUT = re.compile(r"^(modules/|\.github/(REVIEW|NORM)\.md$)")
+MODULE_LEFT_OUT = re.compile(r"^(modules/|\.github/(REVIEW|REVIEW-ARCHIVE|NORM)\.md$)")
 # Another product, which a module's text names as a warning, its stand on its own terms read by a
 # reviewer, apart from a license's file and a line citing a source by an address or a year.
 PRODUCT = re.compile(r"\b(Unity|HDRP|Unreal|Godot)\b")
