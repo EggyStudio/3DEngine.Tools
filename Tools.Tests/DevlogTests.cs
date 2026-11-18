@@ -39,6 +39,16 @@ public class DevlogTests
         }
     }
 
+    [NeedsPythonFact]
+    public void Run_With_No_Repository_It_Says_How_It_Is_Run()
+    {
+        var (code, printed) = Programs.Attempt("devlog.py", []);
+
+        Assert.True(code != 0, printed);
+        Assert.Contains("Usage is devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>].", printed);
+        Assert.DoesNotContain("Traceback", printed);
+    }
+
     // The machine's own settings left out, an identity given and signing off, so a commit is made
     // alike in a workflow with no identity and on a desktop that signs.
     private static string Git(string repo, params string[] arguments) =>

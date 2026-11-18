@@ -1,5 +1,7 @@
 # Tools
 
+[DEVLOG.md](DEVLOG.md)
+
 Tools is a library and a set of scripts that any engine takes as a git submodule, for what its
 repositories otherwise copy by hand, the devlog's generator, the composer of reading sheets, the run
 reader, the check of a commit and the sweep of a tree, the reading of shell scripts for forms macOS
@@ -151,7 +153,14 @@ picture with no date is put on. With none given it rewrites nothing, adds no pat
 sent picture with no date, naming it.
 
 It prints the days, pictures and items it wrote, and any line that breaks STYLE.md's mechanical
-rules.
+rules, and with no repository given it prints how it is run.
+
+A module keeps its own devlog, generated again in every commit that closes an item of its review, by
+the script of the Tools it takes as its submodule, run from the module's root with its name.
+
+```bash
+python3 -I modules/Tools/scripts/devlog.py . Levels
+```
 
 ## A workflow run
 

@@ -688,3 +688,12 @@ binding named for SDL3, documents a type as an engine draws it, keeps a type out
 holds a block no host holds: `dotnet test` over it failed all four with each sentence cut and the
 singular wrong, and fails them with each sentence whole, in 3 seconds. The strict build is clean
 and the tests pass, 119 where there were 118.
+
+The devlog in the commit carrying this line. The README opens with a link to DEVLOG.md, and its
+devlog section says that a module keeps its own, generated again in every commit that closes an
+item of its review, by the script of the Tools it takes as its submodule, run from its root with its
+name, `python3 -I modules/Tools/scripts/devlog.py . Levels`. Run with no repository, devlog.py ended
+in an IndexError; it prints how it is run and exits with 1, which DevlogTests failed first on.
+DEVLOG.md is generated again, the sheet composer's picture on 2026-11-18 at its head; the items this
+session closes are the review's to mark done, and the devlog takes each on the day of its commit
+when they are. The strict build is clean and the tests pass, 120 where there were 119.

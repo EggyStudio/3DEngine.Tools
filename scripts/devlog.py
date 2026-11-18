@@ -7,6 +7,8 @@ sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8
 args, fixes = sys.argv[1:], {}
 if "--fixes" in args:
     at = args.index("--fixes"); fixes = json.load(open(args[at + 1])); del args[at:at + 2]
+if len(args) < 2:
+    sys.exit("Usage is devlog.py <repo path> <Name> [sent-pictures.json] [--fixes <fixes.json>].")
 repo, name, sent_json = args[0], args[1], (args[2] if len(args) > 2 else None)
 PIC_DIRS = [d for d in (".github/devlog", ".github/assets/readings") if os.path.isdir(os.path.join(repo, d))]
 pic_dir = os.path.join(repo, PIC_DIRS[0]) if PIC_DIRS else os.path.join(repo, ".github", "devlog")
