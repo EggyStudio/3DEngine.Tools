@@ -294,3 +294,16 @@ The README's section For a session in the commit carrying this line, ten lines u
 paragraph, saying how a session runs `commitcheck.py` on its commits before reporting them, with the
 names in the environment and the unpushed commits read where no range is given, and what a FAIL, a
 WARN and a note mean.
+
+The reference check's form and the README's section Binding it in your engine in the commit
+carrying this line. `Tools.Tests/ReferenceTests.cs` reads the built library's assembly references
+and the packages the test's dependency file records for it, followed to those they bring, against
+a list of refused names, the engines' assemblies and the windows, graphics APIs and bindings a .NET
+program draws through, each matched as a whole part of a name between dots and dashes; a module
+copies the file changing the library's name alone. Its cases refuse the engines' own references,
+3DEngine, BevyCSharp, SDL3-CS, Vortice.Vulkan and Twizzle.ImGui-Bundle.NET, with Silk.NET.Vulkan
+and Raylib-cs, and pass System.Runtime, System.Reflection.Metadata and xunit.core. The README's
+section, where Taking it into an engine stood, says that the module needs nothing of an engine and
+declares no interface, references the library from a test project alone, and names the two tests
+an engine adds, the scripts' needs and the reference test's form. The strict build is clean and the
+tests pass, 74 where there were 62.

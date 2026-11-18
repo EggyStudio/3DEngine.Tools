@@ -21,10 +21,13 @@ reviewer to read and decide, and the report names each one left standing. A note
 at, such as a picture's smaller copy, and a WARN that FORBIDDEN_NAMES is not set says the names were
 not read for.
 
-## Taking it into an engine
+## Binding it in your engine
 
-An engine adds the repository as a git submodule under `modules/` and references its project, here
-from a project one folder below the engine's root.
+The module needs nothing of an engine. It reads a checkout's files and the pictures a program has
+written, so it declares no interface for an engine to implement and an engine of any kind takes it
+as it is. An engine adds the repository as a git submodule under `modules/` and references the
+library from its test project alone, since nothing a program ships calls it, here from a project one
+folder below the engine's root.
 
 ```bash
 git submodule add https://github.com/EggyStudio/Tools.git modules/Tools
@@ -33,6 +36,15 @@ git submodule add https://github.com/EggyStudio/Tools.git modules/Tools
 ```xml
 <ProjectReference Include="..\modules\Tools\Tools\Tools.csproj" />
 ```
+
+The library is built on .NET 10 with no package of its own, and its `Directory.Build.props` stops it
+taking an engine's `Directory.Build.targets` from the folders above. The engine then adds one test
+that calls `ShellForms` over its scripts and one that calls `DocumentCopies` over its STYLE.md and
+COMMITS.md with its own word for the module's, as the sections below show, and runs the scripts by
+their path under `modules/Tools/scripts` with Python 3, Pillow where a picture is read or written.
+The tests' `ReferenceTests.cs` is the form of a test that a library references no engine, window or
+graphics API, read from the built assembly and its packages, which a module copies with its own
+library's name.
 
 A clone of the engine fetches the module with `git clone --recurse-submodules`, or with
 `git submodule update --init` in a clone made without it, and a workflow checks it out with
