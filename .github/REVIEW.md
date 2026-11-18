@@ -803,3 +803,20 @@ each named, and the row with either line end passing; the block's own check foun
 fact lacking the blank line the host has. The seven modules' READMEs open with the row at their
 heads (sed of their first three lines). The strict build is clean and the tests pass, 138 where
 there were 136.
+
+The commit's hook in the commit carrying this line, within the review's limits. `scripts/hooks.py
+install` writes a post-commit hook into the repository the working folder lies in, which runs
+`commitcheck.py` on the commit just made and prints its lines, and `remove` takes it out; there is
+no hook before a push. The hook exits with 0 whatever the check finds and prints nothing where
+Python or the check's script is missing, the names coming from `FORBIDDEN_NAMES` in the committing
+process's environment, which the hook neither reads nor writes. A repository the working folder
+does not lie in is refused, so a session installs it in its own alone, and a post-commit hook of
+another's is left as it is on install and on remove. The check is named from the repository's top
+where it lies inside it, as a module's `modules/Tools` does. HooksTests reads a made repository
+whose bad commit is made and prints its FAIL and whose good one prints its line, a second install
+changing nothing and a removal taking the hook out, a repository elsewhere and another's hook
+refused and left, and a hook whose check is gone or whose path holds no Python printing nothing
+with the commit made. The hook is not installed in this repository, its session's tools refusing
+the write to `.git/hooks`, which stays the owner's to allow. The README's section says how a module
+installs it, the facts' table names `0b0b902` for the link row, and AGENTS.md's scripts row names
+hooks.py, a new path. The strict build is clean and the tests pass, 143 where there were 138.

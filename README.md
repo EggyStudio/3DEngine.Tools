@@ -197,7 +197,7 @@ changed what the check reads. A module pinned before a fact's commit owes that f
 | `The_Readmes_Binding_Block_Stands_Word_For_Word_In_The_Host` | `ModuleChecks.BindingBlock` | `7d56e0f` | |
 | `The_Cheatsheet_Is_What_The_Built_Library_Writes` | `ModuleChecks.CheatsheetFault` | `17860cb` | `3720852`, a record's constructor, and `183e308`, inheritdoc |
 | `No_Tracked_Text_Names_An_Engine` | `ModuleChecks.EngineNameInTextFault` | `b817e9b` | |
-| `The_Readme_Opens_With_Its_Link_Row` | `ModuleChecks.LinkRowFault` | the commit after `712203d` | |
+| `The_Readme_Opens_With_Its_Link_Row` | `ModuleChecks.LinkRowFault` | `0b0b902` | |
 
 `ModuleChecks.ProductNamesInText`, from `d1b04e5`, is a list a reviewer reads and no fact.
 
@@ -324,6 +324,22 @@ The exit code is 0 where no line is a FAIL, 1 where a line is, and 2 where the c
 with the reason written to the error output. The names no commit may carry are a regular expression
 in the `FORBIDDEN_NAMES` environment variable and in no file, and where it is not set the check says
 so.
+
+## A commit's hook
+
+`scripts/hooks.py` installs in the repository the working folder lies in a post-commit hook that
+runs `commitcheck.py` on the commit just made and prints its lines, so a session sees a FAIL as it
+commits and amends before it reports. The hook stops no commit and exits with 0 whatever the check
+finds; where Python or the check's script is missing it prints nothing. The names the check reads
+come from `FORBIDDEN_NAMES` in the committing process's environment, which the hook neither reads
+nor writes. A repository the working folder does not lie in is refused, so a session installs the
+hook in its own repository alone, and a post-commit hook that is not this script's is left as it is.
+`remove` takes the hook out.
+
+```bash
+python3 -I modules/Tools/scripts/hooks.py install
+python3 -I modules/Tools/scripts/hooks.py remove
+```
 
 ## A tree's sweep
 

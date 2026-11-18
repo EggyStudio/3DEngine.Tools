@@ -132,6 +132,14 @@ public static class Programs
         return (code, output + error);
     }
 
+    /// <summary>
+    /// Runs a program in a folder with variables set in its environment, null ones taken out, and
+    /// returns its exit code with what it printed and wrote as errors, for a test whose program
+    /// runs another, as a commit runs its hook.
+    /// </summary>
+    public static (int Code, string Output) Execute(string program, string folder, Dictionary<string, string?> environment, params string[] arguments) =>
+        Start(program, folder, environment, arguments) is var (code, output, error) ? (code, output + error) : default;
+
     private static string Run(string program, string folder, Dictionary<string, string> environment, string[] arguments)
     {
         var (code, output, error) = Start(program, folder, environment.ToDictionary(pair => pair.Key, pair => (string?)pair.Value), arguments);
