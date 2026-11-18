@@ -1,9 +1,11 @@
 # Tools
 
-Tools is a library both engines, 3DEngine and BevyCSharp, take as a git submodule, for what the
+Tools is a library and a set of scripts that any engine takes as a git submodule, for what its
 repositories otherwise copy by hand, the devlog's generator, the composer of reading sheets, the run
-reader, the texture recipes, and the text STYLE.md, COMMITS.md and NORM.md share. It references no
-engine, and each engine implements the interfaces it declares where it binds the module.
+reader, the check of a commit and the sweep of a tree, the reading of shell scripts for forms macOS
+does not read, and the sources of STYLE.md and COMMITS.md with the check of a copy against them. It
+reads files alone, so it references no engine and declares no interface, and an engine of any kind
+takes it as it is.
 
 ## For a session
 

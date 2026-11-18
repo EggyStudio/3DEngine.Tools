@@ -356,3 +356,12 @@ assembly is `3DEngine.Tools.Tests`; the folders, the project files and the names
 ShellForms, ReferenceTests' Library is `3DEngine.Tools` with its comment saying a module sets it to
 its own assembly's name, and the README's section Binding it in your engine names the assembly and
 the namespace. Built from empty output folders, the strict build is clean and the 82 tests pass.
+
+The README's opening paragraph in the commit carrying this line, saying what holds. The module is a
+library and a set of scripts that any engine takes as a git submodule, naming what it holds, the
+devlog's generator, the sheet composer, the run reader, the commit's check and the tree's sweep,
+the shell's forms and the documents' sources with their check, and it reads files alone, so it
+references no engine, declares no interface and is taken by an engine of any kind as it is. The
+texture recipes and NORM.md, which it named, are not held here. AGENTS.md's opening paragraph says
+the same as the README's did, the texture recipes and NORM.md among what the module holds and the
+interfaces it declares, and waits on the owner's word (N 7.4).
