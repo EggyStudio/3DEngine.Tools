@@ -1102,3 +1102,12 @@ Landscape/build/reading.cs:4 names "Tools' sheet.py" with no path, true after th
 Landscape/.github/REVIEW.md:213 names it in a Reply of the past; and no script outside Tools calls
 either by its path. The strict build is clean and the tests pass, 188 and one skipped plain and 189
 in the variant, the nine C# facts gone and two come.
+
+A mend of the report in the commit carrying this line, by the review's word. report.py reads a
+folder of tests whatever its case, so `sheets/tests` stands with `Tools.Tests` under tests and not
+under scripts, and counts beside the C# facts the test functions, `def test_`, a commit adds to
+Python files of tests, a like-named function outside a folder of tests not counted. ReportTests
+failed first on a made commit of a Python file of two tests and a helper under a lowercase tests
+folder and a script holding a function named like a test. Read again, `1452dbe` gives tests 9 and
+scripts 2 where it gave tests 4 and scripts 7, and 10 test functions. The strict build is clean and
+the tests pass, 189 and one skipped plain and 190 in the variant.

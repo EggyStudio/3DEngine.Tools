@@ -334,7 +334,8 @@ so.
 
 `scripts/report.py` prints a commit's report block, every line of it read by the script: the
 commit's hash and sentence, its files by kind and its lines added and removed, the facts and the
-theories' rows of data its diff adds to C# files, the counts of a test run read from a TRX file, the
+theories' rows of data its diff adds to C# files and the test functions it adds to Python files of
+tests, a folder of tests read whatever its case, the counts of a test run read from a TRX file, the
 one `--trx` names or the newest under the repository's TestResults folders, and `commitcheck.py`'s
 exit code with its FAIL and WARN lines counted. A count it could not read is said to be unread, with
 why, and a commit git cannot read gives exit code 2.

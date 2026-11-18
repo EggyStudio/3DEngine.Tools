@@ -30,6 +30,21 @@ public class ReportTests
     }
 
     [NeedsPythonFact]
+    public void Python_Tests_Under_A_Lowercase_Folder_Are_Tests_And_Their_Functions_Are_Counted()
+    {
+        using var world = new World();
+        world.Commit("a.txt", "a\n", "The first file.");
+        world.Write("sheets/tests/test_a.py", "import unittest\n\n\nclass A(unittest.TestCase):\n    def test_one(self):\n        pass\n\n    def test_two(self):\n        pass\n\n    def helper(self):\n        pass\n");
+        world.Write("sheets/chart.py", "def test_like_name():\n    pass\n");
+        world.Commit(null, null, "Two tests of a chart.");
+
+        var lines = Programs.Lines(Programs.Script("report.py", world.Repo, "--trx=" + Path.Combine(world.Root, "none.trx")));
+
+        Assert.Contains("files: 2 changed, scripts 1, tests 1", lines);
+        Assert.Contains("test functions on added lines of Python tests: 2", lines);
+    }
+
+    [NeedsPythonFact]
     public void A_Trx_Is_Read_By_Its_Results_Outcomes_Where_Its_Counters_Leave_A_Skipped_Test_Out()
     {
         using var world = new World();

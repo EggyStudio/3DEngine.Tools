@@ -5,11 +5,12 @@
 #
 # The block gives the commit's hash and sentence, its files by kind and its lines added and removed,
 # the facts and the theories' rows of data its diff adds to C# files, as their attributes on added
-# lines count them, the counts of a test run read from a TRX file, the one given or the newest under
-# the repository's TestResults folders, and the commit's check, scripts/commitcheck.py run on it
-# with the environment's names, its exit code and its FAIL and WARN lines counted. A count the
-# script could not read is said to be unread, with why. The commit is HEAD where none is given. The
-# exit code is 0, or 2 where git could not read the commit.
+# lines count them, and the test functions it adds to Python files of tests, the counts of a test
+# run read from a TRX file, the one given or the newest under the repository's TestResults folders,
+# and the commit's check, scripts/commitcheck.py run on it with the environment's names, its exit
+# code and its FAIL and WARN lines counted. A count the script could not read is said to be unread,
+# with why. The commit is HEAD where none is given. The exit code is 0, or 2 where git could not
+# read the commit.
 import glob, os, re, subprocess, sys
 import xml.etree.ElementTree as ElementTree
 
@@ -20,7 +21,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 KINDS = [
     ("pictures", re.compile(r"\.(webp|png|jpe?g)$", re.I)),
     ("workflows", re.compile(r"^\.github/workflows/")),
-    ("tests", re.compile(r"(^|/)[^/]*Tests?/")),
+    # A test project's folder or a folder of tests of any case, Tools.Tests and a tests of Python.
+    ("tests", re.compile(r"(^|/)[^/]*tests?/", re.I)),
     ("scripts", re.compile(r"\.(py|sh|ps1)$")),
     ("library", re.compile(r"\.(cs|csproj|props|targets|slnx)$")),
     ("documents", re.compile(r"\.md$")),
@@ -29,6 +31,8 @@ KINDS = [
 # added line; a theory's own attribute is not counted, its rows being its cases.
 FACT = re.compile(r"^\+\s*\[(\w*Fact)\b")
 ROW = re.compile(r"^\+\s*\[(InlineData)\b")
+# A test function of Python's unittest or pytest, on an added line of a Python file of tests.
+TEST_FUNCTION = re.compile(r"^\+\s*(async\s+)?def test_\w*\s*\(")
 
 
 def git(repo, *arguments):
@@ -90,15 +94,20 @@ def main():
     lines.append(f"files: {len(stats)} changed, {by_kind}" if stats else "files: none changed")
     lines.append(f"lines: {added} added, {removed} removed")
 
-    facts = rows = 0
-    in_cs = False
+    facts = rows = functions = 0
+    in_cs = in_python_tests = False
+    tests = dict(KINDS)["tests"]
     for line in git(repo, "show", "--format=", "--unified=0", full).splitlines():
         if line.startswith("+++ "):
             in_cs = line.endswith(".cs")
+            in_python_tests = line.endswith(".py") and bool(tests.search(line[6:]))
         elif in_cs:
             facts += bool(FACT.match(line))
             rows += bool(ROW.match(line))
+        elif in_python_tests:
+            functions += bool(TEST_FUNCTION.match(line))
     lines.append(f"test attributes on added lines of C#: {facts} facts, {rows} data rows")
+    lines.append(f"test functions on added lines of Python tests: {functions}")
 
     if trx is None:
         found = sorted(glob.glob(os.path.join(repo, "*", "TestResults", "*.trx")) + glob.glob(os.path.join(repo, "TestResults", "*.trx")),
