@@ -93,8 +93,10 @@ public class StatusTests
             Git(repo, "remote", "add", "origin", address);
             Git(repo, "config", $"url.{bare}.insteadOf", address);
             // The module's own Tools, a clone at the pin, which git tracks as the commit it points
-            // at.
-            Programs.Run("git", Root, "-c", "protocol.file.allow=always", "clone", "-q", tools, Path.Combine(repo, "modules", "Tools"));
+            // at, made with the line ends of every other git call here, where a clone with the
+            // machine's would write CRLF that a later checkout reads as a change, as Git for
+            // Windows does.
+            Git(Root, "clone", "-q", tools, Path.Combine(repo, "modules", "Tools"));
             Git(Path.Combine(repo, "modules", "Tools"), "checkout", "-q", $"HEAD~{pinnedBack}");
             File.WriteAllText(Path.Combine(repo, "README.md"), readme);
             File.WriteAllText(Path.Combine(repo, "DEVLOG.md"), "# devlog\n");
@@ -114,7 +116,8 @@ public class StatusTests
             // commit stands after the devlog's.
             var when = DateTimeOffset.UtcNow.AddSeconds(Clock++).ToString("o");
             var (code, printed) = Programs.Execute("git", repo, new() { ["GIT_COMMITTER_DATE"] = when, ["GIT_AUTHOR_DATE"] = when },
-                "-c", "user.name=EggyStudio", "-c", "user.email=owner@example.com", "-c", "commit.gpgsign=false", "commit", "-q", "-m", $"Adds {path}.");
+                "-c", "user.name=EggyStudio", "-c", "user.email=owner@example.com", "-c", "commit.gpgsign=false", "-c", "core.autocrlf=false",
+                "commit", "-q", "-m", $"Adds {path}.");
             Assert.True(code == 0, printed);
             if (push) Git(repo, "push", "-q", "origin", "main");
         }

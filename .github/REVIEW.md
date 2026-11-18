@@ -897,3 +897,14 @@ blue and black; and a panel of another kind refused by name. The script was writ
 tests, which passed at their first run, so they read it rather than failing first. The README gives
 its keys with an example, and AGENTS.md's scripts row names it, a new path. The strict build is
 clean and the tests pass, 151 and one skipped plain and 152 in the variant.
+
+`d5c09a5`'s red run on Windows mended in the commit carrying this line. The cause is the line ends.
+Git for Windows turns them to CRLF by its own setting, `core.autocrlf=true`, and StatusTests'
+fixture cloned the made Tools repository with the machine's setting where every other git call it
+made held `core.autocrlf=false`, so the clone wrote `t1.txt` with CRLF, and the checkout of the pin,
+run with the setting off, read the file as changed and refused. The variant takes the class:
+`build/variants.sh` gives git a global setting of `core.autocrlf=true`, and under it the test failed
+first on Linux with Windows' own message, the one test of the suite to fail, as on Windows. The
+fixture clones and commits through the one call that holds the setting off, and both runs pass.
+VariantTests reads git's setting as well, and the README names the third condition. The strict build
+is clean and the tests pass, 151 and one skipped plain and 152 in the variant.
