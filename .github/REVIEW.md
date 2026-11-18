@@ -820,3 +820,19 @@ with the commit made. The hook is not installed in this repository, its session'
 the write to `.git/hooks`, which stays the owner's to allow. The README's section says how a module
 installs it, the facts' table names `0b0b902` for the link row, and AGENTS.md's scripts row names
 hooks.py, a new path. The strict build is clean and the tests pass, 143 where there were 138.
+
+The other systems' faults made on Linux in the commit carrying this line, the second of the two
+proposed. `build/variants.sh` runs the tests again with the temporary folder reached through a
+symbolic link, as macOS reaches `/var` by `/private/var`, and every program given the locale
+en_US.ISO-8859-1, whose pipe is single-byte as Windows gives cp1252, and says so and exits with 2
+where the locale is missing; the workflow's Linux job installs the locale and runs it after the
+tests. A script that ends in a traceback fails its test whatever exit code the test expects, since
+under the single-byte locale the sweep of before `7dbd4b3` crashed on its dash and a test expecting
+1 read the crash's 1 as its answer. Read against the scripts of before each mend: the rewrapper of
+before `b615a94` fails 7 of its tests under the variant where it fails 1 plain, and the sweep and
+commit's check of before `7dbd4b3` fail 8 of the sweep's tests where they fail 7 plain, the newer
+tests asking of the old scripts what they had not yet; the head passes both runs. VariantTests,
+skipped outside the variant with its reason, reads in it that the temporary folder is reached
+through a link and that a pipe is single-byte, so a machine that gave neither would not pass the
+second run having proved nothing. The README says it. The strict build is clean and the tests pass,
+143 and one skipped plain and 144 in the variant, in 4.7 seconds.

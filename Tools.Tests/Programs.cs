@@ -42,6 +42,19 @@ public sealed class NeedsPythonAndSymbolicLinksFactAttribute : FactAttribute
     }
 }
 
+/// <summary>
+/// Run alone where build/variants.sh runs the tests, through a linked temporary folder and with a
+/// single-byte locale, and skipped elsewhere with its reason.
+/// </summary>
+public sealed class InVariantFactAttribute : FactAttribute
+{
+    public InVariantFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("TOOLS_VARIANT") != "1") Skip = "Run by build/variants.sh alone.";
+        else if (Programs.Python.Value is null) Skip = "No Python 3 runs here as python3 or python.";
+    }
+}
+
 /// <summary>Runs the module's scripts and the programs they call.</summary>
 public static class Programs
 {
@@ -164,6 +177,11 @@ public static class Programs
         var error = process.StandardError.ReadToEndAsync();
         var output = process.StandardOutput.ReadToEnd();
         process.WaitForExit();
+        // A script that ends in a traceback crashed, whatever its exit code, and a test that
+        // expects it to fail with 1 would read the crash's 1 as its answer, as the sweep's did
+        // where it could not encode a dash for a single-byte pipe.
+        Assert.False(error.Result.Contains("Traceback (most recent call last)", StringComparison.Ordinal),
+            $"{program} {string.Join(' ', arguments)} crashed. {error.Result}");
         return (process.ExitCode, output, error.Result);
     }
 
