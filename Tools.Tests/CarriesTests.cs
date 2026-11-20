@@ -48,18 +48,65 @@ public partial class CarriesTests
     [NeedsWholeHistoryFact]
     public void Every_Commit_That_Changes_The_Checks_Code_Since_The_Table_Stood_Is_Named_In_It()
     {
-        string[] files = ["Tools/ModuleChecks.cs", "Tools/Cheatsheet.cs"];
-        var first = Programs.Run("git", Programs.Root(), "log", "--format=%H", "-S### What a module carries", "--", "README.md")
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries)[^1];
-        var named = Commits(Readme).ToList();
-        var changing = Programs.Run("git", Programs.Root(), ["log", "--format=%H", $"{first}~1..HEAD", "--", .. files])
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .Where(hash => Programs.Run("git", Programs.Root(), ["show", hash, "--format=", "-U0", "--", .. files]).Split('\n')
-                .Any(line => CodeLine().IsMatch(line)));
-
-        var unnamed = changing.Where(hash => !named.Any(name => hash.StartsWith(name, StringComparison.Ordinal))).Select(hash => hash[..7]).ToList();
+        var unnamed = Unnamed(Programs.Root(), Readme);
 
         Assert.True(unnamed.Count == 0, $"{string.Join(", ", unnamed)} changed the checks' code and the table of what a module carries names none of them.");
+    }
+
+    // The head cannot name its own hash, so it stands unnamed until the commit after it, which
+    // holds it with every commit before.
+    [NeedsPythonFact]
+    public void The_Head_Stands_Unnamed_And_Every_Commit_Before_It_Is_Held()
+    {
+        var repo = Directory.CreateTempSubdirectory("carries-").FullName;
+        try
+        {
+            string Commit(string path, string text)
+            {
+                var file = Path.Combine(repo, path);
+                Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+                File.WriteAllText(file, text);
+                Programs.Run("git", repo, "-c", "core.autocrlf=false", "add", "-A");
+                Programs.Run("git", repo, "-c", "user.name=EggyStudio", "-c", "user.email=owner@example.com", "-c", "commit.gpgsign=false", "commit", "-q", "-m", path);
+                return Programs.Run("git", repo, "rev-parse", "HEAD").Trim();
+            }
+            string Table(string named) => $"# Tools\n\n### What a module carries\n\n{named}\n\n## Building\n";
+            Programs.Run("git", repo, "init", "-q");
+            Commit("README.md", Table("none"));
+            var second = Commit("Tools/ModuleChecks.cs", "class A { }\n");
+            var head = Commit("Tools/ModuleChecks.cs", "class A { int b; }\n");
+
+            Assert.Equal([second[..7]], Unnamed(repo, File.ReadAllText(Path.Combine(repo, "README.md"))));
+
+            var readme = Table($"`{second[..7]}` and `{head[..7]}`");
+            Commit("README.md", readme);
+            Assert.Empty(Unnamed(repo, readme));
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(repo, "*", SearchOption.AllDirectories)) File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(repo, true);
+        }
+    }
+
+    // The commits since the table stood that change the code of the checks' files, a line neither
+    // blank nor a comment, and stand in none of the table's rows or the line under it, the head
+    // apart.
+    private static List<string> Unnamed(string root, string readme)
+    {
+        string[] files = ["Tools/ModuleChecks.cs", "Tools/Cheatsheet.cs"];
+        var first = Programs.Run("git", root, "log", "--format=%H", "-S### What a module carries", "--", "README.md")
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)[^1];
+        var head = Programs.Run("git", root, "rev-parse", "HEAD").Trim();
+        var named = Commits(readme).ToList();
+        // Newest first, down to the commit the table came in with.
+        var since = Programs.Run("git", root, ["log", "--format=%H", "HEAD", "--", .. files]).Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Where(hash => IsAncestorIn(root, first, hash));
+        return since
+            .Where(hash => hash != head)
+            .Where(hash => Programs.Run("git", root, ["show", hash, "--format=", "-U0", "--", .. files]).Split('\n').Any(line => CodeLine().IsMatch(line)))
+            .Where(hash => !named.Any(name => hash.StartsWith(name, StringComparison.Ordinal)))
+            .Select(hash => hash[..7]).ToList();
     }
 
     [Fact]
@@ -133,10 +180,12 @@ public partial class CarriesTests
         return Hash().Matches(table).Select(match => match.Groups[1].Value).Distinct();
     }
 
-    private static bool IsAncestor(string hash)
+    private static bool IsAncestor(string hash) => IsAncestorIn(Programs.Root(), hash, "HEAD");
+
+    private static bool IsAncestorIn(string root, string ancestor, string hash)
     {
-        var start = new ProcessStartInfo("git") { WorkingDirectory = Programs.Root(), RedirectStandardOutput = true, RedirectStandardError = true };
-        foreach (var argument in new[] { "merge-base", "--is-ancestor", hash, "HEAD" }) start.ArgumentList.Add(argument);
+        var start = new ProcessStartInfo("git") { WorkingDirectory = root, RedirectStandardOutput = true, RedirectStandardError = true };
+        foreach (var argument in new[] { "merge-base", "--is-ancestor", ancestor, hash }) start.ArgumentList.Add(argument);
         using var git = Process.Start(start)!;
         git.WaitForExit();
         return git.ExitCode == 0;

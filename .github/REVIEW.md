@@ -557,3 +557,10 @@ one, in `.gitmodules` and in the checkout's origin where that named the old; and
 its submodule commands and its words follow. The tests failed first on the row, the default name
 read from a bare remote, and the submodule's old address; the grep for the old addresses finds none
 outside the review's files and the devlog.
+
+The guard of the table mended in the commit carrying this line, after `13ca744`'s run failed it on
+all three systems: the guard read the head as a commit to be named, which a commit changing a check
+cannot do of itself, and passed here only because the commit did not yet stand when it ran. It now
+lets the head stand unnamed and holds every commit before it, read through a helper a made history
+tests; that test failed first with the head held, the made head changing a check, and passes with it
+apart. The link row's row names `13ca744`.
