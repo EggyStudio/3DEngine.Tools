@@ -5,7 +5,7 @@ namespace Tools.Tests;
 
 public class StatusTests
 {
-    private const string Row = "[Devlog](https://github.com/EggyStudio/Sample/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/Sample/blob/main/CHEATSHEET.md)";
+    private const string Row = "[Devlog](https://github.com/EggyStudio/3DEngine.Sample/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/3DEngine.Sample/blob/main/CHEATSHEET.md)";
 
     [NeedsPythonFact]
     public void A_Repositorys_Line_Gives_Its_Heads_Its_Run_Its_Review_Its_Devlog_Its_Pin_And_Its_Row()
@@ -20,7 +20,7 @@ public class StatusTests
         var remote = world.Git(repo, "rev-parse", "--short=7", "origin/main").Trim();
         var local = world.Git(repo, "rev-parse", "--short=7", "HEAD").Trim();
 
-        var (code, printed) = world.Status(new() { ["EggyStudio/Sample"] = new { headSha = remote + "0000", status = "completed", conclusion = "success" } }, tools, repo);
+        var (code, printed) = world.Status(new() { ["EggyStudio/3DEngine.Sample"] = new { headSha = remote + "0000", status = "completed", conclusion = "success" } }, tools, repo);
 
         Assert.True(code == 0, printed);
         var line = Assert.Single(Programs.Lines(printed), l => l.StartsWith("Sample ", StringComparison.Ordinal));
@@ -35,7 +35,7 @@ public class StatusTests
         var repo = world.Module("Sample", Row + "\n\n# Sample\n", tools, pinnedBack: 0);
         world.Commit(repo, ".github/REVIEW.md", new string('a', 81 * 1024));
 
-        var (code, printed) = world.Status(new() { ["EggyStudio/Sample"] = null }, tools, repo);
+        var (code, printed) = world.Status(new() { ["EggyStudio/3DEngine.Sample"] = null }, tools, repo);
 
         Assert.True(code == 0, printed);
         Assert.Contains("  review 81 KB, archive.py moves its older replies  ", printed);
@@ -54,7 +54,7 @@ public class StatusTests
         File.SetLastWriteTimeUtc(Path.Combine(waiting, "Sky-999999999"), DateTime.UtcNow.AddMinutes(-25));
         File.WriteAllText(Path.Combine(waiting, "Levels-1234"), "");
 
-        var (code, printed) = world.Status(new() { ["EggyStudio/Sample"] = null }, tools, ["--waiting=" + waiting, repo]);
+        var (code, printed) = world.Status(new() { ["EggyStudio/3DEngine.Sample"] = null }, tools, ["--waiting=" + waiting, repo]);
 
         Assert.True(code == 0, printed);
         var mark = Assert.Single(Programs.Lines(printed), l => l.StartsWith("waiting ", StringComparison.Ordinal));
@@ -64,13 +64,36 @@ public class StatusTests
     }
 
     [NeedsPythonFact]
+    public void A_Module_Whose_Remote_Is_Not_On_GitHub_Is_Read_As_3DEngine_And_Its_Folders_Name()
+    {
+        using var world = new World();
+        var tools = world.Tools(commits: 1);
+        // A remote of a bare folder, whose address gives no repository's name on GitHub.
+        var bare = Path.Combine(world.Root, "Sample.git");
+        Directory.CreateDirectory(bare);
+        world.Git(bare, "init", "-q", "--bare", "-b", "main");
+        var repo = Path.Combine(world.Root, "Modules", "Sample");
+        Directory.CreateDirectory(repo);
+        world.Git(repo, "init", "-q", "-b", "main");
+        world.Git(repo, "remote", "add", "origin", bare);
+        File.WriteAllText(Path.Combine(repo, "README.md"), Row + "\n\n# Sample\n");
+        world.Git(repo, "add", "-A");
+        world.Git(repo, "commit", "-q", "-m", "The module.");
+        world.Git(repo, "push", "-q", "origin", "main");
+
+        var (_, printed) = world.Status([], tools, repo);
+
+        Assert.Contains("  row ok", printed);
+    }
+
+    [NeedsPythonFact]
     public void A_Readme_Without_The_Row_And_A_Repository_At_Its_Pin_Read_As_Such()
     {
         using var world = new World();
         var tools = world.Tools(commits: 1);
         var repo = world.Module("Sample", "# Sample\n", tools, pinnedBack: 0);
 
-        var (code, printed) = world.Status(new() { ["EggyStudio/Sample"] = null }, tools, repo);
+        var (code, printed) = world.Status(new() { ["EggyStudio/3DEngine.Sample"] = null }, tools, repo);
 
         Assert.True(code == 0, printed);
         Assert.Contains("  run none  ", printed);
@@ -89,7 +112,7 @@ public class StatusTests
         Directory.CreateDirectory(plain);
 
         var (gitCode, gitPrinted) = world.Status(new(), tools, plain);
-        var (ghCode, ghPrinted) = world.Status(new() { ["EggyStudio/Sample"] = new { failed = "HTTP 503" } }, tools, repo);
+        var (ghCode, ghPrinted) = world.Status(new() { ["EggyStudio/3DEngine.Sample"] = new { failed = "HTTP 503" } }, tools, repo);
 
         Assert.Equal(2, gitCode);
         Assert.Contains("Plain  git unreached, git rev-parse failed", gitPrinted);
@@ -125,7 +148,7 @@ public class StatusTests
             var repo = Path.Combine(Root, name);
             Directory.CreateDirectory(repo);
             Git(repo, "init", "-q", "-b", "main");
-            var address = $"https://github.com/EggyStudio/{name}.git";
+            var address = $"https://github.com/EggyStudio/3DEngine.{name}.git";
             Git(repo, "remote", "add", "origin", address);
             Git(repo, "config", $"url.{bare}.insteadOf", address);
             // The module's own Tools, a clone at the pin, which git tracks as the commit it points

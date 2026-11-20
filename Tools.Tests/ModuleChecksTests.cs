@@ -241,13 +241,13 @@ public class ModuleChecksTests
     [Fact]
     public void A_Readme_Opens_With_Its_Link_Row_Above_Its_Title()
     {
-        const string row = "[Devlog](https://github.com/EggyStudio/Sample/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/Sample/blob/main/CHEATSHEET.md)";
+        const string row = "[Devlog](https://github.com/EggyStudio/3DEngine.Sample/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/3DEngine.Sample/blob/main/CHEATSHEET.md)";
 
         Assert.Null(ModuleChecks.LinkRowFault("Sample", $"{row}\n\n# Sample\n\nA module.\n"));
         Assert.Null(ModuleChecks.LinkRowFault("Sample", $"{row}\r\n\r\n# Sample\r\n"));
         Assert.StartsWith("The README opens with \"# Sample\" where a module's README opens with its link row", ModuleChecks.LinkRowFault("Sample", $"# Sample\n\n{row}\n"));
         Assert.NotNull(ModuleChecks.LinkRowFault("Sample", row.Replace(") [", ") \u00b7 [", StringComparison.Ordinal) + "\n\n# Sample\n"));
-        Assert.NotNull(ModuleChecks.LinkRowFault("Sample", "[Devlog](https://github.com/EggyStudio/Sample/blob/main/DEVLOG.md)\n\n# Sample\n"));
+        Assert.NotNull(ModuleChecks.LinkRowFault("Sample", "[Devlog](https://github.com/EggyStudio/3DEngine.Sample/blob/main/DEVLOG.md)\n\n# Sample\n"));
         Assert.NotNull(ModuleChecks.LinkRowFault("Sample", $"{row}\n# Sample\n"));
         Assert.NotNull(ModuleChecks.LinkRowFault("Sample", $"{row}\n\n# Other\n"));
         Assert.EndsWith($"\"{row}\", a blank line and its title \"# Sample\". Put the row there, its links apart by a space.", ModuleChecks.LinkRowFault("Sample", "# Sample\n"));

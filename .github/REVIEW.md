@@ -548,3 +548,12 @@ default, as `waiting <name>, <repository>'s pid <pid>, <age> min old`, with whet
 lives read from `/proc` on Linux and not read elsewhere, since `os.kill` with signal 0 on Windows
 sends Ctrl and C. StatusTests failed first on a made folder of a mark 25 minutes old whose process
 is gone and one made just now, which is not named. Tests pass both ways.
+
+The repositories' new names in the commit carrying this line, by the owner's word. LinkRowFault's
+row links to `EggyStudio/3DEngine.<Name>`, the title still `# <Name>`; status.py reads a repository
+under Modules whose remote gives no name on GitHub as `EggyStudio/3DEngine.<folder>`, the engines
+and the game as they were; pin.py names a submodule still named by Tools' old address by its new
+one, in `.gitmodules` and in the checkout's origin where that named the old; and the README's row,
+its submodule commands and its words follow. The tests failed first on the row, the default name
+read from a bare remote, and the submodule's old address; the grep for the old addresses finds none
+outside the review's files and the devlog.

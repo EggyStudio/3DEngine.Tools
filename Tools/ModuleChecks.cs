@@ -370,13 +370,14 @@ public static partial class ModuleChecks
     /// </summary>
     /// <remarks>
     /// The row is the README's first line, above its title, its links to the module's DEVLOG.md
-    /// and CHEATSHEET.md on its repository separated by a space.
+    /// and CHEATSHEET.md on its repository, named as its assembly is, separated by a space.
     /// </remarks>
-    /// <param name="name">The module's name, as its repository and its title give it.</param>
+    /// <param name="name">The module's name, as its title gives it and its assembly's name
+    /// ends.</param>
     /// <param name="readme">The README's text.</param>
     public static string? LinkRowFault(string name, string readme)
     {
-        var row = $"[Devlog](https://github.com/EggyStudio/{name}/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/{name}/blob/main/CHEATSHEET.md)";
+        var row = $"[Devlog](https://github.com/EggyStudio/3DEngine.{name}/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/3DEngine.{name}/blob/main/CHEATSHEET.md)";
         var lines = readme.ReplaceLineEndings("\n").Split('\n');
         if (lines.Length >= 3 && lines[0] == row && lines[1].Length == 0 && lines[2] == $"# {name}")
             return null;

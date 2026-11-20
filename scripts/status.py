@@ -114,7 +114,10 @@ def line(repo, tools_head, tools):
 
     readme = os.path.join(repo, "README.md")
     first = open(readme, encoding="utf-8", errors="replace").readline().rstrip("\n") if os.path.exists(readme) else ""
-    slug = found.group("slug") if found else f"EggyStudio/{name}"
+    # A module's repository is named 3DEngine and its folder's name, the engines and the game
+    # theirs.
+    module = os.path.basename(os.path.dirname(os.path.abspath(repo))) == "Modules"
+    slug = found.group("slug") if found else f"EggyStudio/3DEngine.{name}" if module else f"EggyStudio/{name}"
     row = f"[Devlog](https://github.com/{slug}/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/{slug}/blob/main/CHEATSHEET.md)"
     parts.append("row ok" if first == row else "row missing")
     return "  ".join(parts), bool(unreached)

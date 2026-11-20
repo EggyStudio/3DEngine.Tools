@@ -1,4 +1,4 @@
-[Devlog](https://github.com/EggyStudio/Tools/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/Tools/blob/main/CHEATSHEET.md)
+[Devlog](https://github.com/EggyStudio/3DEngine.Tools/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/3DEngine.Tools/blob/main/CHEATSHEET.md)
 
 # Tools
 
@@ -71,7 +71,7 @@ library from its test project alone, since nothing a program ships calls it, her
 folder below the engine's root.
 
 ```bash
-git submodule add https://github.com/EggyStudio/Tools.git modules/Tools
+git submodule add https://github.com/EggyStudio/3DEngine.Tools.git modules/Tools
 ```
 
 ```xml
@@ -103,7 +103,7 @@ submodule, two items of its test project, the reference and a target that stops 
 sentence naming the command where the submodule is not fetched, and one test of five facts.
 
 ```bash
-git submodule add https://github.com/EggyStudio/Tools.git modules/Tools
+git submodule add https://github.com/EggyStudio/3DEngine.Tools.git modules/Tools
 ```
 
 ```xml
@@ -242,11 +242,12 @@ alone through pin.py, and CarriesTests fails a commit named nowhere. One that ch
 no fact's reading is named on this line instead: none so far.
 
 A module's README opens with its link row, its first line above its title, the row's links to its
-DEVLOG.md and CHEATSHEET.md on its repository separated by a space, then a blank line and its title,
-as this README opens. `ModuleChecks.LinkRowFault` fails a README that opens otherwise.
+DEVLOG.md and CHEATSHEET.md on its repository, `EggyStudio/3DEngine.<Module>` as its assembly is
+named, separated by a space, then a blank line and its title, as this README opens.
+`ModuleChecks.LinkRowFault` fails a README that opens otherwise.
 
 ```markdown
-[Devlog](https://github.com/EggyStudio/Tools/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/Tools/blob/main/CHEATSHEET.md)
+[Devlog](https://github.com/EggyStudio/3DEngine.Tools/blob/main/DEVLOG.md) [Cheatsheet](https://github.com/EggyStudio/3DEngine.Tools/blob/main/CHEATSHEET.md)
 
 # Tools
 ```
@@ -399,10 +400,13 @@ prints the commits the pin moves by, and names from the table of what a module c
 pin and the new each fact new to the module and each whose row changed, with the commits that
 changed it. Where the module keeps a CHEATSHEET.md it runs its test project's cheatsheet fact with
 `CHEATSHEET_WRITE=1`, which writes the page again, `--tests` naming the project where none ending in
-`.Tests` holds it, and it writes DEVLOG.md again with the new pin's devlog.py and `--commits`. It
-commits nothing, so the session reads the change and commits it. A folder outside git or a
-repository with no `modules/Tools` is refused, and the exit code is 0, or 2 where git, the fetch or
-dotnet could not be reached.
+`.Tests` holds it, and it writes DEVLOG.md again with the new pin's devlog.py and `--commits`. Where
+the module's `.gitmodules` still names Tools by its old address, its repository's name without
+`3DEngine.`, it names the repository's own, `https://github.com/EggyStudio/3DEngine.Tools.git`,
+there and in the checkout's origin where that named the old, and says so. It commits nothing, so the
+session reads the change and commits it. A folder outside git or a repository with no
+`modules/Tools` is refused, and the exit code is 0, or 2 where git, the fetch or dotnet could not be
+reached.
 
 ```bash
 python3 -I modules/Tools/scripts/pin.py [<head>] [--tests=<test project>]

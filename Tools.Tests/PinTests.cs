@@ -33,6 +33,24 @@ public class PinTests
         Assert.Contains(" M modules/Tools", world.Git(module, "status", "--porcelain"));
     }
 
+    // Tools' old address, joined from parts so no line of this repository holds it.
+    private const string Old = "https://github.com/EggyStudio/" + "Tools.git";
+
+    [NeedsPythonFact]
+    public void A_Submodule_Named_By_Tools_Old_Address_Is_Moved_To_Its_New_One()
+    {
+        using var world = new World();
+        var first = world.ToolsCommit(Head + "| `The_First` | `ModuleChecks.FirstFault` | `aaaaaaa` | |\n");
+        var module = world.Module(pinnedAt: first);
+        File.WriteAllText(Path.Combine(module, ".gitmodules"), "[submodule \"modules/Tools\"]\n\tpath = modules/Tools\n\turl = " + Old + "\n");
+
+        var (code, printed) = Programs.Execute(Programs.Python.Value!, module, [], "-I", Programs.ScriptPath("pin.py"), first);
+
+        Assert.True(code == 0, printed);
+        Assert.Contains("modules/Tools now named by https://github.com/EggyStudio/3DEngine.Tools.git, where " + Old + " named it", printed);
+        Assert.Contains("url = https://github.com/EggyStudio/3DEngine.Tools.git", File.ReadAllText(Path.Combine(module, ".gitmodules")));
+    }
+
     [NeedsPythonFact]
     public void A_Repository_With_No_Tools_And_A_Folder_Outside_Git_Are_Refused()
     {

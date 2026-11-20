@@ -57,6 +57,19 @@ def main():
         stop(f"{root} holds no modules/Tools, which pin.py moves, so it is no module that takes Tools.")
     name = os.path.basename(root)
 
+    # Tools' repository is 3DEngine.Tools, and a submodule still named by its old address is moved
+    # to the new one, in .gitmodules and in the checkout's origin where it named the old.
+    old = re.compile(r"^(https://github\.com/|git@github\.com:)EggyStudio/[T]ools(\.git)?/?$")
+    gitmodules = os.path.join(root, ".gitmodules")
+    named = subprocess.run(["git", "config", "-f", gitmodules, "submodule.modules/Tools.url"], capture_output=True, text=True).stdout.strip() if os.path.exists(gitmodules) else ""
+    if old.match(named):
+        address = "https://github.com/EggyStudio/3DEngine.Tools.git"
+        run(root, "git", "config", "-f", gitmodules, "submodule.modules/Tools.url", address)
+        if old.match(subprocess.run(["git", "-C", tools, "remote", "get-url", "origin"], capture_output=True, text=True).stdout.strip()):
+            run(tools, "git", "remote", "set-url", "origin", address)
+        subprocess.run(["git", "-C", root, "config", "submodule.modules/Tools.url", address], capture_output=True)
+        print(f"modules/Tools now named by {address}, where {named} named it")
+
     listed = run(root, "git", "ls-tree", "HEAD", "modules/Tools").split()
     old = listed[2] if len(listed) >= 3 else run(tools, "git", "rev-parse", "HEAD")
     run(tools, "git", "fetch", "-q", "origin")
