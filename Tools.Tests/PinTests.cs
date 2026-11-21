@@ -33,6 +33,38 @@ public class PinTests
         Assert.Contains(" M modules/Tools", world.Git(module, "status", "--porcelain"));
     }
 
+    [NeedsPythonFact]
+    public void A_Module_With_No_Commit_Yet_Has_Its_Pin_Read_From_The_Index()
+    {
+        using var world = new World();
+        var first = world.ToolsCommit(Head + "| `The_First` | `ModuleChecks.FirstFault` | `aaaaaaa` | |\n");
+        var second = world.ToolsCommit(Head + "| `The_First` | `ModuleChecks.FirstFault` | `aaaaaaa` | |\n| `The_Second` | `ModuleChecks.SecondFault` | `bbbbbbb` | |\n");
+        var module = world.Module(pinnedAt: first, commit: false);
+
+        var (code, printed) = Programs.Execute(Programs.Python.Value!, module, [], "-I", Programs.ScriptPath("pin.py"), second);
+
+        Assert.True(code == 0, printed);
+        var lines = Programs.Lines(printed);
+        Assert.Contains($"Tools moved from {first[..7]} to {second[..7]}, 1 commit", lines);
+        Assert.Contains("  a new fact, The_Second, calling ModuleChecks.SecondFault, in its form since `bbbbbbb`", lines);
+        Assert.Equal(second, world.Git(Path.Combine(module, "modules", "Tools"), "rev-parse", "HEAD").Trim());
+    }
+
+    [NeedsPythonFact]
+    public void Tables_That_Differ_Only_In_A_Cell_The_Pin_Holds_Say_No_Fact_Is_New_Or_Changed()
+    {
+        using var world = new World();
+        var first = world.ToolsCommit(Head + "| `The_First` | `ModuleChecks.FirstFault` | `aaaaaaa` | a mend |\n");
+        // The cell's words change and the commit it comes to name is one the pin holds.
+        var second = world.ToolsCommit(Head + $"| `The_First` | `ModuleChecks.FirstFault` | `aaaaaaa` | a mend, `{first[..7]}` |\n");
+        var module = world.Module(pinnedAt: first);
+
+        var (code, printed) = Programs.Execute(Programs.Python.Value!, module, [], "-I", Programs.ScriptPath("pin.py"), second);
+
+        Assert.True(code == 0, printed);
+        Assert.Contains("  no fact new or changed, the table's rows changed only in words or by commits the pin holds", Programs.Lines(printed));
+    }
+
     // Tools' old address, joined from parts so no line of this repository holds it.
     private const string Old = "https://github.com/EggyStudio/" + "Tools.git";
 
@@ -101,7 +133,7 @@ public class PinTests
             return Git(Tools, "rev-parse", "HEAD").Trim();
         }
 
-        public string Module(string pinnedAt)
+        public string Module(string pinnedAt, bool commit = true)
         {
             var module = Path.Combine(Root, "Sample");
             Directory.CreateDirectory(module);
@@ -110,6 +142,7 @@ public class PinTests
             Git(Path.Combine(module, "modules", "Tools"), "checkout", "-q", pinnedAt);
             File.WriteAllText(Path.Combine(module, "README.md"), "# Sample\n");
             Git(module, "add", "-A");
+            if (!commit) return module;
             File.WriteAllText(Path.Combine(module, ".git", "message"), "‎ ‎ ‎\n\nThe module takes Tools.\n");
             Git(module, "commit", "-q", "--cleanup=verbatim", "-F", Path.Combine(module, ".git", "message"));
             return module;

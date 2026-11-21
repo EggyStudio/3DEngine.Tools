@@ -70,8 +70,16 @@ def main():
         subprocess.run(["git", "-C", root, "config", "submodule.modules/Tools.url", address], capture_output=True)
         print(f"modules/Tools now named by {address}, where {named} named it")
 
-    listed = run(root, "git", "ls-tree", "HEAD", "modules/Tools").split()
-    old = listed[2] if len(listed) >= 3 else run(tools, "git", "rev-parse", "HEAD")
+    # A module with no commit yet holds its pin in the index alone, as its first commit will.
+    born = subprocess.run(["git", "-C", root, "rev-parse", "--verify", "-q", "HEAD"], capture_output=True).returncode == 0
+    if born:
+        listed = run(root, "git", "ls-tree", "HEAD", "modules/Tools").split()
+        pin = listed[2] if len(listed) >= 3 else None
+    else:
+        # The index's line of a submodule is its mode, 160000, its commit, its stage and its path.
+        listed = run(root, "git", "ls-files", "-s", "modules/Tools").split()
+        pin = listed[1] if len(listed) >= 2 and listed[0] == "160000" else None
+    old = pin or run(tools, "git", "rev-parse", "HEAD")
     run(tools, "git", "fetch", "-q", "origin")
     new = run(tools, "git", "rev-parse", f"{head}^{{commit}}")
     run(tools, "git", "checkout", "-q", new)
@@ -83,19 +91,21 @@ def main():
     def held(commit):
         return subprocess.run(["git", "-C", tools, "merge-base", "--is-ancestor", commit, old], capture_output=True).returncode == 0
 
+    # A line is printed for each fact new, changed or gone, or one saying none is, whatever the
+    # tables' cells do, so a reader never meets silence where rows differ in words alone.
     before, after = table(tools, old), table(tools, new)
+    told = []
     for fact, (check, since, changed) in after.items():
         if fact not in before:
-            print(f"  a new fact, {fact}, calling {check}, in its form since {since}")
+            told.append(f"  a new fact, {fact}, calling {check}, in its form since {since}")
             continue
         fresh = [c for c in re.findall(r"`([0-9a-f]{7,40})`", f"{since} {changed}") if c not in " ".join(before[fact]) and not held(c)]
         if before[fact][0] != check or fresh:
-            print(f"  a changed fact, {fact}, calling {check}, changed since the pin by {', '.join(f'`{c}`' for c in fresh) or 'its check'}")
-    for fact in before:
-        if fact not in after:
-            print(f"  a fact no longer carried, {fact}")
-    if before == after:
-        print("  no fact new or changed")
+            told.append(f"  a changed fact, {fact}, calling {check}, changed since the pin by {', '.join(f'`{c}`' for c in fresh) or 'its check'}")
+    told += [f"  a fact no longer carried, {fact}" for fact in before if fact not in after]
+    if not told:
+        told.append("  no fact new or changed" + ("" if before == after else ", the table's rows changed only in words or by commits the pin holds"))
+    print("\n".join(told))
 
     if os.path.exists(os.path.join(root, "CHEATSHEET.md")):
         project = tests or next((os.path.join(d, f) for d in sorted(os.listdir(root)) if d.endswith(".Tests")

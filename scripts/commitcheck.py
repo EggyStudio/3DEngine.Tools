@@ -354,7 +354,9 @@ def main():
         revs = []
     for rev in revs:
         hashes += git(repo, "rev-list", "--reverse", rev).split() if ".." in rev else [git(repo, "rev-parse", rev).strip()]
-    branch = git(repo, "rev-parse", "--abbrev-ref", "HEAD").strip()
+    # A repository with no commit yet has its branch named by HEAD alone, read before it is born.
+    unborn = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "-q", "HEAD"], capture_output=True).returncode != 0
+    branch = git(repo, "symbolic-ref", "--short", "HEAD").strip() if unborn else git(repo, "rev-parse", "--abbrev-ref", "HEAD").strip()
     failed = 0
     if branch.startswith("claude/"):
         print(f"FAIL the branch is {branch}")

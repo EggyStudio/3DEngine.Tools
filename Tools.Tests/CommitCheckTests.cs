@@ -405,6 +405,42 @@ public class CommitCheckTests
     }
 
     [NeedsPythonFact]
+    public void Staged_In_A_Repository_With_No_Commit_Yet_Reads_The_Index_And_Its_Unborn_Branch()
+    {
+        foreach (var branch in new[] { "main", "claude/first" })
+        {
+            var repo = Directory.CreateTempSubdirectory("commitcheck-").FullName;
+            try
+            {
+                Git(repo, "init", "-q", "-b", branch);
+                // The identity the check reads, kept in the repository as a first commit takes it.
+                Git(repo, "config", "user.name", "EggyStudio");
+                Git(repo, "config", "user.email", "owner@example.com");
+                File.WriteAllText(Path.Combine(repo, "a.py"), "# Prints one.\nprint(1)\n");
+                Git(repo, "add", "a.py");
+                var message = Path.Combine(repo, ".git", "next");
+                File.WriteAllText(message, Lead + "A script prints one.\n");
+
+                var (code, printed) = Programs.Attempt("commitcheck.py", new() { ["FORBIDDEN_NAMES"] = MadeUpName }, repo, "--staged", "--message=" + message);
+
+                Assert.Contains("staged   ok  A script prints one.", printed);
+                if (branch == "main")
+                    Assert.True(code == 0, printed);
+                else
+                {
+                    // The branch a first commit will be made on is read before it holds one.
+                    Assert.Equal(1, code);
+                    Assert.Contains("FAIL the branch is claude/first", printed);
+                }
+            }
+            finally
+            {
+                Delete(repo);
+            }
+        }
+    }
+
+    [NeedsPythonFact]
     public void Staged_Without_A_Message_Reads_The_Files_And_Says_The_Message_Was_Not_Read_And_Nothing_Staged_Is_Said()
     {
         var repo = Staged();

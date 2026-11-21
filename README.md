@@ -29,7 +29,8 @@ which it names, so `commitcheck.py <repo> && git push` pushes only a commit with
 
 Before the commit is made, `--staged` reads what the index holds by the same rules, with the message
 in the file `--message` names, so a fault is mended before the commit rather than by an amend after
-it, and the commit is then made from the same file.
+it, and the commit is then made from the same file. A repository's first commit is read so too, its
+branch named by HEAD before the branch holds a commit.
 
 ```bash
 FORBIDDEN_NAMES='<names>' python3 -I <Tools>/scripts/commitcheck.py <repo> --staged --message=<file>
@@ -397,9 +398,10 @@ python3 -I scripts/usage.py [<date>] [--since=<hour>] [--projects=<folder>]
 
 `scripts/pin.py` moves a module's pin of Tools to a head, run from the module's root by its own
 session: it fetches `modules/Tools` and checks out the head, `origin/main` where none is given,
-prints the commits the pin moves by, and names from the table of what a module carries at the old
-pin and the new each fact new to the module and each whose row changed, with the commits that
-changed it. Where the module keeps a CHEATSHEET.md it runs its test project's cheatsheet fact with
+prints the commits the pin moves by, the old pin read from the index where the module has no
+commit yet, and names from the table of what a module carries at the old pin and the new each fact
+new to the module and each whose row changed, with the commits that changed it, or says that no
+fact is new or changed, whatever the rows' cells do. Where the module keeps a CHEATSHEET.md it runs its test project's cheatsheet fact with
 `CHEATSHEET_WRITE=1`, which writes the page again, `--tests` naming the project where none ending in
 `.Tests` holds it, and it writes DEVLOG.md again with the new pin's devlog.py and `--commits`. Where
 the module's `.gitmodules` still names Tools by its old address, its repository's name without
