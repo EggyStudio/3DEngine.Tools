@@ -432,6 +432,28 @@ stale mark stops every shared job behind it.
 python3 -I scripts/status.py [--tools=<Tools checkout>] [<repo> ...]
 ```
 
+## The GPU's gate
+
+`scripts/gpu.py` is the one gate a session runs a GPU's program through, N 7.9's lock on
+`/run/user/1000/gpu.lock` taken the same way by every session, with its marks in
+`/run/user/1000/gpu.waiting`. An exclusive caller, a timing or a traced reference, puts its mark,
+`<repository>-<pid>`, and waits in flock itself, so it takes the lock the moment the last shared
+holder lets go, and removes the mark on taking the lock or on its end, however it ends. A shared
+caller, a suite, a capture or a build, starts no part while a mark of a living process stands,
+however old, removes a mark whose process is gone, and asks the folder again before each part, so a
+run given in parts after a `--` each yields to a timing between them. A run is bounded at three
+minutes exclusive and ten shared, or at what `--minutes` states, and past it the run and every
+program it started are stopped, as they are at its end, since a program left running keeps the card
+busy after the lock is let go. `status` prints a line for each holder, on Linux, and each mark, with
+their ages. The exit code is the command's, 124 where one passed its bound, or 2 where the call was
+wrong. Linux and macOS run it, Windows having no flock.
+
+```bash
+python3 -I <Tools>/scripts/gpu.py shared [--minutes <n>] -- <command> [-- <command> ...]
+python3 -I <Tools>/scripts/gpu.py exclusive [--minutes <n>] -- <command>
+python3 -I <Tools>/scripts/gpu.py status
+```
+
 ## A commit's hook
 
 `scripts/hooks.py` installs in the repository the working folder lies in a post-commit hook that
