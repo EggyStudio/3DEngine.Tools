@@ -131,6 +131,33 @@ public class PushTests
         Assert.Equal(world.Base, world.RemoteHead());
     }
 
+    [NeedsPythonAndFlockFact]
+    public void The_Run_Is_Asked_For_By_The_Build_Workflow_Unless_Another_Or_None_Is_Named()
+    {
+        using var world = new World();
+        var head = world.Commit("b.py", "A script prints two.");
+        // A gh that writes the arguments it is given, a line each call, and finds no run.
+        var bin = Path.Combine(world.Root, "bin");
+        Directory.CreateDirectory(bin);
+        var calls = Path.Combine(world.Root, "calls.txt");
+        var gh = Path.Combine(bin, "gh");
+        File.WriteAllText(gh, $"#!/bin/sh\necho \"$*\" >> '{calls}'\necho '[]'\n");
+        if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(gh, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        Dictionary<string, string?> path = new() { ["PATH"] = bin + Path.PathSeparator + Environment.GetEnvironmentVariable("PATH") };
+
+        string[] Calls(params string[] options)
+        {
+            File.Delete(calls);
+            var (code, printed) = Programs.Attempt("push.py", path, [world.Work, "Sample/Repo", head, "--dry-run", .. options]);
+            Assert.True(code == 0, printed);
+            return File.ReadAllLines(calls);
+        }
+
+        Assert.All(Calls(), call => Assert.Contains("-R Sample/Repo --commit " + world.Base + " -L 1 -w build --json", call));
+        Assert.All(Calls("--workflow", "pack"), call => Assert.Contains(" -w pack --json", call));
+        Assert.All(Calls("--workflow="), call => Assert.DoesNotContain(" -w ", call));
+    }
+
     // A bare repository as origin, a clone of it that holds the commit pushed, and the run reader's
     // answers, the runs of each commit by its hash, a list of them as the run changes by each ask.
     private sealed class World : IDisposable

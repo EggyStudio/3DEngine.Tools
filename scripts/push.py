@@ -2,15 +2,17 @@
 # at a fault of the form, and is never forced.
 #
 #   python3 -I scripts/push.py <repository path> <account/repository> <hash> [--branch main]
-#       [--wait-minutes <n>] [--poll-seconds <n>] [--over-red] [--dry-run]
+#       [--workflow <name>] [--wait-minutes <n>] [--poll-seconds <n>] [--over-red] [--dry-run]
 #
 # It runs commitcheck.py on the commits from the remote branch to the hash and stops on a FAIL,
-# printing the check's lines. It reads the latest run of the remote branch's head through gh, and
-# waits while it is queued or in progress, asking every 30 seconds, or --poll-seconds, up to 60
-# minutes, or --wait-minutes. A head with no run at all is not waited on: the branch is read back
-# from the head for the newest commit that has a run, up to 100 commits, and that run's state is
-# the one taken. A run that has not succeeded stops the push, unless --over-red is given. Then it
-# runs git push --no-verify origin <hash>:<branch> and prints the remote's head. The push is
+# printing the check's lines. It reads the latest run of the remote branch's head through gh, of
+# the workflow --workflow names, build by default and any workflow where the name is empty, since
+# a run of another workflow started by hand on the head would be read in place of the build's. It
+# waits while the run is queued or in progress, asking every 30 seconds, or --poll-seconds, up to
+# 60 minutes, or --wait-minutes. A head with no run at all is not waited on: the branch is read
+# back from the head for the newest commit that has a run, up to 100 commits, and that run's state
+# is the one taken. A run that has not succeeded stops the push, unless --over-red is given. Then
+# it runs git push --no-verify origin <hash>:<branch> and prints the remote's head. The push is
 # never forced, so a remote that has moved is refused by git and its line printed. --dry-run does
 # all of it but the push, which git is asked to rehearse.
 #
@@ -50,7 +52,8 @@ def git(repo, *arguments, allow=()):
 class Runs:
     """The run reader. gh gives a commit's newest run, and the tests' answers stand in for it."""
 
-    def __init__(self):
+    def __init__(self, workflow):
+        self.workflow = workflow
         self.asked = {}
         self.answers = json.load(open(os.environ["PUSH_ANSWERS"], encoding="utf-8")) if os.environ.get("PUSH_ANSWERS") else None
 
@@ -66,7 +69,7 @@ class Runs:
                 return answer[min(number, len(answer) - 1)]
             return answer
         try:
-            done = subprocess.run(["gh", "run", "list", "-R", slug, "--commit", commit, "-L", "1", "--json", "databaseId,status,conclusion,url"],
+            done = subprocess.run(["gh", "run", "list", "-R", slug, "--commit", commit, "-L", "1", *(["-w", self.workflow] if self.workflow else []), "--json", "databaseId,status,conclusion,url"],
                                   capture_output=True, text=True, timeout=60)
         except (FileNotFoundError, subprocess.TimeoutExpired) as error:
             raise Stop(6, f"gh could not be run, {error}.")
@@ -97,7 +100,7 @@ def address(slug, run):
     return run.get("url") or f"https://github.com/{slug}/actions/runs/{run.get('databaseId')}"
 
 
-def gate(repo, slug, target, branch, wait_minutes, poll_seconds, over_red, dry_run):
+def gate(repo, slug, target, branch, workflow, wait_minutes, poll_seconds, over_red, dry_run):
     listed = git(repo, "ls-remote", "origin", f"refs/heads/{branch}").stdout.split()
     head = listed[0] if listed else None
     if head:
@@ -114,7 +117,7 @@ def gate(repo, slug, target, branch, wait_minutes, poll_seconds, over_red, dry_r
     print(f"check: commitcheck.py exit 0, {len(warns)} WARN line{'' if len(warns) == 1 else 's'}")
 
     if head:
-        runs, begun, told = Runs(), time.monotonic(), None
+        runs, begun, told = Runs(workflow), time.monotonic(), None
         while True:
             run, commit = newest_run(runs, slug, repo, branch, head)
             if run is None:
@@ -150,7 +153,7 @@ def gate(repo, slug, target, branch, wait_minutes, poll_seconds, over_red, dry_r
 
 def main():
     arguments = sys.argv[1:]
-    options = {"branch": "main", "wait-minutes": "60", "poll-seconds": "30"}
+    options = {"branch": "main", "workflow": "build", "wait-minutes": "60", "poll-seconds": "30"}
     flags = {"over-red": False, "dry-run": False}
     positional = []
     # An option's value follows its name after an equals sign or as the next argument.
@@ -171,10 +174,10 @@ def main():
     except ValueError:
         positional = None
     if positional is None or len(positional) != 3 or wait <= 0 or poll <= 0:
-        sys.stderr.write("Usage is push.py <repository path> <account/repository> <hash> [--branch=main] [--wait-minutes=60] [--poll-seconds=30] [--over-red] [--dry-run].\n")
+        sys.stderr.write("Usage is push.py <repository path> <account/repository> <hash> [--branch=main] [--workflow=build] [--wait-minutes=60] [--poll-seconds=30] [--over-red] [--dry-run].\n")
         return 1
     try:
-        gate(positional[0], positional[1], positional[2], options["branch"], wait, poll, flags["over-red"], flags["dry-run"])
+        gate(positional[0], positional[1], positional[2], options["branch"], options["workflow"], wait, poll, flags["over-red"], flags["dry-run"])
     except Stop as stop:
         print(stop.text, file=sys.stderr if stop.code != 2 else sys.stdout)
         return stop.code

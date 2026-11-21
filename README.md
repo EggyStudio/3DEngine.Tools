@@ -459,9 +459,10 @@ python3 -I <Tools>/scripts/gpu.py status
 
 `scripts/push.py` is the gate the reviewing session pushes through. It runs `commitcheck.py` on the
 commits from the remote branch to the hash and stops on a FAIL with the check's lines. It reads the
-latest run of the remote branch's head through `gh run list` and waits while it is queued or in
-progress, asking every 30 seconds up to 60 minutes, `--poll-seconds` and `--wait-minutes` setting
-them. A head with no run is not waited on: the branch is read back from the head, up to 100
+latest run of the remote branch's head through `gh run list`, of the workflow `--workflow` names,
+`build` by default and any where the name is empty, since a pack run started by hand on a head
+would be read in place of its build run, and waits while it is queued or in progress, asking
+every 30 seconds up to 60 minutes, `--poll-seconds` and `--wait-minutes` setting them. A head with no run is not waited on: the branch is read back from the head, up to 100
 commits, for the newest commit that has one, and that run's state is the one taken. A run that has
 not succeeded stops the push and prints its address, unless `--over-red` is given. Then it runs
 `git push --no-verify origin <hash>:<branch>` and prints the remote's head. The push is never
@@ -471,7 +472,7 @@ of the check, 3 where the wait passed its bound, 4 for a run that did not succee
 refused as not a fast-forward and 6 where git or gh could not be reached.
 
 ```bash
-python3 -I <Tools>/scripts/push.py <repository path> <account/repository> <hash> [--branch main] [--over-red] [--dry-run]
+python3 -I <Tools>/scripts/push.py <repository path> <account/repository> <hash> [--branch main] [--workflow build] [--over-red] [--dry-run]
 ```
 
 ## A commit's hook
