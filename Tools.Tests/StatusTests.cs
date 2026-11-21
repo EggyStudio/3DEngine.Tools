@@ -41,8 +41,8 @@ public class StatusTests
         Assert.Contains("  review 81 KB, archive.py moves its older replies  ", printed);
     }
 
-    [NeedsPythonFact]
-    public void A_Waiting_Mark_Older_Than_Ten_Minutes_Is_Named_With_Its_Age_And_Owner()
+    [NeedsPythonAndFlockFact]
+    public void The_Gpu_Gates_Own_Status_Lines_Follow_The_Repositories()
     {
         using var world = new World();
         var tools = world.Tools(commits: 1);
@@ -54,13 +54,17 @@ public class StatusTests
         File.SetLastWriteTimeUtc(Path.Combine(waiting, "Sky-999999999"), DateTime.UtcNow.AddMinutes(-25));
         File.WriteAllText(Path.Combine(waiting, "Levels-1234"), "");
 
-        var (code, printed) = world.Status(new() { ["EggyStudio/3DEngine.Sample"] = null }, tools, ["--waiting=" + waiting, repo]);
+        var (code, printed) = world.Status(new() { ["EggyStudio/3DEngine.Sample"] = null }, tools,
+            ["--lock=" + Path.Combine(world.Root, "gpu.lock"), "--waiting=" + waiting, repo]);
 
         Assert.True(code == 0, printed);
-        var mark = Assert.Single(Programs.Lines(printed), l => l.StartsWith("waiting ", StringComparison.Ordinal));
+        var lines = Programs.Lines(printed);
+        var mark = Assert.Single(lines, l => l.StartsWith("waiting Sky-", StringComparison.Ordinal));
         Assert.StartsWith("waiting Sky-999999999, Sky's pid 999999999, 25 min old", mark);
-        if (OperatingSystem.IsLinux()) Assert.EndsWith(", its process gone", mark);
-        Assert.DoesNotContain("Levels-1234", printed);
+        Assert.EndsWith(", its process gone", mark);
+        Assert.Contains(lines, l => l.StartsWith("waiting Levels-1234, ", StringComparison.Ordinal));
+        // The gate's lines stand after the repositories' own.
+        Assert.True(Array.FindIndex(lines, l => l.StartsWith("waiting ", StringComparison.Ordinal)) > Array.FindIndex(lines, l => l.Contains("Sample", StringComparison.Ordinal)));
     }
 
     [NeedsPythonFact]

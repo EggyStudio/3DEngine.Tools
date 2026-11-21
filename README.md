@@ -425,13 +425,12 @@ was last committed before its newest picture, its pin of Tools against Tools' he
 README opens with the link row. With no repository given it reads 3DEngine, BevyCSharp and
 Voxel-Sandbox beside the Modules folder this checkout stands in, and every folder of Modules, the
 eleven in 2.5 seconds. The exit code is 0, or 2 where git or gh could not be reached for a
-repository, its line saying which. After the repositories it names each mark in the GPU lock's
-waiting folder, `/run/user/1000/gpu.waiting` or the folder `--waiting` gives, older than ten
-minutes, with its owner read from its name, its age, and on Linux whether its process lives, since a
-stale mark stops every shared job behind it.
+repository, its line saying which. After the repositories it prints the lines of `gpu.py status`, each
+holder of the GPU's lock and each mark of those waiting, with its age, `--lock` and `--waiting`
+naming another lock and folder, and none on Windows, which has no flock.
 
 ```bash
-python3 -I scripts/status.py [--tools=<Tools checkout>] [<repo> ...]
+python3 -I scripts/status.py [--tools=<Tools checkout>] [--lock=<file>] [--waiting=<folder>] [<repo> ...]
 ```
 
 ## The GPU's gate
@@ -454,6 +453,25 @@ wrong. Linux and macOS run it, Windows having no flock.
 python3 -I <Tools>/scripts/gpu.py shared [--minutes <n>] -- <command> [-- <command> ...]
 python3 -I <Tools>/scripts/gpu.py exclusive [--minutes <n>] -- <command>
 python3 -I <Tools>/scripts/gpu.py status
+```
+
+## A push's gate
+
+`scripts/push.py` is the gate the reviewing session pushes through. It runs `commitcheck.py` on the
+commits from the remote branch to the hash and stops on a FAIL with the check's lines. It reads the
+latest run of the remote branch's head through `gh run list` and waits while it is queued or in
+progress, asking every 30 seconds up to 60 minutes, `--poll-seconds` and `--wait-minutes` setting
+them. A head with no run is not waited on: the branch is read back from the head, up to 100
+commits, for the newest commit that has one, and that run's state is the one taken. A run that has
+not succeeded stops the push and prints its address, unless `--over-red` is given. Then it runs
+`git push --no-verify origin <hash>:<branch>` and prints the remote's head. The push is never
+forced, so a remote that has moved is refused by git and its line printed. `--dry-run` does all of
+it but the push, which git is asked to rehearse. The exit code is 0, 1 for a wrong call, 2 for a FAIL
+of the check, 3 where the wait passed its bound, 4 for a run that did not succeed, 5 for a push git
+refused as not a fast-forward and 6 where git or gh could not be reached.
+
+```bash
+python3 -I <Tools>/scripts/push.py <repository path> <account/repository> <hash> [--branch main] [--over-red] [--dry-run]
 ```
 
 ## A commit's hook
