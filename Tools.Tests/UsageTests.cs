@@ -38,7 +38,7 @@ public class UsageTests
 
             // An hour east of UTC, in the form both POSIX and Windows read.
             Dictionary<string, string?> east = new() { ["TZ"] = "XXX-1" };
-            var (code, printed) = Programs.Attempt("usage.py", east, "2026-11-18", "--projects=" + projects);
+            var (code, printed) = Programs.Attempt("usage.py", east, "2026-11-18", "--projects=" + projects, "--cache=" + Path.Combine(projects, ".usage-cache"));
 
             Assert.True(code == 0, printed);
             var lines = Programs.Lines(printed);
@@ -52,14 +52,70 @@ public class UsageTests
             Assert.Contains(lines, line => line.StartsWith("1 line not read in ", StringComparison.Ordinal) && line.EndsWith("s1.jsonl", StringComparison.Ordinal));
             Assert.True(Array.IndexOf(lines, lines.First(l => l.StartsWith("tools ", StringComparison.Ordinal))) < Array.IndexOf(lines, lines.First(l => l.StartsWith("s2 ", StringComparison.Ordinal))), "the larger session stands first");
 
-            var (since, from17) = Programs.Attempt("usage.py", east, "2026-11-18", "--since=17", "--projects=" + projects);
+            var (since, from17) = Programs.Attempt("usage.py", east, "2026-11-18", "--since=17", "--projects=" + projects, "--cache=" + Path.Combine(projects, ".usage-cache"));
             Assert.True(since == 0, from17);
             Assert.Contains("all  turns 3  cache read 5,500  cache written 0  output 207", Programs.Lines(from17));
             Assert.DoesNotContain("16h", from17);
 
-            var (missing, said) = Programs.Attempt("usage.py", [], "--projects=" + Path.Combine(projects, "none"));
+            var (missing, said) = Programs.Attempt("usage.py", [], "--projects=" + Path.Combine(projects, "none"), "--cache=" + Path.Combine(projects, ".usage-cache"));
             Assert.Equal(2, missing);
             Assert.Contains("does not stand", said);
+        }
+        finally
+        {
+            Directory.Delete(projects, true);
+        }
+    }
+
+    [NeedsPythonFact]
+    public void A_Growing_Transcript_Is_Read_Only_From_Where_The_Last_Run_Ended_And_Gives_A_Cold_Runs_Totals()
+    {
+        var projects = Directory.CreateTempSubdirectory("usage-").FullName;
+        try
+        {
+            var folder = Path.Combine(projects, "-a-project");
+            Directory.CreateDirectory(folder);
+            var transcript = Path.Combine(folder, "s1.jsonl");
+            Dictionary<string, string?> utc = new() { ["TZ"] = "UTC0" };
+            string[] Run(string cache, params string[] more)
+            {
+                var (code, printed) = Programs.Attempt("usage.py", utc, ["2026-11-18", "--projects=" + projects, "--cache=" + cache, .. more]);
+                Assert.True(code == 0, printed);
+                return Programs.Lines(printed);
+            }
+            string Cache(string[] lines) => lines.Single(l => l.StartsWith("cache: ", StringComparison.Ordinal));
+            string[] Totals(string[] lines) => lines.Where(l => !l.StartsWith("cache: ", StringComparison.Ordinal)).ToArray();
+
+            File.WriteAllText(transcript, Turn("s1", "r1", "2026-11-18T10:00:00Z", read: 1000) + "\n" + Turn("s1", "r2", "2026-11-18T11:00:00Z", read: 2000) + "\n");
+            var first = new FileInfo(transcript).Length;
+            var warm = Path.Combine(projects, ".warm");
+            Assert.Equal($"cache: {first:N0} bytes read of {first:N0} in 1 transcripts", Cache(Run(warm)));
+
+            // Two more requests and half of a third, which is still being written.
+            var added = Turn("s1", "r3", "2026-11-18T12:00:00Z", read: 4000) + "\n" + Turn("s1", "r4", "2026-11-18T13:00:00Z", read: 8000) + "\n";
+            var half = Turn("s1", "r5", "2026-11-18T14:00:00Z", read: 16000);
+            File.AppendAllText(transcript, added + half[..40]);
+            var second = new FileInfo(transcript).Length;
+            var again = Run(warm);
+            Assert.Equal($"cache: {added.Length:N0} bytes read of {second:N0} in 1 transcripts", Cache(again));
+            Assert.Contains("all  turns 4  cache read 15,000  cache written 0  output 400", again);
+            Assert.Equal(Totals(Run(Path.Combine(projects, ".cold1"))), Totals(again));
+
+            // The rest of the third line, and then nothing appended, which reads nothing at all.
+            File.AppendAllText(transcript, half[40..] + "\n");
+            var third = Run(warm);
+            Assert.StartsWith($"cache: {half.Length + 1:N0} bytes read of ", Cache(third));
+            Assert.Contains("all  turns 5  cache read 31,000  cache written 0  output 500", third);
+            Assert.Equal(Totals(Run(Path.Combine(projects, ".cold2"))), Totals(third));
+            Assert.StartsWith("cache: 0 bytes read of ", Cache(Run(warm)));
+            Assert.StartsWith("cache: 0 bytes read of ", Cache(Run(warm, "--since=11")));
+            Assert.Contains("all  turns 4  cache read 30,000  cache written 0  output 400", Run(warm, "--since=11"));
+
+            // A transcript written over from its start is read again whole.
+            File.WriteAllText(transcript, Turn("s1", "q1", "2026-11-18T09:00:00Z", read: 5) + "\n");
+            var over = Run(warm);
+            Assert.Contains("all  turns 1  cache read 5  cache written 0  output 100", over);
+            Assert.StartsWith($"cache: {new FileInfo(transcript).Length:N0} bytes read of ", Cache(over));
         }
         finally
         {

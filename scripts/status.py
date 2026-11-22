@@ -6,13 +6,16 @@
 # gpu.py's status, each holder of the GPU's lock and each mark of those waiting, with its age.
 #
 #   python3 -I scripts/status.py [--tools=<Tools checkout>] [--lock=<file>] [--waiting=<folder>]
-#       [<repo> ...]
+#       [--timeout=<seconds>] [<repo> ...]
 #
 # With no repository given it reads 3DEngine, BevyCSharp and 3DEngine/Voxel-Sandbox beside the
 # Modules folder this checkout stands in, and every folder of Modules. The remote head is read by
 # git ls-remote, which fetches nothing, and the runs through gh, so the login gh holds serves; where
 # STATUS_ANSWERS names a JSON file of recorded runs by account and repository, those are read
 # instead, a run, null for none or an object naming why gh failed, which is how the tests run it.
+# Every repository's calls over the network, its remote's head and its last run, are made at once,
+# each waited on for 30 seconds or what --timeout gives, and a call that passes it is said on its
+# repository's own line, git ls-remote or gh run list timed out. The lines keep the order given.
 # The exit code is 0, or 2 where git or gh could not be reached for a repository, its line saying
 # which.
 import json, os, re, subprocess, sys
@@ -30,10 +33,16 @@ class Unreached(Exception):
     pass
 
 
+# How long a call of git or gh is waited on, in seconds, which --timeout sets.
+TIMEOUT = 30.0
+
+
 def git(repo, *arguments):
     try:
-        done = subprocess.run(["git", "-C", repo, *arguments], capture_output=True, text=True, timeout=60)
-    except (FileNotFoundError, subprocess.TimeoutExpired) as error:
+        done = subprocess.run(["git", "-C", repo, *arguments], capture_output=True, text=True, timeout=TIMEOUT)
+    except subprocess.TimeoutExpired:
+        raise Unreached(f"git {arguments[0]} timed out after {TIMEOUT:g} s")
+    except FileNotFoundError as error:
         raise Unreached(f"git could not be run, {error}")
     if done.returncode:
         raise Unreached(f"git {arguments[0]} failed, {done.stderr.strip().splitlines()[-1] if done.stderr.strip() else done.returncode}")
@@ -50,8 +59,10 @@ def last_run(slug):
         return answer
     try:
         done = subprocess.run(["gh", "run", "list", "-R", slug, "-L", "1", "--json", "headSha,status,conclusion"],
-                              capture_output=True, text=True, timeout=60)
-    except (FileNotFoundError, subprocess.TimeoutExpired) as error:
+                              capture_output=True, text=True, timeout=TIMEOUT)
+    except subprocess.TimeoutExpired:
+        raise Unreached(f"gh run list timed out after {TIMEOUT:g} s")
+    except FileNotFoundError as error:
         raise Unreached(f"gh could not be run, {error}")
     if done.returncode:
         raise Unreached(f"gh run list failed, {done.stderr.strip().splitlines()[-1] if done.stderr.strip() else done.returncode}")
@@ -64,7 +75,23 @@ def committed(repo, *paths):
     return int(stamp) if stamp else None
 
 
-def line(repo, tools_head, tools):
+def begin(repo, pool):
+    """Starts a repository's two calls over the network, its remote's head and its last run, at
+    once and with every other repository's, and returns their futures by name, none where its local
+    reading failed, which its line then says."""
+    try:
+        branch = git(repo, "rev-parse", "--abbrev-ref", "HEAD")
+        url = git(repo, "config", "--get", "remote.origin.url")
+    except Unreached:
+        return {}
+    started = {"ls": pool.submit(git, repo, "ls-remote", "origin", f"refs/heads/{branch}")}
+    found = GITHUB.search(url)
+    if found:
+        started["run"] = pool.submit(last_run, found.group("slug"))
+    return started
+
+
+def line(repo, tools_head, tools, started):
     name = os.path.basename(os.path.abspath(repo))
     parts, unreached = [name], []
     try:
@@ -72,7 +99,7 @@ def line(repo, tools_head, tools):
         branch = git(repo, "rev-parse", "--abbrev-ref", "HEAD")
         parts.append(f"local {head}")
         url = git(repo, "config", "--get", "remote.origin.url")
-        listed = git(repo, "ls-remote", "origin", f"refs/heads/{branch}")
+        listed = started["ls"].result() if "ls" in started else git(repo, "ls-remote", "origin", f"refs/heads/{branch}")
         remote = listed.split()[0] if listed else ""
         if remote:
             parts.append(f"remote {remote[:7]}")
@@ -86,7 +113,7 @@ def line(repo, tools_head, tools):
     found = GITHUB.search(url)
     if found:
         try:
-            run = last_run(found.group("slug"))
+            run = started["run"].result() if "run" in started else last_run(found.group("slug"))
             parts.append(f"run {run['headSha'][:7]} {run['status']} {run.get('conclusion') or ''}".rstrip() if run else "run none")
         except Unreached as error:
             parts.append(f"run unreached, {error}")
@@ -141,6 +168,8 @@ def main():
     tools = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--tools=")), HERE)
     waiting = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--waiting=")), None)
     lock = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--lock=")), None)
+    global TIMEOUT
+    TIMEOUT = float(next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--timeout=")), TIMEOUT))
     repos = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not repos:
         modules = os.path.dirname(HERE)
@@ -154,8 +183,9 @@ def main():
     # Each repository waits on the network for its remote and its runs, so they are read at once
     # and printed in the order given.
     unreached = False
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        for text, missed in pool.map(lambda repo: line(repo, tools_head, tools), repos):
+    with ThreadPoolExecutor(max_workers=max(8, 2 * len(repos))) as network, ThreadPoolExecutor(max_workers=8) as pool:
+        started = [begin(repo, network) for repo in repos]
+        for text, missed in pool.map(lambda pair: line(pair[0], tools_head, tools, pair[1]), zip(repos, started)):
             print(text)
             unreached |= missed
     for text in gpu_lines(lock, waiting):

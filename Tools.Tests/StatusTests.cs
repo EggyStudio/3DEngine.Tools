@@ -124,6 +124,35 @@ public class StatusTests
         Assert.Contains("  run unreached, gh run list failed, HTTP 503  ", ghPrinted);
     }
 
+    [NeedsPythonAndFlockFact]
+    public void A_Call_Past_Its_Bound_Is_Said_On_The_Repositorys_Own_Line_And_The_Order_Stands()
+    {
+        using var world = new World();
+        var tools = world.Tools(commits: 1);
+        var slow = world.Module("Slow", Row.Replace("Sample", "Slow") + "\n\n# Slow\n", tools, pinnedBack: 0);
+        var quick = world.Module("Quick", Row.Replace("Sample", "Quick") + "\n\n# Quick\n", tools, pinnedBack: 0);
+        // A gh that sleeps for the first repository and finds no run for any, as the real one
+        // does when its answer is long in coming.
+        var bin = Path.Combine(world.Root, "bin");
+        Directory.CreateDirectory(bin);
+        var gh = Path.Combine(bin, "gh");
+        File.WriteAllText(gh, "#!/bin/sh\ncase \"$*\" in *Slow*) sleep 30;; esac\necho '[]'\n");
+        if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(gh, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        Dictionary<string, string?> path = new() { ["PATH"] = bin + Path.PathSeparator + Environment.GetEnvironmentVariable("PATH") };
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+
+        var (code, printed) = Programs.Attempt("status.py", path, ["--tools=" + tools, "--timeout=2", slow, quick]);
+
+        Assert.Equal(2, code);
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(20), $"the run took {clock.Elapsed.TotalSeconds:N0} s");
+        var lines = Programs.Lines(printed);
+        var slowAt = Array.FindIndex(lines, l => l.StartsWith("Slow  ", StringComparison.Ordinal));
+        var quickAt = Array.FindIndex(lines, l => l.StartsWith("Quick  ", StringComparison.Ordinal));
+        Assert.True(slowAt >= 0 && quickAt > slowAt, printed);
+        Assert.Contains("  run unreached, gh run list timed out after 2 s  ", lines[slowAt]);
+        Assert.Contains("  run none  ", lines[quickAt]);
+    }
+
     // Made repositories, each with a bare remote its address in GitHub's form is sent to, and
     // a Tools repository its pin is read against, deleted with the folder.
     private sealed class World : IDisposable

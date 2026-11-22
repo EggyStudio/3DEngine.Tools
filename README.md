@@ -390,8 +390,17 @@ each hour on a line of its own in local time, and a total, on the date given in 
 from the hour `--since` gives where a watch reads the last hours alone; a line it cannot read is
 counted with its file, and a projects folder missing gives 2.
 
+The transcripts hold gigabytes, so what each holds is kept in a SQLite cache in the user's cache
+folder, `~/.cache/3DEngine.Tools` or the folder `--cache` gives, never in a repository, a file for a
+projects folder. A transcript is keyed by its path and holds its size, modified time, a check of
+its first bytes and the offset up to which its lines were read, so a run streams only what was
+appended since, a line at a time, and answers a day or `--since` from the rows. A transcript that
+shrank or was written over is read again whole, and a last line not yet ended is left for the run
+after it. The error output says the bytes read and the bytes in all. The first run reads every
+transcript, as it always did, and the ones after it only what was appended.
+
 ```bash
-python3 -I scripts/usage.py [<date>] [--since=<hour>] [--projects=<folder>]
+python3 -I scripts/usage.py [<date>] [--since=<hour>] [--projects=<folder>] [--cache=<folder>]
 ```
 
 ## A module's pin
@@ -429,8 +438,13 @@ repository, its line saying which. After the repositories it prints the lines of
 holder of the GPU's lock and each mark of those waiting, with its age, `--lock` and `--waiting`
 naming another lock and folder, and none on Windows, which has no flock.
 
+Every repository's two calls over the network, its remote's head and its last run, are made at
+once, each waited on for 30 seconds or what `--timeout` gives, and a call that passes it is said on
+its repository's own line, `git ls-remote timed out after 30 s` or `gh run list timed out after
+30 s`, with exit 2. The lines keep the order the repositories are given in.
+
 ```bash
-python3 -I scripts/status.py [--tools=<Tools checkout>] [--lock=<file>] [--waiting=<folder>] [<repo> ...]
+python3 -I scripts/status.py [--tools=<Tools checkout>] [--lock=<file>] [--waiting=<folder>] [--timeout=<seconds>] [<repo> ...]
 ```
 
 ## The GPU's gate
