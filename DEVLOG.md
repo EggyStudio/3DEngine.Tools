@@ -6,6 +6,16 @@ repository keeps under `.github/assets` and the pictures made while an item was 
 notes written beside them as Markdown files named the same way. A line under Done names the item of
 .github/REVIEW.md or .github/REVIEW-ARCHIVE.md and the commit that closed it.
 
+## 2026-11-22
+
+![](.github/assets/readings/2026-11-22-readme-devlog.webp)
+A page of a made-up repository's devlog as devlog.py writes it, a day's heading over a chart that
+chart.py drew and the line that captions it.
+
+![](.github/assets/readings/2026-11-22-readme-sheet.webp)
+A sheet the composer made of two made-up pictures of a sky, the mean luminance read inside the box
+over the sun, and the first less the second on black, red where the first is brighter.
+
 ## 2026-11-18
 
 ![](.github/assets/readings/2026-11-18-item-3-sheet.webp)

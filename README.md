@@ -2,6 +2,12 @@
 
 # Tools
 
+![A sheet of captures and their difference](.github/assets/readings/2026-11-22-readme-sheet.webp)
+A sheet the composer made of two pictures and their difference, each number on it one it read.
+
+![A page of a devlog](.github/assets/readings/2026-11-22-readme-devlog.webp)
+A page the devlog's generator wrote, a day's pictures under its heading with their captions.
+
 Tools is a library and a set of scripts that any engine takes as a git submodule, for what its
 repositories otherwise copy by hand, the devlog's generator, the composer of reading sheets, the run
 reader, the check of a commit and the sweep of a tree, the reading of shell scripts for forms macOS
