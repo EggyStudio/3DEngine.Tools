@@ -23,8 +23,9 @@
 # not yet ended by a line feed is left for the run after it, since it may be mid-write. What a run
 # has read is committed to the cache every 32 MB of a transcript, or --batch-bytes, so a run
 # stopped midway leaves the next one the rest. A transcript read again from its start is named on
-# the error output with its size and why, shrunk, first bytes differ or modified time changed at
-# the same size. The cache's reading is said there too, its bytes read and its bytes in all.
+# the error output with its size and why, shrunk, first bytes differ or the bytes before the kept
+# offset differ, a modified time that moved alone being no reason where both checks agree. The
+# cache's reading is said there too, its bytes read and its bytes in all.
 import collections, datetime, glob, hashlib, json, os, sqlite3, sys
 
 sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
@@ -46,7 +47,7 @@ def open_cache(folder, projects):
     name = "usage-" + hashlib.sha1(os.path.abspath(projects).encode("utf-8")).hexdigest()[:12] + ".sqlite"
     db = sqlite3.connect(os.path.join(folder, name), timeout=60)
     db.executescript("""
-        create table if not exists files (path text primary key, size integer, mtime real, head text, offset integer, unread integer);
+        create table if not exists files (path text primary key, size integer, mtime real, head text, offset integer, unread integer, tail text);
         create table if not exists usage (path text, pos integer, key text, session text, at real,
             input integer, written integer, read integer, output integer);
         create index if not exists usage_at on usage (at);
@@ -54,6 +55,11 @@ def open_cache(folder, projects):
         create table if not exists names (path text, pos integer, session text, name text);
         create index if not exists names_path on names (path);
     """)
+    # A cache made before the tail's check was kept has no such column, and its rows are kept with
+    # no check, which the next run over each gives one.
+    if "tail" not in [column[1] for column in db.execute("pragma table_info(files)")]:
+        db.execute("alter table files add column tail text")
+        db.commit()
     return db
 
 
@@ -71,15 +77,27 @@ BATCH_BYTES = 32 * 1024 * 1024
 READ_IN_ALL = 0
 
 
+def tail_of(path, offset):
+    """A check of the bytes just before an offset, as many as HEAD_BYTES, which a file that only
+    grows leaves as they were."""
+    with open(path, "rb") as f:
+        f.seek(max(0, offset - HEAD_BYTES))
+        return hashlib.sha1(f.read(min(offset, HEAD_BYTES))).hexdigest()
+
+
 def why_again(row, path, size, mtime):
     """Why a transcript the cache holds is read again from its start, or None where the cache's rows
-    of it stand. A row's size is what it covers, so one a stopped run left stands short of the file."""
+    of it stand. A row's size is what it covers, so one a stopped run left stands short of the file.
+    A modified time that moved is no reason where the first bytes and the bytes before the kept
+    offset agree, since the files only grow, but with no check of those last bytes kept it is."""
     if row[0] > size:
         return f"shrunk from {row[0]:,} bytes"
     if row[2] != head_of(path, row[3]):
         return "first bytes differ"
-    if row[0] == size and row[1] != mtime:
-        return "modified time changed at the same size"
+    if row[5] is not None and row[5] != tail_of(path, row[3]):
+        return "bytes before the kept offset differ"
+    if row[0] == size and row[1] != mtime and row[5] is None:
+        return "modified time changed at the same size, and no check of its last bytes was kept"
     return None
 
 
@@ -89,7 +107,7 @@ def index(db, path, size, mtime):
     changed or where its modified time did at the same size, one line on the error output saying
     which. What is read is committed in batches, each leaving the offset it reached."""
     global READ_IN_ALL
-    row = db.execute("select size, mtime, head, offset, unread from files where path = ?", (path,)).fetchone()
+    row = db.execute("select size, mtime, head, offset, unread, tail from files where path = ?", (path,)).fetchone()
     offset, unread = 0, 0
     if row:
         why = why_again(row, path, size, mtime)
@@ -98,6 +116,9 @@ def index(db, path, size, mtime):
             for table in ("usage", "names"):
                 db.execute(f"delete from {table} where path = ?", (path,))
         elif row[0] == size:
+            if row[5] is None:
+                db.execute("update files set tail = ? where path = ?", (tail_of(path, row[3]), path))
+                db.commit()
             return 0
         else:
             offset, unread = row[3], row[4]
@@ -108,7 +129,8 @@ def index(db, path, size, mtime):
         db.executemany("insert into usage values (?,?,?,?,?,?,?,?,?)", usage_rows)
         db.executemany("insert into names values (?,?,?,?)", name_rows)
         usage_rows.clear(), name_rows.clear()
-        db.execute("insert or replace into files values (?,?,?,?,?,?)", (path, covers, mtime, head_of(path, offset), offset, unread))
+        db.execute("insert or replace into files values (?,?,?,?,?,?,?)",
+                   (path, covers, mtime, head_of(path, offset), offset, unread, tail_of(path, offset)))
         db.commit()
 
     with open(path, "rb") as f:

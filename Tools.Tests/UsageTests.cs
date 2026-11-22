@@ -194,9 +194,21 @@ public class UsageTests
             Assert.Contains($"reread {transcript}, {longer:N0} bytes, first bytes differ", Run());
             Assert.DoesNotContain("reread", Run());
 
-            // The same bytes under a modified time that went back.
+            // The same bytes under a modified time that went back, which these files only growing
+            // is no reason to read them again for.
             File.SetLastWriteTimeUtc(transcript, DateTime.UtcNow.AddDays(-3));
-            Assert.Contains($"reread {transcript}, {longer:N0} bytes, modified time changed at the same size", Run());
+            Assert.DoesNotContain("reread", Run());
+
+            // A change in the bytes just before the kept offset, beyond the first bytes the head
+            // checks, at the same size and under a modified time that moved.
+            var requests = Enumerable.Range(1, 40).Select(i => $"p{i:00}").ToArray();
+            Write(requests);
+            Run();
+            var text = File.ReadAllText(transcript);
+            File.WriteAllText(transcript, text.Remove(text.LastIndexOf("p40", StringComparison.Ordinal), 3).Insert(text.LastIndexOf("p40", StringComparison.Ordinal), "q40"));
+            File.SetLastWriteTimeUtc(transcript, DateTime.UtcNow.AddDays(-2));
+            var edited = new FileInfo(transcript).Length;
+            Assert.Contains($"reread {transcript}, {edited:N0} bytes, bytes before the kept offset differ", Run());
             Assert.DoesNotContain("reread", Run());
         }
         finally

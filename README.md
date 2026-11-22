@@ -399,8 +399,10 @@ shrank or was written over is read again whole, and a last line not yet ended is
 after it. What a run has read is committed every 32 MB of a transcript, `--batch-bytes` setting it,
 so a run stopped midway leaves the next one the rest. A transcript read again from its start is
 named on the error output with its size and why, `shrunk from <n> bytes`, `first bytes differ` or
-`modified time changed at the same size`. The error output also says the bytes read and the bytes
-in all. The first run reads every
+`bytes before the kept offset differ`, the cache keeping a check of the first 4 KB and of the 4 KB
+before the offset. A modified time that moved alone is no reason to read a transcript again where
+both checks agree, since these files only grow. The error output also says the bytes read and the
+bytes in all. The first run reads every
 transcript, as it always did, and the ones after it only what was appended.
 
 ```bash
