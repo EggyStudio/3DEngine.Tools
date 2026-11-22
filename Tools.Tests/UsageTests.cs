@@ -122,4 +122,86 @@ public class UsageTests
             Directory.Delete(projects, true);
         }
     }
+
+    [NeedsPythonFact]
+    public void A_Run_Stopped_Midway_Leaves_What_It_Committed_And_The_Next_Reads_Only_The_Rest()
+    {
+        var projects = Directory.CreateTempSubdirectory("usage-").FullName;
+        try
+        {
+            var folder = Path.Combine(projects, "-a-project");
+            Directory.CreateDirectory(folder);
+            var transcript = Path.Combine(folder, "s1.jsonl");
+            var turns = Enumerable.Range(1, 12).Select(i => Turn("s1", $"r{i}", $"2026-11-18T{9 + i / 2:00}:{i % 2 * 30:00}:00Z", read: i * 100));
+            File.WriteAllText(transcript, string.Join("\n", turns) + "\n");
+            var size = new FileInfo(transcript).Length;
+            Dictionary<string, string?> utc = new() { ["TZ"] = "UTC0" };
+            var warm = Path.Combine(projects, ".warm");
+
+            // Stopped after the first commit past 1,000 bytes, with the cache holding those bytes.
+            utc["USAGE_STOP_AFTER"] = "1000";
+            var (stopped, said) = Programs.Attempt("usage.py", utc, "2026-11-18", "--projects=" + projects, "--cache=" + warm, "--batch-bytes=600");
+            Assert.True(stopped == 3, said);
+            utc.Remove("USAGE_STOP_AFTER");
+
+            var (code, printed) = Programs.Attempt("usage.py", utc, "2026-11-18", "--projects=" + projects, "--cache=" + warm);
+            var (coldCode, cold) = Programs.Attempt("usage.py", utc, "2026-11-18", "--projects=" + projects, "--cache=" + Path.Combine(projects, ".cold"));
+            Assert.True(code == 0 && coldCode == 0, printed + cold);
+            var reading = Programs.Lines(printed).Single(l => l.StartsWith("cache: ", StringComparison.Ordinal));
+            var read = long.Parse(reading.Split(' ')[1].Replace(",", ""), System.Globalization.CultureInfo.InvariantCulture);
+            Assert.InRange(read, 1, size - 1000);
+            Assert.DoesNotContain("reread", printed);
+            Assert.Equal(Programs.Lines(cold).Where(l => !l.StartsWith("cache: ", StringComparison.Ordinal)),
+                         Programs.Lines(printed).Where(l => !l.StartsWith("cache: ", StringComparison.Ordinal)));
+            Assert.Contains("all  turns 12  cache read 7,800  cache written 0  output 1,200", printed);
+        }
+        finally
+        {
+            Directory.Delete(projects, true);
+        }
+    }
+
+    [NeedsPythonFact]
+    public void A_Transcript_Read_Again_From_Its_Start_Is_Named_With_Its_Size_And_Why()
+    {
+        var projects = Directory.CreateTempSubdirectory("usage-").FullName;
+        try
+        {
+            var folder = Path.Combine(projects, "-a-project");
+            Directory.CreateDirectory(folder);
+            var transcript = Path.Combine(folder, "s1.jsonl");
+            Dictionary<string, string?> utc = new() { ["TZ"] = "UTC0" };
+            var cache = Path.Combine(projects, ".warm");
+            string Run() => Programs.Attempt("usage.py", utc, "2026-11-18", "--projects=" + projects, "--cache=" + cache).Output;
+            string Write(params string[] requests)
+            {
+                File.WriteAllText(transcript, string.Concat(requests.Select(r => Turn("s1", r, "2026-11-18T10:00:00Z", read: 10) + "\n")));
+                return transcript;
+            }
+
+            Write("r1", "r2", "r3");
+            var first = new FileInfo(transcript).Length;
+            Assert.DoesNotContain("reread", Run());
+
+            // Written over by a shorter transcript, as a compaction does.
+            Write("r4");
+            var shorter = new FileInfo(transcript).Length;
+            Assert.Contains($"reread {transcript}, {shorter:N0} bytes, shrunk from {first:N0} bytes", Run());
+
+            // Written over by a longer one that starts otherwise, as a resume does.
+            Write("q5", "q6", "q7");
+            var longer = new FileInfo(transcript).Length;
+            Assert.Contains($"reread {transcript}, {longer:N0} bytes, first bytes differ", Run());
+            Assert.DoesNotContain("reread", Run());
+
+            // The same bytes under a modified time that went back.
+            File.SetLastWriteTimeUtc(transcript, DateTime.UtcNow.AddDays(-3));
+            Assert.Contains($"reread {transcript}, {longer:N0} bytes, modified time changed at the same size", Run());
+            Assert.DoesNotContain("reread", Run());
+        }
+        finally
+        {
+            Directory.Delete(projects, true);
+        }
+    }
 }

@@ -396,11 +396,15 @@ projects folder. A transcript is keyed by its path and holds its size, modified 
 its first bytes and the offset up to which its lines were read, so a run streams only what was
 appended since, a line at a time, and answers a day or `--since` from the rows. A transcript that
 shrank or was written over is read again whole, and a last line not yet ended is left for the run
-after it. The error output says the bytes read and the bytes in all. The first run reads every
+after it. What a run has read is committed every 32 MB of a transcript, `--batch-bytes` setting it,
+so a run stopped midway leaves the next one the rest. A transcript read again from its start is
+named on the error output with its size and why, `shrunk from <n> bytes`, `first bytes differ` or
+`modified time changed at the same size`. The error output also says the bytes read and the bytes
+in all. The first run reads every
 transcript, as it always did, and the ones after it only what was appended.
 
 ```bash
-python3 -I scripts/usage.py [<date>] [--since=<hour>] [--projects=<folder>] [--cache=<folder>]
+python3 -I scripts/usage.py [<date>] [--since=<hour>] [--projects=<folder>] [--cache=<folder>] [--batch-bytes=<n>]
 ```
 
 ## A module's pin

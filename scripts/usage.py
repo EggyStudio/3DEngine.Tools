@@ -2,6 +2,7 @@
 # whether the quiet protocol works, reading nothing of what the sessions said.
 #
 #   python3 -I scripts/usage.py [<date>] [--since=<hour>] [--projects=<folder>] [--cache=<folder>]
+#       [--batch-bytes=<n>]
 #
 # It reads every transcript under the projects folder, ~/.claude/projects where none is given, its
 # subagents' among them, and of each line only an assistant entry's usage, time, session and
@@ -19,8 +20,11 @@
 # check of its first bytes and the byte offset up to which its lines were read, so a run streams
 # only what was appended since, a line at a time and never a file whole, and answers the day from
 # the rows. A transcript that shrank, or changed where it was read, is read again whole. A last line
-# not yet ended by a line feed is left for the run after it, since it may be mid-write. The
-# cache's reading is said on the error output, its bytes read and its bytes in all.
+# not yet ended by a line feed is left for the run after it, since it may be mid-write. What a run
+# has read is committed to the cache every 32 MB of a transcript, or --batch-bytes, so a run
+# stopped midway leaves the next one the rest. A transcript read again from its start is named on
+# the error output with its size and why, shrunk, first bytes differ or modified time changed at
+# the same size. The cache's reading is said there too, its bytes read and its bytes in all.
 import collections, datetime, glob, hashlib, json, os, sqlite3, sys
 
 sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
@@ -59,28 +63,70 @@ def head_of(path, length):
         return hashlib.sha1(f.read(min(length, HEAD_BYTES))).hexdigest()
 
 
+# The bytes of a transcript read between two commits to the cache, --batch-bytes setting them,
+# so a run stopped midway leaves the next one the rest and not the whole of the file it was in.
+BATCH_BYTES = 32 * 1024 * 1024
+# The bytes read by this run in all, which USAGE_STOP_AFTER ends the run at, abruptly and after a
+# commit, which is how the tests stop one midway.
+READ_IN_ALL = 0
+
+
+def why_again(row, path, size, mtime):
+    """Why a transcript the cache holds is read again from its start, or None where the cache's rows
+    of it stand. A row's size is what it covers, so one a stopped run left stands short of the file."""
+    if row[0] > size:
+        return f"shrunk from {row[0]:,} bytes"
+    if row[2] != head_of(path, row[3]):
+        return "first bytes differ"
+    if row[0] == size and row[1] != mtime:
+        return "modified time changed at the same size"
+    return None
+
+
 def index(db, path, size, mtime):
     """Brings one transcript's rows up to date, reading from its kept offset, and returns the bytes
-    it read. A transcript is read again whole where it shrank, or where its start changed."""
+    it read. A transcript is read again from its start where it shrank, where its first bytes
+    changed or where its modified time did at the same size, one line on the error output saying
+    which. What is read is committed in batches, each leaving the offset it reached."""
+    global READ_IN_ALL
     row = db.execute("select size, mtime, head, offset, unread from files where path = ?", (path,)).fetchone()
     offset, unread = 0, 0
-    if row and row[0] <= size and row[2] == head_of(path, row[3]) and (row[0] != size or row[1] == mtime):
-        if row[0] == size:
+    if row:
+        why = why_again(row, path, size, mtime)
+        if why:
+            print(f"reread {path}, {size:,} bytes, {why}", file=sys.stderr)
+            for table in ("usage", "names"):
+                db.execute(f"delete from {table} where path = ?", (path,))
+        elif row[0] == size:
             return 0
-        offset, unread = row[3], row[4]
-    elif row:
-        for table in ("usage", "names"):
-            db.execute(f"delete from {table} where path = ?", (path,))
-    read_bytes = 0
+        else:
+            offset, unread = row[3], row[4]
+    read_bytes = batched = 0
     usage_rows, name_rows = [], []
+
+    def commit(covers):
+        db.executemany("insert into usage values (?,?,?,?,?,?,?,?,?)", usage_rows)
+        db.executemany("insert into names values (?,?,?,?)", name_rows)
+        usage_rows.clear(), name_rows.clear()
+        db.execute("insert or replace into files values (?,?,?,?,?,?)", (path, covers, mtime, head_of(path, offset), offset, unread))
+        db.commit()
+
     with open(path, "rb") as f:
         f.seek(offset)
         # Binary lines stream a line at a time, and one not ended by a line feed is not taken.
         for raw in f:
             if not raw.endswith(b"\n"):
                 break
+            if batched >= BATCH_BYTES:
+                # A row covers what was read, so a file that grew since stands short of it.
+                commit(offset)
+                batched = 0
+                if os.environ.get("USAGE_STOP_AFTER") and READ_IN_ALL >= int(os.environ["USAGE_STOP_AFTER"]):
+                    os._exit(3)
             pos, offset = offset, offset + len(raw)
             read_bytes += len(raw)
+            batched += len(raw)
+            READ_IN_ALL += len(raw)
             try:
                 entry = json.loads(raw.decode("utf-8", "replace"))
             except ValueError:
@@ -105,10 +151,7 @@ def index(db, path, size, mtime):
             usage_rows.append((path, pos, key, str(entry.get("sessionId")), at, usage.get("input_tokens", 0),
                                usage.get("cache_creation_input_tokens", 0), usage.get("cache_read_input_tokens", 0),
                                usage.get("output_tokens", 0)))
-    db.executemany("insert into usage values (?,?,?,?,?,?,?,?,?)", usage_rows)
-    db.executemany("insert into names values (?,?,?,?)", name_rows)
-    db.execute("insert or replace into files values (?,?,?,?,?,?)", (path, size, mtime, head_of(path, offset), offset, unread))
-    db.commit()
+    commit(size)
     return read_bytes
 
 
@@ -123,6 +166,8 @@ def main():
         sys.exit(2)
 
     projects = os.path.abspath(projects)
+    global BATCH_BYTES
+    BATCH_BYTES = int(option("batch-bytes") or BATCH_BYTES)
     db = open_cache(option("cache") or cache_folder(), projects)
     paths = sorted(glob.glob(os.path.join(projects, "**", "*.jsonl"), recursive=True))
     present, read_bytes, total_bytes = set(paths), 0, 0
