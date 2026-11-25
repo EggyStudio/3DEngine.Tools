@@ -1,10 +1,11 @@
 # Norm
 
 The rules this module keeps, each with a number, a reason and what checks it, written by the session
-that writes [REVIEW.md](REVIEW.md). The text is the same in the eight module repositories, Modeling,
-Vegetation, Levels, Landscape, RadianceCascades, Sky, Tools and Materials. The rules are the
-engines' of the same number, from the norm BevyCSharp and 3DEngine share, taken where they fit a
-library both engines use; a rule the engines have and this file does not is not asked of the module.
+that writes [REVIEW.md](REVIEW.md). The text is the same in the ten module repositories, Modeling,
+Vegetation, Levels, Landscape, RadianceCascades, Atmosphere, Tools, Materials, Diagnostics and
+Acoustics. The rules are the engines' of the same number, from the norm BevyCSharp and 3DEngine
+share, taken where they fit a library both engines use; a rule the engines have and this file does
+not is not asked of the module.
 
 ## Scope
 
@@ -110,8 +111,9 @@ reads the sources and fails on a longer comment line.
 first paragraph stand one to three captures of the module's own output, the plainest that show the
 thing, a plain picture or a pair and not a table of readings, each with one line under it that says
 what it shows. A capture there is made by the module's own programs, names no engine, is at most
-1280 wide and is kept beside the other readings. It is retaken when what it shows changes, in the
-commit that changes it.
+1280 wide and is kept beside the other readings. Its edges are smooth, each pixel the average of
+four samples or more across it, a leaf's or a blade's cutout counted by the share it covers and not
+as all or nothing. It is retaken when what it shows changes, in the commit that changes it.
 
 ## 6 Build and package
 
@@ -237,6 +239,7 @@ writes into nor clears a folder it did not make. By review.
 | N 4.9 | by review |
 | N 4.10 | by review |
 | N 4.11 | to check, a test in each module |
+| N 4.12 | by review |
 | N 6.1 | to check at the first push |
 | N 6.2 | to check at the first push |
 | N 6.6 | to check at the first commit |
